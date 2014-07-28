@@ -219,7 +219,8 @@ int InitGame(void)
     //SDL_WM_SetCaption("\xE5\x85\x88\xE9\x94\x8B\xE7\xBE\xA4\xE4\xBE\xA0\xE4\xBC\xA0","game.ico");         //这是显示窗口的
     //SDL_WM_SetIcon(SDL_LoadBMP("game.ico"), NULL);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-    win = SDL_CreateWindow("\xE4\xba\x8c\xE5\xb7\xa8\xE7\xBE\xA4\xE4\xBE\xA0\xE4\xBC\xA0", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
+    win = SDL_CreateWindow("Lest We Forget", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
+	SDL_SetWindowIcon(win, IMG_Load("game.png"));
     render = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     texture = SDL_CreateTexture(render, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
     //g_Surface=SDL_SetVideoMode(w, h, g_ScreenBpp, SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
