@@ -216,7 +216,6 @@ int InitGame(void)
     }
     //putenv ("SDL_VIDEO_WINDOW_POS");
     //putenv ("SDL_VIDEO_CENTERED=1");
-    //SDL_WM_SetCaption("\xE5\x85\x88\xE9\x94\x8B\xE7\xBE\xA4\xE4\xBE\xA0\xE4\xBC\xA0","game.ico");         //这是显示窗口的
     //SDL_WM_SetIcon(SDL_LoadBMP("game.ico"), NULL);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     win = SDL_CreateWindow("Lest We Forget", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
