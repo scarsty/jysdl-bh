@@ -219,11 +219,11 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
         newcache->fileid = fileid;
         LoadPic(fileid, picid, newcache);
         //指定宽度和高度
-        /*if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
-            && pic_file[fileid].width != newcache->s->w && pic_file[fileid].height != newcache->s->h)
+        if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
+            && pic_file[fileid].width != 100 && pic_file[fileid].height != 100)
         {
-            double zoomx = (double)pic_file[fileid].width / newcache->s->w;
-            double zoomy = (double)pic_file[fileid].height / newcache->s->h;
+            double zoomx = (double)pic_file[fileid].width /100;
+            double zoomy = (double)pic_file[fileid].height /100;
 
             if (zoomx < zoomy)
             {
@@ -233,17 +233,15 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
             {
                 zoomx = zoomy;
             }
-
             tmpsur = newcache->s;
-
-            //newcache->s = zoomSurface(tmpsur, zoomx, zoomy, SMOOTHING_OFF);
-        	newcache->s = SDL_DisplayFormat(tmpsur);
+            newcache->s = zoomSurface(tmpsur, zoomx, zoomy, 1);
+            //newcache->s = SDL_DisplayFormat(tmpsur);
             newcache->xoff = (int)(zoomx * newcache->xoff);
             newcache->yoff = (int)(zoomy * newcache->yoff);
-            SDL_SetColorKey(newcache->s, 1 , ConvertColor(g_MaskColor32)); //透明色
+            //SDL_SetColorKey(newcache->s, 1 , ConvertColor(g_MaskColor32)); //透明色
             SDL_FreeSurface(tmpsur);
 
-        }*/
+        }
         pic_file[fileid].pcache[picid] = newcache;
         if (currentCacheNum < g_MAXCacheNum) //cache没满
         {
@@ -680,12 +678,12 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         }
         SDL_FreeRW(fp_SDL);
         //指定宽度和高度
-		//这里似乎是没用
-        /*if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
-            && pic_file[fileid].width != newcache->s->w && pic_file[fileid].height != newcache->s->h)
+        //这里似乎是没用
+        if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
+            && pic_file[fileid].width != 100 && pic_file[fileid].height != 100)
         {
-            double zoomx = (double)pic_file[fileid].width / newcache->s->w;
-            double zoomy = (double)pic_file[fileid].height / newcache->s->h;
+            double zoomx = (double)pic_file[fileid].width / 100;
+            double zoomy = (double)pic_file[fileid].height / 100;
             if (zoomx < zoomy)
             {
                 zoomy = zoomx;
@@ -699,10 +697,10 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
             newcache->s = zoomSurface(tmpsur, zoomx, zoomy, 1);
             newcache->xoff = (int)(zoomx * newcache->xoff);
             newcache->yoff = (int)(zoomy * newcache->yoff);
-            SDL_SetColorKey(newcache->s, 1 , ConvertColor(g_MaskColor32)); //透明色
+            //SDL_SetColorKey(newcache->s, 1 , ConvertColor(g_MaskColor32)); //透明色
             SDL_FreeSurface(tmpsur);
         }
-        
+        /*
         //如果设置了缩放
         else if (newcache->s != NULL && g_Zoom > 1)
         {

@@ -112,9 +112,9 @@ static const struct luaL_Reg jylib [] =
     {"LoadSur", HAPI_LoadSur},
     {"FreeSur", HAPI_FreeSur},
 
-	{ "SaveSur2", HAPI_SaveSur2 },
-	{ "LoadSur2", HAPI_LoadSur2 },
-	{ "FreeSur2", HAPI_FreeSur2 },
+    { "SaveSur2", HAPI_SaveSur2 },
+    { "LoadSur2", HAPI_LoadSur2 },
+    { "FreeSur2", HAPI_FreeSur2 },
 
     {"GetScreenW", HAPI_ScreenWidth},
     {"GetScreenH", HAPI_ScreenHeight},
