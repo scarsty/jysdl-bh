@@ -824,7 +824,7 @@ int BlitSurface(SDL_Surface* lps, int x, int y , int flag, int value, int pcolor
     {
         SDL_SetSurfaceColorMod(tmps, 0, 0, 0);
     }
-    if (flag & 0x8) // 白
+    else if (flag & 0x8) // 白
     {
         //创建临时表面
         tmps = SDL_DisplayFormat(lps);
@@ -835,6 +835,10 @@ int BlitSurface(SDL_Surface* lps, int x, int y , int flag, int value, int pcolor
 		SDL_BlitSurface(tmps2, NULL, tmps, NULL);
         tempsur = 1;
     }
+	else
+	{
+		SDL_SetSurfaceColorMod(tmps, 255, 255, 255);
+	}
     if (flag & 0x10)      //似乎是左右翻转，糊弄用吧
     {
         tmps = zoomSurface(lps, -1, 1, 0);
