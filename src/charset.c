@@ -5,8 +5,9 @@
 //为保证平台兼容性，自己生成了一个gbk简体/繁体/big5/unicode的码表文件
 //通过此文件，即可进行各种格式的转换
 
-#include <stdlib.h>
 #include "jymain.h"
+#include <stdlib.h>
+
 
 
 // 显示TTF 字符串

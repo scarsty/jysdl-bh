@@ -31,7 +31,7 @@ CONFIG.KeyRePeatInterval=100;  --一秒钟重复次数
 CONFIG.XScale = 18    -- 贴图宽度的一半
 CONFIG.YScale = 9     -- 贴图高度的一半
 
-CONFIG.CharSet = 0			--游戏字体   0简体，1繁体
+CONFIG.CharSet = 1			--游戏字体   0简体，1繁体
 
 CONFIG.LargeMemory=0;             --设置内存使用方式 1 多使用内存，0 少使用内存
 

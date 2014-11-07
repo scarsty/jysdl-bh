@@ -1,4 +1,6 @@
 // 头文件
+#define _CRT_SECURE_NO_WARNINGS
+
 #ifndef _JYMAIN_H
 #define _JYMAIN_H
 
@@ -310,6 +312,13 @@ int JY_FreeSur(int id);				//释放
 int JY_SaveSur2(int x, int y, int w, int h);		//保存屏幕到临时表面
 int JY_LoadSur2(int id, int x, int y);			//加载临时表面到屏幕
 int JY_FreeSur2(int id);
+
+int LoadImzPic(int fileid, int picid, struct CacheNode *cache);
+int JY_LoadImzFile(const char *filename, int id);
+int LoadImzPicZoom(int fileid, int picid, struct CacheNode *cache, int width, int height);
+int JY_LoadImzPic(int fileid, int picid, int x, int y, int flag, int value);
+int JY_LoadImzPicZoom(int fileid, int picid, int x, int y, int width, int height, int flag, int value);
+
 
 #ifdef __cplusplus
 }
