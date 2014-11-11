@@ -429,14 +429,22 @@ int JY_PlayMIDI(const char* filename)
         return 0;
     }
     StopMIDI();
-    //currentMusic = BASS_MIDI_StreamCreateFile(0, filename, 0, 0, 0, 0);
-    currentMusic = BASS_StreamCreateFile(0, filename, 0, 0, 0);
+
+	if (g_MP3 == 0)
+	{
+		currentMusic = BASS_MIDI_StreamCreateFile(0, filename, 0, 0, 0, 0);
+	}
+	else
+	{
+		currentMusic = BASS_StreamCreateFile(0, filename, 0, 0, 0);
+	}
+
     if (!currentMusic)
     {
         JY_Error("Open music file %s failed! %d", filename, BASS_ErrorGetCode());
         return 1;
     }
-    if (g_MP3 == 1)
+    if (g_MP3 == 0)
     {
         BASS_MIDI_StreamSetFonts(currentMusic, &midfonts, 1);    // set for current stream too
     }
