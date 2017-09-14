@@ -19,24 +19,25 @@
 
 
 //定义vsnprintf. vc6并不支持
-#if defined(_MSC_VER) && _MSC_VAR<1400
-#define vsnprintf _vsnprintf
+#if defined(_MSC_VER) && _MSC_VER<1400
+    #define vsnprintf _vsnprintf
 #endif
 
 
 //定义是否包含smpeg库
 
 #if !defined(__SYMBIAN32__)
-#define HAS_SDL_MPEG
+    #define HAS_SDL_MPEG
 #endif
 
 #if defined(_MSC_VER)
 //定义高精度时钟。仅x86有效。只用于调试，用来测试小于1ms的时间间隔。正式发布版本不应该使用
-// #define HIGH_PRECISION_CLOCK
+   // #define HIGH_PRECISION_CLOCK
 
 //定义CPU频率，高精度时钟使用。单位为MHz
-#define CPU_FREQUENCY 2000
+    #define CPU_FREQUENCY 2000
 #endif
 
 #endif
+
 
