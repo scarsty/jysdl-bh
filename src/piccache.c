@@ -391,7 +391,7 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
                 cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
                 SDL_FreeSurface(tmpsur);
 
-                tmpsur = SDL_ConvertSurfaceFormat(cache->s, SDL_GetWindowPixelFormat(g_Window), 0);
+                tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
 
                 SDL_FreeSurface(cache->s);
 
@@ -431,7 +431,7 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
                 cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
                 SDL_FreeSurface(tmpsur);
 
-                tmpsur = SDL_ConvertSurfaceFormat(cache->s, SDL_GetWindowPixelFormat(g_Window), 0);
+                tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
 
                 SDL_FreeSurface(cache->s);
 
@@ -518,7 +518,7 @@ static SDL_Surface* CreatePicSurface32(unsigned char* data, int w, int h, int da
     }
 
     for (i = 0; i < w * h; i++)
-    { data32[i] = g_MaskColor32; }
+    { data32[i] = 0; }
 
     for (i = 0; i < h; i++)
     {
@@ -542,11 +542,11 @@ static SDL_Surface* CreatePicSurface32(unsigned char* data, int w, int h, int da
                 {
                     if (g_Rotate == 0)
                     {
-                        data32[yoffset + x] = m_color32[data[p]];
+                        data32[yoffset + x] = m_color32[data[p]] | AMASK;
                     }
                     else
                     {
-                        data32[h - i - 1 + x * h] = m_color32[data[p]];
+                        data32[h - i - 1 + x * h] = m_color32[data[p]] | AMASK;
                     }
                     p++;
                     x++;
@@ -563,17 +563,18 @@ static SDL_Surface* CreatePicSurface32(unsigned char* data, int w, int h, int da
 
     if (g_Rotate == 0)
     {
-        ps1 = SDL_CreateRGBSurfaceFrom(data32, w, h, 32, w * 4, 0xff0000, 0xff00, 0xff, 0xff000000);  //创建32位表面
+        ps1 = SDL_CreateRGBSurfaceFrom(data32, w, h, 32, w * 4, RMASK, GMASK, BMASK, AMASK);  //创建32位表面
     }
     else
     {
-        ps1 = SDL_CreateRGBSurfaceFrom(data32, h, w, 32, h * 4, 0xff0000, 0xff00, 0xff, 0xff000000);  //创建32位表面
+        ps1 = SDL_CreateRGBSurfaceFrom(data32, h, w, 32, h * 4, RMASK, GMASK, BMASK, AMASK);  //创建32位表面
     }
     if (ps1 == NULL)
     {
         JY_Error("CreatePicSurface32: cannot create SDL_Surface ps1!\n");
     }
-    ps2 = SDL_ConvertSurfaceFormat(ps1, SDL_GetWindowPixelFormat(g_Window), 0);   // 把32位表面改为当前表面
+    //ps2 = SDL_ConvertSurfaceFormat(ps1, SDL_GetWindowPixelFormat(g_Window), 0);   // 把32位表面改为当前表面
+    ps2 = SDL_ConvertSurfaceFormat(ps1, g_Surface->format->format, 0);
     if (ps2 == NULL)
     {
         JY_Error("CreatePicSurface32: cannot create SDL_Surface ps2!\n");
@@ -581,7 +582,7 @@ static SDL_Surface* CreatePicSurface32(unsigned char* data, int w, int h, int da
 
     SDL_FreeSurface(ps1);
     SafeFree(data32);
-    SDL_SetColorKey(ps2, SDL_TRUE, g_MaskColor32);  //透明色
+    //SDL_SetColorKey(ps2, SDL_TRUE, g_MaskColor32);  //透明色
 
     return ps2;
 
@@ -606,7 +607,7 @@ static int LoadPallette(char* filename)
     for (i = 0; i < 256; i++)
     {
         fread(color, 1, 3, fp);
-        m_color32[i] = color[0] * 4 * 65536l + color[1] * 4 * 256 + color[2] * 4;
+        m_color32[i] = color[0] * 4 * 65536l + color[1] * 4 * 256 + color[2] * 4 + 0x000000;
 
     }
     fclose(fp);

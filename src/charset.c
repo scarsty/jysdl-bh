@@ -146,15 +146,15 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     if (myfont == NULL)
     { return 1; }
 
-    c.r = (Uint8)((color & 0xff0000) >> 16);
-    c.g = (Uint8)((color & 0xff00) >> 8);
-    c.b = (Uint8)((color & 0xff));
-    c.a = 0xff000000;
+    c.r = (Uint8)((color & RMASK) >> 16);
+    c.g = (Uint8)((color & GMASK) >> 8);
+    c.b = (Uint8)((color & BMASK));
+    c.a = AMASK;
 
     c2.r = c.r >> 1;
     c2.b = c.b >> 1;
     c2.g = c.g >> 1;
-    c2.a = 0xff000000;
+    c2.a = AMASK;
 
 
     if (charset == 0 && OScharset == 0)  //GBK -->unicode¼òÌå

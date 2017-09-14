@@ -43,6 +43,11 @@ static char *JY_CurrentPath = "./";
 
 #define _(f) va("%s%s", JY_CurrentPath, f)
 
+#define RMASK (0xff0000)
+#define GMASK (0xff00)
+#define BMASK (0xff)
+#define AMASK (0xff000000)
+
 // jymain.c
 
 int Lua_Main(lua_State *pL_main);

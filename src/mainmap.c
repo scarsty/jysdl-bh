@@ -1252,7 +1252,6 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                     int d4 = 0;
                     if (v4 >= 0)
                     { d4 = JY_GetS(v4, xx, yy, 4); }
-
                     if (fw == 1)
                     { JY_LoadPic(0, 0, x1, y1 - d4, 2, 112); }
                     else if (fw == 2)

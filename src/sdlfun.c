@@ -48,6 +48,8 @@ extern char g_MidSF2[255];
 #define SURFACE_NUM  20
 static SDL_Surface* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
 
+extern lua_State* pL_main;
+
 //过滤ESC、RETURN、SPACE键，使他们按下后不能重复。
 int KeyFilter(const void* data, const SDL_Event* event)
 {
@@ -242,7 +244,7 @@ int InitGame(void)
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED);
     g_Texture = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-    g_Surface = SDL_CreateRGBSurface(0, w, h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    g_Surface = SDL_CreateRGBSurface(0, w, h, 32, RMASK,GMASK,BMASK,AMASK);
     //SDL_WM_SetCaption("The Fall of Star",_("ff.ico"));         //这是显示窗口的
     //SDL_WM_SetIcon(IMG_Load(_("ff.ico")), NULL);
 
@@ -322,7 +324,7 @@ int JY_LoadPicture(const char* str, int x, int y)
         tmppic = IMG_Load(str);
         if (tmppic)
         {
-            pic = SDL_ConvertSurfaceFormat(tmppic, SDL_GetWindowPixelFormat(g_Window), 0);   // 改为当前表面的像素格式
+            pic = SDL_ConvertSurfaceFormat(tmppic, g_Surface->format->format, 0);   // 改为当前表面的像素格式
             SDL_FreeSurface(tmppic);
             strcpy(filename, str);
         }
@@ -611,7 +613,7 @@ int showMessage(const char* content)
 int JY_GetKey(int* key, int* type, int* mx, int* my)
 {
     SDL_Event event;
-    int win_w, win_h;
+    int win_w, win_h, r;
     *key = -1;
     *type = -1;
     *mx = -1;
@@ -663,12 +665,18 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             }
             break;
         case SDL_QUIT:
-            if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
+            lua_getglobal(pL_main, "Menu_Exit");
+            lua_call(pL_main, 0, 1);
+            r = (int)lua_tointeger(pL_main, -1);
+            lua_pop(pL_main, 1);
+            //if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
+            if (r == 1)
             {
                 ExitGame();       //释放游戏数据
                 ExitSDL();        //退出SDL
                 exit(1);
             }
+            break;
         default:
             break;
         }
@@ -944,7 +952,7 @@ int JY_FillColor(int x1, int y1, int x2, int y2, int color)
 }
 
 
-// 把表面blt到背景或者前景表面
+// 把表面blit到背景或者前景表面
 // x,y 要加载到表面的左上角坐标
 int BlitSurface(SDL_Surface* lps, int x, int y, int flag, int value, int pcolor)
 {
@@ -976,9 +984,9 @@ int BlitSurface(SDL_Surface* lps, int x, int y, int flag, int value, int pcolor)
         if ((flag & 0x4) || (flag & 0x8) || (flag & 0x10))     // 黑白
         {
             int bpp = lps->format->BitsPerPixel;
-            Uint8 r = (Uint8)((pcolor & 0xff0000) >> 16);
-            Uint8 g = (Uint8)((pcolor & 0xff00) >> 8);
-            Uint8 b = (Uint8)((pcolor & 0xff));
+            Uint8 r = (Uint8)((pcolor & RMASK) >> 16);
+            Uint8 g = (Uint8)((pcolor & GMASK) >> 8);
+            Uint8 b = (Uint8)((pcolor & BMASK));
 
 
             //创建临时表面
@@ -1020,9 +1028,9 @@ int BlitSurface(SDL_Surface* lps, int x, int y, int flag, int value, int pcolor)
                         if (*p != color)
                         {
                             if (flag & 0x4)
-                            { *p = 0xff000000; }
+                            { *p = 0 | AMASK; }
                             else  if (flag & 0x8)
-                            { *p = 0xffffffff; }
+                            { *p = 0xffffff | AMASK; }
                             else
                             { *p = ConvertColor(pcolor); }
                         }
@@ -1067,20 +1075,14 @@ int BlitSurface(SDL_Surface* lps, int x, int y, int flag, int value, int pcolor)
             }
 
             SDL_UnlockSurface(tmps);
-
             SDL_SetSurfaceAlphaMod(tmps, (Uint8)value);
-
             SDL_BlitSurface(tmps, NULL, g_Surface, &rect);
-
             SDL_FreeSurface(tmps);
         }
         else
         {
-
             SDL_SetSurfaceAlphaMod(lps, (Uint8)value);
-
             SDL_BlitSurface(lps, NULL, g_Surface, &rect);
-
         }
     }
 
@@ -1121,7 +1123,7 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
     lps1 = SDL_CreateRGBSurface(SDL_SWSURFACE, r2.w, r2.h, g_Surface->format->BitsPerPixel,
         g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
 
-    SDL_FillRect(lps1, NULL, color | 0xff000000);
+    SDL_FillRect(lps1, NULL, color | AMASK);
     SDL_SetSurfaceAlphaMod(lps1, (Uint8)Bright);
     SDL_BlitSurface(lps1, NULL, g_Surface, &r2);
     SDL_FreeSurface(lps1);

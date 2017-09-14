@@ -19,7 +19,7 @@ SDL_Renderer* g_Renderer = NULL;
 SDL_Texture* g_Texture = NULL;
 
 SDL_Surface* g_Surface = NULL;        // 游戏使用的视频表面
-Uint32 g_MaskColor32 = 0x706020;      // 透明色
+Uint32 g_MaskColor32 = 0xff706020;      // 透明色
 
 int g_Rotate = 0;                     //屏幕是否旋转
 
@@ -59,6 +59,9 @@ char g_MidSF2[255];                   //音色库对应的文件
 
 
 float g_Zoom = 1;                     //图片放大
+
+
+lua_State *pL_main = NULL;
 
 //定义的lua接口函数名
 static const struct luaL_Reg jylib[] =
@@ -152,7 +155,7 @@ static const struct luaL_Reg bytelib[] =
 // 主程序
 int main(int argc, char* argv[])
 {
-    lua_State* pL_main;
+    //lua_State* pL_main;
 
 
     remove(DEBUG_FILE);
