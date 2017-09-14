@@ -354,8 +354,9 @@ int JY_LoadPicture(const char* str, int x, int y)
 //flag = 0 显示全部表面  =1 按照JY_SetClip设置的矩形显示，如果没有矩形，则不显示
 int JY_ShowSurface(int flag)
 {
+    //SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
     SDL_UpdateTexture(g_Texture, NULL, g_Surface->pixels, g_Surface->pitch);
-    SDL_RenderClear(g_Renderer);
+    //SDL_RenderClear(g_Renderer);
     if (flag == 1)
     {
         if (currentRect > 0)
