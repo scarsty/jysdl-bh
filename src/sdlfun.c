@@ -244,7 +244,7 @@ int InitGame(void)
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED);
     g_Texture = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-    g_Surface = SDL_CreateRGBSurface(0, w, h, 32, RMASK,GMASK,BMASK,AMASK);
+    g_Surface = SDL_CreateRGBSurface(0, w, h, 32, RMASK, GMASK, BMASK, AMASK);
     //SDL_WM_SetCaption("The Fall of Star",_("ff.ico"));         //这是显示窗口的
     //SDL_WM_SetIcon(IMG_Load(_("ff.ico")), NULL);
 
@@ -366,7 +366,7 @@ int JY_ShowSurface(int flag)
             //SDL_UpdateRects(g_Surface, currentRect, ClipRect);
             for (int i = 0; i < currentRect; i++)
             {
-                SDL_RenderCopy(g_Renderer, g_Texture, ClipRect+i, ClipRect+i);
+                SDL_RenderCopy(g_Renderer, g_Texture, ClipRect + i, ClipRect + i);
             }
         }
     }
@@ -630,7 +630,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             }
             *type = 1;
             break;
-        case SDL_MOUSEMOTION:           //鼠标移动        
+        case SDL_MOUSEMOTION:           //鼠标移动
             SDL_GetWindowSize(g_Window, &win_w, &win_h);
             *mx = event.motion.x * g_Surface->w / win_w;
             *my = event.motion.y * g_Surface->h / win_h;
@@ -1134,15 +1134,17 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
 // esckey 停止播放的按键
 int JY_PlayMPEG(const char* filename, int esckey)
 {
-    //FILE* f = fopen(filename, "rb");
-    //if (f)
-    //{
-    //    fclose(f);
-        void* tinypot = NULL;
-        tinypot = PotCreateFromWindow(g_Window);
-        PotInputVideo(tinypot, filename);
-        PotDestory(tinypot);
-    //}
+    void* tinypot = NULL;
+    tinypot = PotCreateFromWindow(g_Window);
+    int r = PotInputVideo(tinypot, filename);
+    PotDestory(tinypot);
+    if (r == 1)
+    {
+        SDL_Event e;
+        e.type = SDL_QUIT;
+        SDL_PushEvent(&e);
+    }
+
     return 0;
 }
 
