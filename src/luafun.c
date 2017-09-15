@@ -229,11 +229,9 @@ int HAPI_PlayWAV(lua_State* pL)
 
 int HAPI_PlayMPEG(lua_State* pL)
 {
-
     const char* filename = lua_tostring(pL, 1);
-    int key = (int)lua_tonumber(pL, 2);
-    JY_PlayMPEG(filename, key);
-
+    //int key = (int)lua_tonumber(pL, 2);
+    JY_PlayMPEG(filename, 0);
     return 0;
 }
 
