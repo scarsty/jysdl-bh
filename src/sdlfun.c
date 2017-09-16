@@ -635,7 +635,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
                 *key = SDLK_RETURN;
             }
             *type = 1;            
-            if (pressed == 0 && pressed_key != *key)
+            if (pressed == 0 || pressed_key != *key)
             {
                 SDL_Delay(50);
             }
@@ -704,7 +704,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
         }
     }
 
-    if (SDL_GetTicks() - ticks > 10)
+    if (SDL_GetTicks() - ticks > 20)
     {
         static int pre_pressed = 0;
         const Uint8* state = SDL_GetKeyboardState(NULL);
