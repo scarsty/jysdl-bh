@@ -356,9 +356,6 @@ int JY_LoadPicture(const char* str, int x, int y)
 //flag = 0 显示全部表面  =1 按照JY_SetClip设置的矩形显示，如果没有矩形，则不显示
 int JY_ShowSurface(int flag)
 {
-    //SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
-    SDL_UpdateTexture(g_Texture, NULL, g_Surface->pixels, g_Surface->pitch);
-    //SDL_RenderClear(g_Renderer);
     if (flag == 1)
     {
         if (currentRect > 0)
@@ -366,14 +363,17 @@ int JY_ShowSurface(int flag)
             //SDL_UpdateRects(g_Surface, currentRect, ClipRect);
             for (int i = 0; i < currentRect; i++)
             {
-                SDL_RenderCopy(g_Renderer, g_Texture, ClipRect + i, ClipRect + i);
+                SDL_Rect* r = ClipRect + i;
+                SDL_UpdateTexture(g_Texture, r, 
+                    (char*)g_Surface->pixels + g_Surface->format->BytesPerPixel * r->x + g_Surface->pitch * r->y, g_Surface->pitch);
             }
         }
     }
     else
     {
-        SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
+        SDL_UpdateTexture(g_Texture, NULL, g_Surface->pixels, g_Surface->pitch);        
     }
+    SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
     SDL_RenderPresent(g_Renderer);
     return 0;
 }
@@ -687,17 +687,25 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             }
             break;
         case SDL_QUIT:
-            lua_getglobal(pL_main, "Menu_Exit");
-            lua_call(pL_main, 0, 1);
-            r = (int)lua_tointeger(pL_main, -1);
-            lua_pop(pL_main, 1);
-            //if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
-            if (r == 1)
+        {
+            static quit = 0;
+            if (quit == 0)
             {
-                ExitGame();       //释放游戏数据
-                ExitSDL();        //退出SDL
-                exit(1);
+                quit = 1;
+                lua_getglobal(pL_main, "Menu_Exit");
+                lua_call(pL_main, 0, 1);
+                r = (int)lua_tointeger(pL_main, -1);
+                lua_pop(pL_main, 1);
+                //if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
+                if (r == 1)
+                {
+                    ExitGame();       //释放游戏数据
+                    ExitSDL();        //退出SDL
+                    exit(1);
+                }
+                quit = 0;
             }
+        }
             break;
         default:
             break;
