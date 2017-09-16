@@ -612,13 +612,19 @@ int showMessage(const char* content)
 // 得到前面按下的字符
 int JY_GetKey(int* key, int* type, int* mx, int* my)
 {
+    static int pressed = 0;
+    static int pressed_key = -1;
+    static Uint32 ticks = 0;
+
     SDL_Event event;
     int win_w, win_h, r;
     *key = -1;
     *type = -1;
     *mx = -1;
     *my = -1;
+
     while (SDL_PollEvent(&event))
+        //if (SDL_PollEvent(&event))
     {
         switch (event.type)
         {
@@ -628,7 +634,23 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             {
                 *key = SDLK_RETURN;
             }
-            *type = 1;
+            *type = 1;            
+            if (pressed == 0 && pressed_key != *key)
+            {
+                SDL_Delay(50);
+            }
+            pressed = 1;
+            pressed_key = event.key.keysym.sym;
+            break;
+        case SDL_KEYUP:
+            //*key = event.key.keysym.sym;
+            //if (*key == SDLK_SPACE)
+            //{
+            //    *key = SDLK_RETURN;
+            //}
+            //pressed_key = event.key.keysym.sym;
+            pressed = 0;
+            //*type = -1;
             break;
         case SDL_MOUSEMOTION:           //鼠标移动
             SDL_GetWindowSize(g_Window, &win_w, &win_h);
@@ -681,6 +703,32 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             break;
         }
     }
+
+    if (SDL_GetTicks() - ticks > 10)
+    {
+        static int pre_pressed = 0;
+        const Uint8* state = SDL_GetKeyboardState(NULL);
+        int cur_pressed = pre_pressed;
+        //check the previous pressed key
+        if (state[pre_pressed])
+        {
+            *key = SDL_SCANCODE_TO_KEYCODE(pre_pressed);
+            cur_pressed = pre_pressed;
+        }
+        for (int i = SDL_SCANCODE_RIGHT; i <= SDL_SCANCODE_UP; i++)
+        {
+            //if the pressed key is different to the previous, use the newer
+            if (i != pre_pressed && state[i])
+            {
+                *key = SDL_SCANCODE_TO_KEYCODE(i);
+                cur_pressed = i;
+                break;
+            }
+        }
+        pre_pressed = cur_pressed;
+    }
+    ticks = SDL_GetTicks();
+
     return *key;
 
 }
