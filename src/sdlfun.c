@@ -1221,6 +1221,8 @@ int JY_FullScreen()
 
     SDL_BlitSurface(g_Surface, NULL, tmpsurface, NULL);
 
+    g_FullScreen = 1 - g_FullScreen;
+
     if (g_FullScreen == 1)
     {
         SDL_SetWindowFullscreen(g_Window, SDL_WINDOW_FULLSCREEN_DESKTOP);
