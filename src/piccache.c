@@ -264,7 +264,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
 
             newcache->xoff = (int)(zoomx * newcache->xoff);
             newcache->yoff = (int)(zoomy * newcache->yoff);
-            SDL_SetColorKey(newcache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
+            //SDL_SetColorKey(newcache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
             SDL_FreeSurface(tmpsur);
 
         }
@@ -399,7 +399,7 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
                 cache->xoff = (int)(g_Zoom * cache->xoff);
                 cache->yoff = (int)(g_Zoom * cache->yoff);
 
-                SDL_SetColorKey(cache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
+                //SDL_SetColorKey(cache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
 
             }
 

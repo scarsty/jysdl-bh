@@ -61,7 +61,10 @@ char g_MidSF2[255];                   //音色库对应的文件
 float g_Zoom = 1;                     //图片放大
 
 
-lua_State *pL_main = NULL;
+lua_State* pL_main = NULL;
+
+int g_Delay = 50;
+int g_Interval = 20;
 
 //定义的lua接口函数名
 static const struct luaL_Reg jylib[] =
@@ -157,7 +160,6 @@ int main(int argc, char* argv[])
 {
     //lua_State* pL_main;
 
-
     remove(DEBUG_FILE);
     remove(ERROR_FILE);    //设置stderr输出到文件
 
@@ -176,6 +178,22 @@ int main(int argc, char* argv[])
 
     JY_Debug("LoadMB();");
     LoadMB(_(HZMB_FILE));  //加载汉字字符集转换码表
+
+
+#ifdef _DEBUG
+    //SDL_Event e;
+    //while (SDL_PollEvent(&e) >= 0)
+    //{
+    //    if (e.type == SDL_KEYUP)
+    //    {
+    //        printf("%u\n", e.key.keysym.sym);
+    //        if (e.key.keysym.sym == SDLK_ESCAPE)
+    //        {
+    //            break;
+    //        }
+    //    }
+    //}
+#endif
 
     JY_Debug("Lua_Main();");
     Lua_Main(pL_main);          //调用Lua主函数，开始游戏
@@ -339,23 +357,27 @@ int JY_Debug(const char* fmt, ...)
     va_end(argptr);
     if (IsDebug == 0)
     { return 0; }
-
-    fp = fopen(DEBUG_FILE, "a+t");
     time(&t);
     newtime = localtime(&t);
+#ifdef _DEBUG
+    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
+#else
+    fp = fopen(DEBUG_FILE, "a+t");
     fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
     fclose(fp);
+#endif
     return 0;
 }
+
 // 调试函数
 // 输出到error.txt中
 int JY_Error(const char* fmt, ...)
 {
     //无酒不欢：不再输出error信息
-    /*
+#ifdef _DEBUG
     time_t t;
-    FILE *fp;
-    struct tm *newtime;
+    FILE* fp;
+    struct tm* newtime;
 
     va_list argptr;
     char string[1024];
@@ -363,11 +385,12 @@ int JY_Error(const char* fmt, ...)
     va_start(argptr, fmt);
     vsnprintf(string, sizeof(string), fmt, argptr);
     va_end(argptr);
-    fp=fopen(ERROR_FILE,"a+t");
+    //fp=fopen(ERROR_FILE,"a+t");
     time(&t);
-    newtime=localtime(&t);
-    fprintf(fp,"%02d:%02d:%02d %s\n",newtime->tm_hour,newtime->tm_min,newtime->tm_sec,string);
-    fflush(fp);*/
+    newtime = localtime(&t);
+    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
+    //fflush(fp);
+#endif
     return 0;
 }
 

@@ -18,6 +18,9 @@
 extern int g_ScreenW;
 extern int g_ScreenH;
 
+extern int g_Delay;
+extern int g_Interval;
+
 //以下为所有包装的lua接口函数，对应于每个实际的函数
 
 int HAPI_DrawStr(lua_State* pL)
@@ -122,6 +125,8 @@ int HAPI_EnableKeyRepeat(lua_State* pL)
 {
     int delay = (int)lua_tonumber(pL, 1);
     int interval = (int)lua_tonumber(pL, 2);
+    g_Delay = delay;
+    g_Interval = interval;
     //SDL_EnableKeyRepeat(delay,interval);
     return 0;
 }

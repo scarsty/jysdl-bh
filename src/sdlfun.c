@@ -50,6 +50,9 @@ static SDL_Surface* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
 
 extern lua_State* pL_main;
 
+extern int g_Delay;
+extern int g_Interval;
+
 //过滤ESC、RETURN、SPACE键，使他们按下后不能重复。
 int KeyFilter(const void* data, const SDL_Event* event)
 {
@@ -250,7 +253,7 @@ int InitGame(void)
 
     if (g_FullScreen == 1)
     {
-        SDL_SetWindowFullscreen(g_Window, SDL_WINDOW_FULLSCREEN);
+        SDL_SetWindowFullscreen(g_Window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
     else
     {
@@ -637,7 +640,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             *type = 1;            
             if (pressed == 0 || pressed_key != *key)
             {
-                SDL_Delay(50);
+                SDL_Delay(g_Delay);
             }
             pressed = 1;
             pressed_key = event.key.keysym.sym;
@@ -712,7 +715,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
         }
     }
 
-    if (SDL_GetTicks() - ticks > 20)
+    if (SDL_GetTicks() - ticks > g_Interval)
     {
         static int pre_pressed = 0;
         const Uint8* state = SDL_GetKeyboardState(NULL);
@@ -720,7 +723,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
         //check the previous pressed key
         if (state[pre_pressed])
         {
-            *key = SDL_SCANCODE_TO_KEYCODE(pre_pressed);
+            *key = SDL_GetKeyFromScancode(pre_pressed);
             cur_pressed = pre_pressed;
         }
         for (int i = SDL_SCANCODE_RIGHT; i <= SDL_SCANCODE_UP; i++)
@@ -728,7 +731,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             //if the pressed key is different to the previous, use the newer
             if (i != pre_pressed && state[i])
             {
-                *key = SDL_SCANCODE_TO_KEYCODE(i);
+                *key = SDL_GetKeyFromScancode(i);
                 cur_pressed = i;
                 break;
             }
@@ -1220,7 +1223,7 @@ int JY_FullScreen()
 
     if (g_FullScreen == 1)
     {
-        SDL_SetWindowFullscreen(g_Window, SDL_WINDOW_FULLSCREEN);
+        SDL_SetWindowFullscreen(g_Window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
     else
     {
