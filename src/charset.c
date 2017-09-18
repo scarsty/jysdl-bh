@@ -28,8 +28,13 @@ static Uint16 gbk_big5[128][256];
 static Uint16 big5_gbk[128][256];
 static Uint16 big5_unicode[128][256];
 
-extern  SDL_Surface* g_Surface;    //屏幕表面
+extern SDL_Surface* g_Surface;    //屏幕表面
 extern int g_Rotate;
+
+#define MAX_CACHE_CHAR (10000)
+static char_count = 0;
+static SDL_Surface* chars_cache[100][60000] = { 0 };
+static SDL_Surface** chars_record[MAX_CACHE_CHAR] = { 0 };
 
 //初始化
 int InitFont()
@@ -51,9 +56,17 @@ int InitFont()
 //释放字体结构
 int ExitFont()
 {
-    int i;
+    JY_Debug("%d chars cached.", char_count);
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 60000; j++)
+        {
+            if (chars_cache[i][j])
+            { SDL_FreeSurface(chars_cache[i][j]); }
+        }
+    }
 
-    for (i = 0; i < FONTNUM; i++)    //释放字体数据
+    for (int i = 0; i < FONTNUM; i++)    //释放字体数据
     {
         if (Font[i].font)
         {
@@ -122,7 +135,7 @@ static TTF_Font* GetFont(const char* filename, int size)
 int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* fontname,
     int charset, int OScharset)
 {
-    SDL_Color c, c2;
+    SDL_Color c, c2, white;
     SDL_Surface* fontSurface = NULL, *fontSurface1 = NULL;
     int w, h;
     SDL_Rect rect1, rect2, rect_dest;
@@ -150,11 +163,14 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     c.g = (Uint8)((color & GMASK) >> 8);
     c.b = (Uint8)((color & BMASK));
     c.a = AMASK;
-
     c2.r = c.r >> 1;
     c2.b = c.b >> 1;
     c2.g = c.g >> 1;
     c2.a = AMASK;
+    white.r = 255;
+    white.g = 255;
+    white.b = 255;
+    white.a = 255;
 
 
     if (charset == 0 && OScharset == 0)  //GBK -->unicode简体
@@ -199,10 +215,51 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     }
 
     //fontSurface=TTF_RenderUNICODE_Solid(myfont, (Uint16*)tmp2, c);  //生成表面
-    fontSurface = TTF_RenderUNICODE_Blended(myfont, (Uint16*)tmp2, c);
-    fontSurface1 = TTF_RenderUNICODE_Blended(myfont, (Uint16*)tmp2, c2);
+
+    Uint16* p = (Uint16*)tmp2;
+    rect1.x = x;
+    rect1.y = y;
+    for (int i = 0; i < 128; i++)
+    {
+        int s = size;
+        if (*p == 0)
+        {
+            break;
+        }
+        if (*p <= 255) { s = size / 2; }
+        SDL_Surface** sur = &chars_cache[size][*p];
+        if (*sur == NULL)
+        {
+            Uint16 tmp[2] = { 0 };
+            tmp[0] = *p;
+            *sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
+            char_count++;
+        }
+
+        SDL_SetSurfaceColorMod(*sur, c2.r, c2.g, c2.b);
+        SDL_SetSurfaceAlphaMod(*sur, 128);
+
+        rect2.x = rect1.x + 1;
+        rect2.y = rect1.y + 1;
+        SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
+        rect2.x = rect1.x + 1;
+        rect2.y = rect1.y;
+        SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
+        rect2.x = rect1.x;
+        rect2.y = rect1.y + 1;
+        SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
+        SDL_SetSurfaceColorMod(*sur, c.r, c.g, c.b);
+        SDL_SetSurfaceAlphaMod(*sur, 255);
+        SDL_BlitSurface(*sur, NULL, g_Surface, &rect1);
+        rect1.x = rect1.x + s;
+        p++;
+    }
+
+    //JY_Debug("%d chars cached.", char_count);
+    //fontSurface = TTF_RenderUNICODE_Blended(myfont, (Uint16*)tmp2, c);
+    //fontSurface1 = TTF_RenderUNICODE_Blended(myfont, (Uint16*)tmp2, c2);
     //SDL_SetSurfaceAlphaMod(fontSurface, 255);
-    SDL_SetSurfaceAlphaMod(fontSurface1, 128);
+    //SDL_SetSurfaceAlphaMod(fontSurface1, 128);
 
     if (fontSurface == NULL)
     { return 1; }
@@ -212,6 +269,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     rect1.w = (Uint16)fontSurface->w;
     rect1.h = (Uint16)fontSurface->h;
 
+    /*
     if (g_Rotate == 0)
     {
         rect2 = rect1;
@@ -270,9 +328,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         SDL_SetPaletteColors(fontSurface->format->palette, &c, 1, 1);
         SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //表面写到游戏表面
 
-    }
+    }*/
 
-    SDL_FreeSurface(fontSurface);   //释放表面
+    //SDL_FreeSurface(fontSurface);   //释放表面
     return 0;
 }
 
