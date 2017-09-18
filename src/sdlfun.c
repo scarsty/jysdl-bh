@@ -46,7 +46,7 @@ extern int g_MP3;
 extern char g_MidSF2[255];
 
 #define SURFACE_NUM  20
-static SDL_Surface* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
+static SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
 
 extern lua_State* pL_main;
 
@@ -352,26 +352,26 @@ int JY_LoadPicture(const char* str, int x, int y)
 //flag = 0 显示全部表面  =1 按照JY_SetClip设置的矩形显示，如果没有矩形，则不显示
 int JY_ShowSurface(int flag)
 {
-    //if (flag == 1)
-    //{
-    //    if (currentRect > 0)
-    //    {
-    //        //SDL_UpdateRects(g_Surface, currentRect, ClipRect);
-    //        for (int i = 0; i < currentRect; i++)
-    //        {
-    //            SDL_Rect* r = ClipRect + i;
-    //            SDL_UpdateTexture(g_Texture, r,
-    //                (char*)g_Surface->pixels + g_Surface->format->BytesPerPixel * r->x + g_Surface->pitch * r->y, g_Surface->pitch);
-    //        }
-    //    }
-    //}
-    //else
-    //{
-    //    SDL_UpdateTexture(g_Texture, NULL, g_Surface->pixels, g_Surface->pitch);
-    //}
+    if (flag == 1)
+    {
+        if (currentRect > 0)
+        {
+            //SDL_UpdateRects(g_Surface, currentRect, ClipRect);
+            for (int i = 0; i < currentRect; i++)
+            {
+                SDL_Rect* r = ClipRect + i;
+                //SDL_UpdateTexture(g_Texture, r,
+                    //(char*)g_Surface->pixels + g_Surface->format->BytesPerPixel * r->x + g_Surface->pitch * r->y, g_Surface->pitch);
+            }
+        }
+    }
+    else
+    {
+        SDL_SetRenderTarget(g_Renderer, NULL);
+        SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
+    }
 
-    SDL_SetRenderTarget(g_Renderer, NULL);
-    SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
+
     SDL_RenderPresent(g_Renderer);
     return 0;
 }
@@ -394,19 +394,18 @@ int JY_ShowSlow(int delaytime, int Flag)
     int t1, t2;
     int alpha;
 
-
-    SDL_Surface* lps1;  // 建立临时表面
-    lps1 = SDL_CreateRGBSurface(SDL_SWSURFACE, g_Surface->w, g_Surface->h, g_Surface->format->BitsPerPixel,
-        g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
+    SDL_Texture* lps1;  // 建立临时表面
+    lps1 = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
 
     if (lps1 == NULL)
     {
         JY_Error("JY_ShowSlow: Create surface failed!");
         return 1;
     }
-
-    SDL_BlitSurface(g_Surface, NULL, lps1, NULL);    //当前表面复制到临时表面
-
+    SDL_SetRenderTarget(g_Renderer, lps1);
+    SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
+    //SDL_BlitSurface(g_Surface, NULL, lps1, NULL);    //当前表面复制到临时表面
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
     for (i = 0; i <= 32; i++)
     {
         if (Flag == 0)
@@ -415,17 +414,17 @@ int JY_ShowSlow(int delaytime, int Flag)
         { step = 32 - i; }
 
         t1 = (int)JY_GetTime();
-
-        SDL_FillRect(g_Surface, NULL, 0);          //当前表面变黑
+        SDL_SetRenderDrawColor(g_Renderer, 0, 0, 0, 0);
+        SDL_RenderFillRect(g_Renderer, NULL);          //当前表面变黑
 
         alpha = step << 3;
         if (alpha > 255)
         { alpha = 255; }
 
-        SDL_SetSurfaceAlphaMod(lps1, (Uint8)alpha);  //设置alpha
+        SDL_SetTextureAlphaMod(lps1, (Uint8)alpha);  //设置alpha
 
-
-        SDL_BlitSurface(lps1, NULL, g_Surface, NULL);
+        SDL_RenderCopy(g_Renderer, lps1, NULL, NULL);
+        //SDL_BlitSurface(lps1, NULL, g_Surface, NULL);
 
         JY_ShowSurface(0);
 
@@ -437,7 +436,7 @@ int JY_ShowSlow(int delaytime, int Flag)
         //JY_GetKey();
     }
 
-    SDL_FreeSurface(lps1);       //释放表面
+    SDL_DestroyTexture(lps1);       //释放表面
 
     return 0;
 }
@@ -505,13 +504,8 @@ int JY_PlayMIDI(const char* filename)
     { BASS_MIDI_StreamSetFonts(currentMusic, &midfonts, 1); } // set for current stream too
     BASS_ChannelSetAttribute(currentMusic, BASS_ATTRIB_VOL, (float)(g_MusicVolume / 100.0));
     BASS_ChannelFlags(currentMusic, BASS_SAMPLE_LOOP, BASS_SAMPLE_LOOP);
-
-
     BASS_ChannelPlay(currentMusic, FALSE);
-
     strcpy(currentfile, filename);
-
-
     return 0;
 }
 
@@ -523,7 +517,6 @@ int StopMIDI()
         BASS_ChannelStop(currentMusic);
         BASS_StreamFree(currentMusic);
         currentMusic = 0;
-
     }
     return 0;
 }
@@ -848,132 +841,25 @@ int JY_DrawRect(int x1, int y1, int x2, int y2, int color)
 //绘水平线
 void HLine32(int x1, int x2, int y, int color, unsigned char* vbuffer, int lpitch)
 {
-
-    int temp;
-    int i;
-    int max_x, max_y, min_x, min_y;
-    Uint8* vbuffer2;
-    int bpp;
-
-    bpp = g_Surface->format->BytesPerPixel;
-
-    //手工剪裁
-    min_x = g_Surface->clip_rect.x;
-    min_y = g_Surface->clip_rect.y;
-    max_x = g_Surface->clip_rect.x + g_Surface->clip_rect.w - 1;
-    max_y = g_Surface->clip_rect.y + g_Surface->clip_rect.h - 1;
-
-    if (y > max_y || y < min_y)
-    { return; }
-
-    if (x1 > x2)
-    {
-        temp = x1;
-        x1 = x2;
-        x2 = temp;
-    }
-
-    if (x1 > max_x || x2 < min_x)
-    { return; }
-
-    x1 = ((x1 < min_x) ? min_x : x1);
-    x2 = ((x2 > max_x) ? max_x : x2);
-
-
-    vbuffer2 = vbuffer + y * lpitch + x1 * bpp;
-    switch (bpp)
-    {
-    case 2:        //16位色彩
-        for (i = 0; i <= x2 - x1; i++)
-        {
-            *(Uint16*)vbuffer2 = (Uint16)color;
-            vbuffer2 += 2;
-        }
-        break;
-    case 3:        //24位色彩
-        for (i = 0; i <= x2 - x1; i++)
-        {
-            Uint8* p = (Uint8*)(&color);
-            *vbuffer2 = *p;
-            *(vbuffer2 + 1) = *(p + 1);
-            *(vbuffer2 + 2) = *(p + 2);
-            vbuffer2 += 3;
-        }
-        break;
-    case 4:        //32位色彩
-        for (i = 0; i <= x2 - x1; i++)
-        {
-            *(Uint32*)vbuffer2 = (Uint32)color;
-            vbuffer2 += 4;
-        }
-        break;
-    }
+    Uint8 r = (Uint8)((color & RMASK) >> 16);
+    Uint8 g = (Uint8)((color & GMASK) >> 8);
+    Uint8 b = (Uint8)((color & BMASK));
+    Uint8 a = 255;
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_SetRenderDrawColor(g_Renderer, r, g, b, a);
+    SDL_RenderDrawLine(g_Renderer, x1, y, x2, y);
 }
 
 //绘垂直线
 void VLine32(int y1, int y2, int x, int color, unsigned char* vbuffer, int lpitch)
 {
-
-    int temp;
-    int i;
-    int max_x, max_y, min_x, min_y;
-    Uint8* vbuffer2;
-    int bpp;
-
-    bpp = g_Surface->format->BytesPerPixel;
-
-    min_x = g_Surface->clip_rect.x;
-    min_y = g_Surface->clip_rect.y;
-    max_x = g_Surface->clip_rect.x + g_Surface->clip_rect.w - 1;
-    max_y = g_Surface->clip_rect.y + g_Surface->clip_rect.h - 1;
-
-
-    if (x > max_x || x < min_x)
-    { return; }
-
-    if (y1 > y2)
-    {
-        temp = y1;
-        y1 = y2;
-        y2 = temp;
-    }
-
-    if (y1 > max_y || y2 < min_y)
-    { return; }
-
-    y1 = ((y1 < min_y) ? min_y : y1);
-    y2 = ((y2 > max_y) ? max_y : y2);
-
-    vbuffer2 = vbuffer + y1 * lpitch + x * bpp;
-    switch (bpp)
-    {
-    case 2:
-        for (i = 0; i <= y2 - y1; i++)
-        {
-            *(Uint16*)vbuffer2 = (Uint16)color;
-            vbuffer2 += lpitch;
-        }
-        break;
-    case 3:
-        for (i = 0; i <= y2 - y1; i++)
-        {
-            Uint8* p = (Uint8*)(&color);
-            *vbuffer2 = *p;
-            *(vbuffer2 + 1) = *(p + 1);
-            *(vbuffer2 + 2) = *(p + 2);
-
-            vbuffer2 += lpitch;
-        }
-        break;
-    case 4:
-        for (i = 0; i <= y2 - y1; i++)
-        {
-            *(Uint32*)vbuffer2 = (Uint32)color;
-            vbuffer2 += lpitch;
-        }
-        break;
-    }
-
+    Uint8 r = (Uint8)((color & RMASK) >> 16);
+    Uint8 g = (Uint8)((color & GMASK) >> 8);
+    Uint8 b = (Uint8)((color & BMASK));
+    Uint8 a = 255;
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_SetRenderDrawColor(g_Renderer, r, g, b, a);
+    SDL_RenderDrawLine(g_Renderer, x, y1, x, y2);
 }
 
 
@@ -983,22 +869,28 @@ void VLine32(int y1, int y2, int x, int color, unsigned char* vbuffer, int lpitc
 // color, 填充色，用RGB表示，从高到低字节为0RGB
 int JY_FillColor(int x1, int y1, int x2, int y2, int color)
 {
-    int c = ConvertColor(color);
-
-    SDL_Rect rect;
-
+    Uint8 r = (Uint8)((color & RMASK) >> 16);
+    Uint8 g = (Uint8)((color & GMASK) >> 8);
+    Uint8 b = (Uint8)((color & BMASK));
+    Uint8 a = (Uint8)((color & AMASK) >> 24);
+    //int c = ConvertColor(color);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_SetRenderDrawColor(g_Renderer, r, g, b, a);
+    SDL_SetRenderDrawBlendMode(g_Renderer, SDL_BLENDMODE_BLEND);
     if (x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0)
     {
-        SDL_FillRect(g_Surface, NULL, c);
+        SDL_RenderFillRect(g_Renderer, NULL);
+        //SDL_FillRect(g_Surface, NULL, c);
     }
     else
     {
+        SDL_Rect rect;
         rect.x = (Sint16)x1;
         rect.y = (Sint16)y1;
         rect.w = (Uint16)(x2 - x1);
         rect.h = (Uint16)(y2 - y1);
-
-        SDL_FillRect(g_Surface, &rect, c);
+        SDL_RenderFillRect(g_Renderer, &rect);
+        //SDL_FillRect(g_Surface, &rect, c);
     }
 
     return 0;
@@ -1055,23 +947,23 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
             //SDL_BlitSurface(lps, NULL, tmps, NULL);
             //SDL_LockSurface(tmps);
 
-            for (j = 0; j < tmps->h; j++)
-            {
-                Uint32* p = (Uint32*)((Uint8*)tmps->pixels + j * tmps->pitch);
-                for (i = 0; i < tmps->w; i++)
-                {
-                    if (*p != color)
-                    {
-                        if (flag & 0x4)
-                        { *p = 0 | AMASK; }
-                        else  if (flag & 0x8)
-                        { *p = 0xffffff | AMASK; }
-                        else
-                        { *p = ConvertColor(color); }
-                    }
-                    p++;
-                }
-            }
+            //for (j = 0; j < tmps->h; j++)
+            //{
+            //    Uint32* p = (Uint32*)((Uint8*)tmps->pixels + j * tmps->pitch);
+            //    for (i = 0; i < tmps->w; i++)
+            //    {
+            //        if (*p != color)
+            //        {
+            //            if (flag & 0x4)
+            //            { *p = 0 | AMASK; }
+            //            else  if (flag & 0x8)
+            //            { *p = 0xffffff | AMASK; }
+            //            else
+            //            { *p = ConvertColor(color); }
+            //        }
+            //        p++;
+            //    }
+            //}
 
 
             //SDL_UnlockSurface(tmps);
@@ -1096,8 +988,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
 // bright 亮度等级 0-256
 int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
 {
-    SDL_Surface* lps1;
-    SDL_Rect r1, r2;
+    SDL_Rect r1;
 
     if (x2 <= x1 || y2 <= y1)
     { return 0; }
@@ -1111,23 +1002,10 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
     r1.w = (Uint16)(x2 - x1);
     r1.h = (Uint16)(y2 - y1);
 
-    if (g_Rotate == 0)
-    {
-        r2 = r1;
-    }
-    else
-    {
-        r2 = RotateRect(&r1);
-    }
-
-
-    lps1 = SDL_CreateRGBSurface(SDL_SWSURFACE, r2.w, r2.h, g_Surface->format->BitsPerPixel,
-        g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
-
-    SDL_FillRect(lps1, NULL, color | AMASK);
-    SDL_SetSurfaceAlphaMod(lps1, (Uint8)Bright);
-    SDL_BlitSurface(lps1, NULL, g_Surface, &r2);
-    SDL_FreeSurface(lps1);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_SetRenderDrawColor(g_Renderer, 0, 0, 0, Bright);
+    SDL_SetRenderDrawBlendMode(g_Renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(g_Renderer, &r1);
     return 1;
 }
 
@@ -1330,10 +1208,12 @@ int JY_SaveSur(int x, int y, int w, int h)
     r1.w = (Uint16)w;
     r1.h = (Uint16)h;
 
-
-    tmp_Surface[id] = SDL_CreateRGBSurface(SDL_SWSURFACE, r1.w, r1.h, g_Surface->format->BitsPerPixel
-        , g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
-    SDL_BlitSurface(g_Surface, &r1, tmp_Surface[id], NULL);
+    tmp_Surface[id] = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
+    SDL_SetRenderTarget(g_Renderer, tmp_Surface[id]);
+    SDL_RenderCopy(g_Renderer, g_Texture, &r1, NULL);
+    //tmp_Surface[id] = SDL_CreateRGBSurface(SDL_SWSURFACE, r1.w, r1.h, g_Surface->format->BitsPerPixel
+    //    , g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
+    //SDL_BlitSurface(g_Surface, &r1, tmp_Surface[id], NULL);
 
     return id;
 }
@@ -1349,7 +1229,10 @@ int JY_LoadSur(int id, int x, int y)
 
     r1.x = (Sint16)x;
     r1.y = (Sint16)y;
-    SDL_BlitSurface(tmp_Surface[id], NULL, g_Surface, &r1);
+    SDL_QueryTexture(tmp_Surface[id], NULL, NULL, &r1.w, &r1.h);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_RenderCopy(g_Renderer, tmp_Surface[id], NULL, &r1);
+    //SDL_BlitSurface(tmp_Surface[id], NULL, g_Surface, &r1);
     return 0;
 }
 
@@ -1363,7 +1246,7 @@ int JY_FreeSur(int id)
 
     if (tmp_Surface[id] != NULL)
     {
-        SDL_FreeSurface(tmp_Surface[id]);
+        SDL_DestroyTexture(tmp_Surface[id]);
         tmp_Surface[id] = NULL;
     }
     return 0;

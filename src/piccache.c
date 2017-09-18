@@ -708,45 +708,18 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 
         SDL_FreeRW(fp_SDL);
 
-
-        ////指定比例
-
-        //if (pic_file[fileid].percent > 0 && pic_file[fileid].percent != 100 && zoom != 0 && zoom != 1)
-        //{
-        //    newcache->w = (int)(zoom * newcache->w);
-        //    newcache->h = (int)(zoom * newcache->h);
-
-        //    tmpsur = newcache->s;
-
-        //    newcache->s = zoomSurface(tmpsur, zoom, zoom, SMOOTHING_ON);
-
-        //    newcache->xoff = (int)(zoom * newcache->xoff);
-        //    newcache->yoff = (int)(zoom * newcache->yoff);
-        //    //SDL_SetColorKey(newcache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
-        //    SDL_FreeSurface(tmpsur);
-
-        //}
-        /*
-        //如果设置了缩放
-        else if (newcache->s != NULL && g_Zoom > 1)
+        //指定比例
+        if (pic_file[fileid].percent > 0 && pic_file[fileid].percent != 100 && zoom != 0 && zoom != 1)
         {
-            tmpsur = newcache->s;
-
-            newcache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_ON);
-            SDL_FreeSurface(tmpsur);
-
-            //tmpsur=SDL_DisplayFormat(newcache->s);
-
-            //SDL_FreeSurface(newcache->s);
-
-            //newcache->s=tmpsur;
-            newcache->xoff = (int)(g_Zoom * newcache->xoff);
-            newcache->yoff = (int)(g_Zoom * newcache->yoff);
-
+            newcache->w = (int)(zoom * newcache->w);
+            newcache->h = (int)(zoom * newcache->h);
+            //tmpsur = newcache->t;
+            //newcache->s = zoomSurface(tmpsur, zoom, zoom, SMOOTHING_ON);
+            newcache->xoff = (int)(zoom * newcache->xoff);
+            newcache->yoff = (int)(zoom * newcache->yoff);
             //SDL_SetColorKey(newcache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
-
+            //SDL_FreeSurface(tmpsur);
         }
-        */
         pic_file[fileid].pcache[picid] = newcache;
 
         if (currentCacheNum < g_MAXCacheNum)    //cache没满

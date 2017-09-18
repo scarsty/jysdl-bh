@@ -292,6 +292,8 @@ int Lua_Config(lua_State* pL, const char* filename)
     g_FullScreen = getfield(pL, "FullScreen");
     g_XScale = getfield(pL, "XScale");
     g_YScale = getfield(pL, "YScale");
+    g_XScale = 18;
+    g_YScale = 9;
     g_EnableSound = getfield(pL, "EnableSound");
     IsDebug = getfield(pL, "Debug");
     g_MMapAddX = getfield(pL, "MMapAddX");

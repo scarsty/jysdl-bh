@@ -75,6 +75,9 @@ extern int g_LoadFullS;
 extern int g_LoadMMapType;
 extern int g_LoadMMapScope;
 
+extern SDL_Renderer* g_Renderer;
+extern SDL_Texture* g_Texture;
+
 // 读取主地图数据
 int JY_LoadMMap(const char* earthname, const char* surfacename, const char* buildingname,
     const char* buildxname, const char* buildyname, int x_max, int y_max, int x, int y)
@@ -511,12 +514,17 @@ int BuildingSort(short x, short y, short Mypic)
     return 0;
 }
 
-
+void swapTex(SDL_Texture** t1, SDL_Texture**t2)
+{
+    SDL_Texture* t = *t1;
+    *t1 = *t2;
+    *t2 = t;
+}
 
 // 绘制主地图
 int JY_DrawMMap(int x, int y, int Mypic)
 {
-
+    SDL_Texture* tex = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
     int i, j;
     int i1, j1;
     int x1, y1;
@@ -525,14 +533,16 @@ int JY_DrawMMap(int x, int y, int Mypic)
 
     SDL_Rect rect;
 
+    swapTex(&tex, &g_Texture);
     rect = g_Surface->clip_rect;
 
     //根据g_Surface的clip来确定循环参数。提高绘制速度
-    istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale) - 1 - g_MMapAddX;
-    iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale) + 1 + g_MMapAddX;
 
-    jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale) - 1;
-    jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale) + 1;
+    istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) - 1 - g_MMapAddX;
+    iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) + 1 + g_MMapAddX;
+
+    jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) - 1;
+    jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) + 1;
 
     BuildNumber = 0;
 
@@ -586,6 +596,15 @@ int JY_DrawMMap(int x, int y, int Mypic)
         }
     }
 
+    SDL_Rect r;
+    r.w = g_ScreenW / g_Zoom;
+    r.h = g_ScreenH / g_Zoom;
+    r.x = g_ScreenW / 2 - r.w / 2;
+    r.y = g_ScreenH / 2 - r.h / 2;
+    swapTex(&tex, &g_Texture);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_RenderCopy(g_Renderer, tex, &r, NULL);
+    SDL_DestroyTexture(tex);
     return 0;
 }
 
@@ -890,6 +909,7 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
 
     //int rangex=g_ScreenW/(2*g_XScale)/2+1+g_SMapAddX;
     //int rangey=(g_ScreenH)/(2*g_YScale)/2+1;
+    SDL_Texture* tex = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
     int i, j;
     int i1, j1;
     int x1, y1;
@@ -914,15 +934,15 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
     {
         rect = RotateReverseRect(&g_Surface->clip_rect);
     }
-
+    swapTex(&tex, &g_Texture);
     //根据g_Surface的剪裁来确定循环参数。提高绘制速度
-    istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale) - 1 - g_SMapAddX;
-    iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale) + 1 + g_SMapAddX;
+    istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) - 1 - g_SMapAddX;
+    iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) + 1 + g_SMapAddX;
 
-    jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale) - 1;
-    jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale) + 1;
+    jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) - 1;
+    jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) + 1;
 
-    JY_FillColor(0, 0, 0, 0, 0);
+    JY_FillColor(AMASK, 0, 0, 0, 0);
 
     for (j = 0; j <= 2 * jend - 2 * jstart + g_SMapAddY; j++)
     {
@@ -994,7 +1014,15 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
             }
         }
     }
-
+    SDL_Rect r;
+    r.w = g_ScreenW / g_Zoom;
+    r.h = g_ScreenH / g_Zoom;
+    r.x = g_ScreenW / 2 - r.w / 2;
+    r.y = g_ScreenH / 2 - r.h / 2;
+    swapTex(&tex, &g_Texture);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_RenderCopy(g_Renderer, tex, &r, NULL);
+    SDL_DestroyTexture(tex);
     return 0;
 }
 
@@ -1126,7 +1154,7 @@ int JY_CleanWarMap(int level, int v)
 
 int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5, int ex, int ey)
 {
-
+    SDL_Texture* tex = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
     //int rangex=g_ScreenW/(2*g_XScale)/2+1+g_WMapAddX;
     //int rangey=g_ScreenH/(2*g_YScale)/2+1 ;
     int i, j;
@@ -1140,24 +1168,17 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 
     SDL_Rect rect;
 
-    if (g_Rotate == 0)
-    {
-        rect = g_Surface->clip_rect;
-    }
-    else
-    {
-        rect = RotateReverseRect(&g_Surface->clip_rect);
-    }
+    rect = g_Surface->clip_rect;
 
+    swapTex(&tex, &g_Texture);
     //根据g_Surface的剪裁来确定循环参数。提高绘制速度
-    istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale) - 1 - g_WMapAddX;
-    iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale) + 1 + g_WMapAddX;
+    istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) - 1 - g_WMapAddX;
+    iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) + 1 + g_WMapAddX;
 
-    jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale) - 1;
-    jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale) + 1;
+    jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) - 1;
+    jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) + 1;
 
-    JY_FillColor(0, 0, 0, 0, 0);
-
+    JY_FillColor(AMASK, 0, 0, 0, 0);
 
     // 绘战斗地面
     for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
@@ -1346,7 +1367,15 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
             }
         }
     }
-
+    SDL_Rect r;
+    r.w = g_ScreenW / g_Zoom;
+    r.h = g_ScreenH / g_Zoom;
+    r.x = g_ScreenW / 2 - r.w / 2;
+    r.y = g_ScreenH / 2 - r.h / 2;
+    swapTex(&tex, &g_Texture);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_RenderCopy(g_Renderer, tex, &r, NULL);
+    SDL_DestroyTexture(tex);
 
     return 0;
 }
