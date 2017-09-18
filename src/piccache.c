@@ -5,7 +5,6 @@
 
 #include <stdlib.h>
 #include "piccache.h"
-#include "SDL2_rotozoom.h"
 #include "jymain.h"
 #include "sdlfun.h"
 
@@ -54,6 +53,7 @@ int Init_Cache()
 // 初始化贴图cache信息
 // PalletteFilename 为256调色板文件。第一次调用时载入
 //                  为空字符串则表示重新清空贴图cache信息。在主地图/场景/战斗切换时调用
+
 int JY_PicInit(char* PalletteFilename)
 {
     struct list_head* pos, *p;
@@ -67,6 +67,8 @@ int JY_PicInit(char* PalletteFilename)
         struct CacheNode* tmp = list_entry(pos, struct CacheNode, list);
         if (tmp->s != NULL)
         { SDL_FreeSurface(tmp->s); }       //删除表面
+        if (tmp->t != NULL)
+        { SDL_DestroyTexture(tmp->t); }       //删除表面
         list_del(pos);
         SafeFree(tmp);
     }
@@ -242,32 +244,32 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
         newcache->fileid = fileid;
         LoadPic(fileid, picid, newcache);
 
-        //指定宽度和高度
-        if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
-            && pic_file[fileid].width != newcache->s->w && pic_file[fileid].height != newcache->s->h)
-        {
-            double zoomx = (double)pic_file[fileid].width / newcache->s->w;
-            double zoomy = (double)pic_file[fileid].height / newcache->s->h;
+        ////指定宽度和高度
+        //if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
+        //    && pic_file[fileid].width != newcache->s->w && pic_file[fileid].height != newcache->s->h)
+        //{
+        //    double zoomx = (double)pic_file[fileid].width / newcache->s->w;
+        //    double zoomy = (double)pic_file[fileid].height / newcache->s->h;
 
-            if (zoomx < zoomy)
-            {
-                zoomy = zoomx;
-            }
-            else
-            {
-                zoomx = zoomy;
-            }
+        //    if (zoomx < zoomy)
+        //    {
+        //        zoomy = zoomx;
+        //    }
+        //    else
+        //    {
+        //        zoomx = zoomy;
+        //    }
 
-            tmpsur = newcache->s;
+        //    tmpsur = newcache->s;
 
-            newcache->s = zoomSurface(tmpsur, zoomx, zoomy, SMOOTHING_OFF);
+        //    newcache->s = zoomSurface(tmpsur, zoomx, zoomy, SMOOTHING_OFF);
 
-            newcache->xoff = (int)(zoomx * newcache->xoff);
-            newcache->yoff = (int)(zoomy * newcache->yoff);
-            //SDL_SetColorKey(newcache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
-            SDL_FreeSurface(tmpsur);
+        //    newcache->xoff = (int)(zoomx * newcache->xoff);
+        //    newcache->yoff = (int)(zoomy * newcache->yoff);
+        //    //SDL_SetColorKey(newcache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
+        //    SDL_FreeSurface(tmpsur);
 
-        }
+        //}
 
 
         pic_file[fileid].pcache[picid] = newcache;
@@ -283,6 +285,8 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
             pic_file[tmpcache->fileid].pcache[tmpcache->id] = NULL;
             if (tmpcache->s != NULL)
             { SDL_FreeSurface(tmpcache->s); }       //删除表面
+            if (tmpcache->t != NULL)
+            { SDL_DestroyTexture(tmpcache->t); }       //删除表面
             list_del(&tmpcache->list);
             SafeFree(tmpcache);
 
@@ -299,7 +303,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
         list_add(&newcache->list, &cache_head);    //再插入到表头
     }
 
-    if (newcache->s == NULL)     //贴图为空，直接退出
+    if (newcache->t == NULL)     //贴图为空，直接退出
     {
         return 1;
     }
@@ -314,15 +318,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
         xnew = x - newcache->xoff;
         ynew = y - newcache->yoff;
     }
-
-    if (g_Rotate == 0)
-    {
-        BlitSurface(newcache->s, xnew, ynew, flag, value, color);
-    }
-    else
-    {
-        BlitSurface(newcache->s, g_ScreenH - ynew - newcache->s->w, xnew, flag, value, color);
-    }
+    RenderTexture(newcache->t, xnew, ynew, flag, value, color);
 
     return 0;
 }
@@ -382,26 +378,27 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             cache->xoff = *(short*)(data + 4);
             cache->yoff = *(short*)(data + 6);
             cache->s = CreatePicSurface32(data + 8, w, h, datalong - 8);
+            cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
 
-            //如果设置了缩放
-            if (cache->s != NULL && g_Zoom > 1)
-            {
-                tmpsur = cache->s;
+            ////如果设置了缩放
+            //if (cache->s != NULL && g_Zoom > 1)
+            //{
+            //    tmpsur = cache->s;
 
-                cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
-                SDL_FreeSurface(tmpsur);
+            //    cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
+            //    SDL_FreeSurface(tmpsur);
 
-                tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
+            //    tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
 
-                SDL_FreeSurface(cache->s);
+            //    SDL_FreeSurface(cache->s);
 
-                cache->s = tmpsur;
-                cache->xoff = (int)(g_Zoom * cache->xoff);
-                cache->yoff = (int)(g_Zoom * cache->yoff);
+            //    cache->s = tmpsur;
+            //    cache->xoff = (int)(g_Zoom * cache->xoff);
+            //    cache->yoff = (int)(g_Zoom * cache->yoff);
 
-                //SDL_SetColorKey(cache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
+            //    //SDL_SetColorKey(cache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
 
-            }
+            //}
 
         }
         else        //读取png格式
@@ -413,44 +410,35 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             }
             cache->xoff = tmpsurf->w / 2;
             cache->yoff = tmpsurf->h;
-            if (g_Rotate == 0)
-            {
-                cache->s = tmpsurf;
-            }
-            else
-            {
-                cache->s = RotateSurface(tmpsurf);
-                SDL_FreeSurface(tmpsurf);
-            }
+            cache->s = tmpsurf;
+            cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
+            ////如果设置了缩放
+            //if (cache->s != NULL && g_Zoom > 1)
+            //{
+            //    tmpsur = cache->s;
 
-            //如果设置了缩放
-            if (cache->s != NULL && g_Zoom > 1)
-            {
-                tmpsur = cache->s;
+            //    cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
+            //    SDL_FreeSurface(tmpsur);
 
-                cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
-                SDL_FreeSurface(tmpsur);
+            //    tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
 
-                tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
+            //    SDL_FreeSurface(cache->s);
 
-                SDL_FreeSurface(cache->s);
+            //    cache->s = tmpsur;
+            //    cache->xoff = (int)(g_Zoom * cache->xoff);
+            //    cache->yoff = (int)(g_Zoom * cache->yoff);
 
-                cache->s = tmpsur;
-                cache->xoff = (int)(g_Zoom * cache->xoff);
-                cache->yoff = (int)(g_Zoom * cache->yoff);
+            //    //SDL_SetColorKey(cache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
 
-                //SDL_SetColorKey(cache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
-
-            }
+            //}
         }
         SDL_FreeRW(fp_SDL);
         SafeFree(p);
-
-
     }
     else
     {
         cache->s = NULL;
+        cache->t = NULL;
         cache->xoff = 0;
         cache->yoff = 0;
     }
@@ -493,9 +481,6 @@ int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
     return 0;
 }
-
-
-
 
 //按照原来游戏的RLE格式创建表面
 static SDL_Surface* CreatePicSurface32(unsigned char* data, int w, int h, int datalong)
@@ -635,6 +620,8 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
             {
                 if (tmpcache->s != NULL)
                 { SDL_FreeSurface(tmpcache->s); }       //删除表面
+                if (tmpcache->t != NULL)
+                { SDL_DestroyTexture(tmpcache->t); }       //删除表面
                 list_del(&tmpcache->list);              //删除链表
                 SafeFree(tmpcache);                  //释放cache内存
                 currentCacheNum--;
@@ -662,6 +649,7 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
 
     return 0;
 }
+
 int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 {
 
@@ -705,22 +693,15 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 
             newcache->xoff = tmpsur->w / 2;
             newcache->yoff = tmpsur->h / 2;
-
-            if (g_Rotate == 0)
-            {
-                newcache->s = tmpsur;
-            }
-            else
-            {
-                newcache->s = RotateSurface(tmpsur);
-                SDL_FreeSurface(tmpsur);
-            }
-
-
+            newcache->w = tmpsur->w;
+            newcache->h = tmpsur->h;
+            newcache->s = tmpsur;
+            newcache->t = SDL_CreateTextureFromSurface(g_Renderer, newcache->s);
         }
         else
         {
             newcache->s = NULL;
+            newcache->t = NULL;
             newcache->xoff = 0;
             newcache->yoff = 0;
         }
@@ -728,23 +709,23 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         SDL_FreeRW(fp_SDL);
 
 
-        //指定比例
+        ////指定比例
 
-        if (pic_file[fileid].percent > 0 && pic_file[fileid].percent != 100 && zoom != 0 && zoom != 1)
-        {
-            newcache->w = (int)(zoom * newcache->w);
-            newcache->h = (int)(zoom * newcache->h);
+        //if (pic_file[fileid].percent > 0 && pic_file[fileid].percent != 100 && zoom != 0 && zoom != 1)
+        //{
+        //    newcache->w = (int)(zoom * newcache->w);
+        //    newcache->h = (int)(zoom * newcache->h);
 
-            tmpsur = newcache->s;
+        //    tmpsur = newcache->s;
 
-            newcache->s = zoomSurface(tmpsur, zoom, zoom, SMOOTHING_ON);
+        //    newcache->s = zoomSurface(tmpsur, zoom, zoom, SMOOTHING_ON);
 
-            newcache->xoff = (int)(zoom * newcache->xoff);
-            newcache->yoff = (int)(zoom * newcache->yoff);
-            //SDL_SetColorKey(newcache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
-            SDL_FreeSurface(tmpsur);
+        //    newcache->xoff = (int)(zoom * newcache->xoff);
+        //    newcache->yoff = (int)(zoom * newcache->yoff);
+        //    //SDL_SetColorKey(newcache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
+        //    SDL_FreeSurface(tmpsur);
 
-        }
+        //}
         /*
         //如果设置了缩放
         else if (newcache->s != NULL && g_Zoom > 1)
@@ -779,6 +760,8 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
             pic_file[tmpcache->fileid].pcache[tmpcache->id] = NULL;
             if (tmpcache->s != NULL)
             { SDL_FreeSurface(tmpcache->s); }       //删除表面
+            if (tmpcache->t != NULL)
+            { SDL_DestroyTexture(tmpcache->t); }       //删除表面
             list_del(&tmpcache->list);
             SafeFree(tmpcache);
 
@@ -795,7 +778,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         list_add(&newcache->list, &cache_head);    //再插入到表头
     }
 
-    if (newcache->s == NULL)     //贴图为空，直接退出
+    if (newcache->t == NULL)     //贴图为空，直接退出
     {
         return 1;
     }
@@ -811,23 +794,11 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         r.y = y - newcache->yoff;
     }
 
-
-
-    if (g_Rotate == 0)
-    {
-        //BlitSurface(newcache->s , xnew,ynew,flag,value);
-
-    }
-    else
-    {
-        // BlitSurface(newcache->s , g_ScreenH-ynew-newcache->s->w ,xnew,flag,value);
-        int t = r.x;
-        r.x = r.y;
-        r.y = t;
-    }
-
-    SDL_BlitSurface(newcache->s, NULL, g_Surface, &r);
-
+    //SDL_BlitSurface(newcache->s, NULL, g_Surface, &r);
+    r.w = newcache->w;
+    r.h = newcache->h;
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    SDL_RenderCopy(g_Renderer, newcache->t, NULL, &r);
 
     return 0;
 }

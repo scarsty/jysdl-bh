@@ -157,7 +157,6 @@
     <ClCompile Include="..\src\mainmap.c" />
     <ClCompile Include="..\src\piccache.c" />
     <ClCompile Include="..\src\sdlfun.c" />
-    <ClCompile Include="..\src\SDL2_rotozoom.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\charset.h" />

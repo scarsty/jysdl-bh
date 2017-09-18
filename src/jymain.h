@@ -15,7 +15,6 @@
 #include "lauxlib.h" 
 #include "luafun.h"
 #include "list.h" 
-#include "SDL2_rotozoom.h"
 
 // 公共部分
 #ifndef BOOL

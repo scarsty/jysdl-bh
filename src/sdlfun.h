@@ -45,7 +45,7 @@ void VLine32(int x1, int x2, int y, int color, unsigned char *vbuffer, int lpitc
 
 int JY_FillColor(int x1, int y1, int x2, int y2, int color);
 
-int BlitSurface(SDL_Surface* lpdds, int x, int y, int flag, int value, int color);
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color);
 
 int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color);
 

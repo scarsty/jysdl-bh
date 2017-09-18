@@ -189,16 +189,12 @@ int InitSDL(void)
 // 退出SDL
 int ExitSDL(void)
 {
-    int i;
-
     ExitFont();
-
     StopMIDI();
-
     if (midfonts.font)
     { BASS_MIDI_FontFree(midfonts.font); }
 
-    for (i = 0; i < WAVNUM; i++)
+    for (int i = 0; i < WAVNUM; i++)
     {
         if (WavChunk[i])
         {
@@ -226,18 +222,9 @@ Uint32 ConvertColor(Uint32 color)
 // 初始化游戏数据
 int InitGame(void)
 {
-    int w, h;
+    int w = g_ScreenW;
+    int h = g_ScreenH;
 
-    if (g_Rotate == 0)
-    {
-        w = g_ScreenW;
-        h = g_ScreenH;
-    }
-    else
-    {
-        w = g_ScreenH;
-        h = g_ScreenW;
-    }
 
     //putenv ("SDL_VIDEO_WINDOW_POS");
     //putenv ("SDL_VIDEO_CENTERED=1");
@@ -245,8 +232,8 @@ int InitGame(void)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     g_Window = SDL_CreateWindow("The Fall of Star", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
-    g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED);
-    g_Texture = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+    g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+    g_Texture = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
     g_Surface = SDL_CreateRGBSurface(0, w, h, 32, RMASK, GMASK, BMASK, AMASK);
     //SDL_WM_SetCaption("The Fall of Star",_("ff.ico"));         //这是显示窗口的
     //SDL_WM_SetIcon(IMG_Load(_("ff.ico")), NULL);
@@ -302,7 +289,8 @@ int ExitGame(void)
 int JY_LoadPicture(const char* str, int x, int y)
 {
     static char filename[255] = "\0";
-    static SDL_Surface* pic = NULL;
+    SDL_Surface* pic = NULL;
+    static SDL_Texture* tex = NULL;
 
     SDL_Surface* tmppic;
     SDL_Rect r;
@@ -328,22 +316,27 @@ int JY_LoadPicture(const char* str, int x, int y)
         if (tmppic)
         {
             pic = SDL_ConvertSurfaceFormat(tmppic, g_Surface->format->format, 0);   // 改为当前表面的像素格式
+            if ((x == -1) && (y == -1))
+            {
+                x = (g_ScreenW - pic->w) / 2;
+                y = (g_ScreenH - pic->h) / 2;
+            }
+            r.x = x;
+            r.y = y;
+            r.w = pic->w;
+            r.h = pic->h;
+            tex = SDL_CreateTextureFromSurface(g_Renderer, pic);
+            SDL_FreeSurface(pic);
             SDL_FreeSurface(tmppic);
             strcpy(filename, str);
         }
     }
 
-    if (pic)
+    if (tex)
     {
-        if ((x == -1) && (y == -1))
-        {
-            x = (g_ScreenW - pic->w) / 2;
-            y = (g_ScreenH - pic->h) / 2;
-        }
-        r.x = x;
-        r.y = y;
-        SDL_BlitSurface(pic, NULL, g_Surface, &r);
-
+        SDL_SetRenderTarget(g_Renderer, g_Texture);
+        SDL_RenderCopy(g_Renderer, tex, NULL, &r);
+        //SDL_BlitSurface(pic, NULL, g_Surface, &r);
     }
     else
     {
@@ -359,23 +352,25 @@ int JY_LoadPicture(const char* str, int x, int y)
 //flag = 0 显示全部表面  =1 按照JY_SetClip设置的矩形显示，如果没有矩形，则不显示
 int JY_ShowSurface(int flag)
 {
-    if (flag == 1)
-    {
-        if (currentRect > 0)
-        {
-            //SDL_UpdateRects(g_Surface, currentRect, ClipRect);
-            for (int i = 0; i < currentRect; i++)
-            {
-                SDL_Rect* r = ClipRect + i;
-                SDL_UpdateTexture(g_Texture, r, 
-                    (char*)g_Surface->pixels + g_Surface->format->BytesPerPixel * r->x + g_Surface->pitch * r->y, g_Surface->pitch);
-            }
-        }
-    }
-    else
-    {
-        SDL_UpdateTexture(g_Texture, NULL, g_Surface->pixels, g_Surface->pitch);        
-    }
+    //if (flag == 1)
+    //{
+    //    if (currentRect > 0)
+    //    {
+    //        //SDL_UpdateRects(g_Surface, currentRect, ClipRect);
+    //        for (int i = 0; i < currentRect; i++)
+    //        {
+    //            SDL_Rect* r = ClipRect + i;
+    //            SDL_UpdateTexture(g_Texture, r,
+    //                (char*)g_Surface->pixels + g_Surface->format->BytesPerPixel * r->x + g_Surface->pitch * r->y, g_Surface->pitch);
+    //        }
+    //    }
+    //}
+    //else
+    //{
+    //    SDL_UpdateTexture(g_Texture, NULL, g_Surface->pixels, g_Surface->pitch);
+    //}
+
+    SDL_SetRenderTarget(g_Renderer, NULL);
     SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
     SDL_RenderPresent(g_Renderer);
     return 0;
@@ -637,7 +632,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             {
                 *key = SDLK_RETURN;
             }
-            *type = 1;            
+            *type = 1;
             if (pressed == 0 || pressed_key != *key)
             {
                 SDL_Delay(g_Delay);
@@ -709,7 +704,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
                 quit = 0;
             }
         }
-            break;
+        break;
         default:
             break;
         }
@@ -1013,135 +1008,82 @@ int JY_FillColor(int x1, int y1, int x2, int y2, int color)
 
 // 把表面blit到背景或者前景表面
 // x,y 要加载到表面的左上角坐标
-int BlitSurface(SDL_Surface* lps, int x, int y, int flag, int value, int pcolor)
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color)
 {
 
     SDL_Surface* tmps;
     SDL_Rect rect;
     int i, j;
 
-    Uint32 color = ConvertColor(g_MaskColor32);
+    //color = ConvertColor(g_MaskColor32);
 
     if (value > 255)
     { value = 255; }
 
-    rect.x = (Sint16)x;
-    rect.y = (Sint16)y;
+    rect.x = x;
+    rect.y = y;
+    SDL_QueryTexture(lps, NULL, NULL, &rect.w, &rect.h);
 
     if (!lps)
     {
         JY_Error("BlitSurface: lps is null!");
         return 1;
     }
-
-    if ((flag & 0x2) == 0)          // 没有alpla
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    if ((flag & 0x2) == 0)          // 没有alpha
     {
-        SDL_BlitSurface(lps, NULL, g_Surface, &rect);
+        SDL_SetTextureAlphaMod(lps, 255);
+        SDL_RenderCopy(g_Renderer, lps, NULL, &rect);
+        //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
     }
     else    // 有alpha
     {
         if ((flag & 0x4) || (flag & 0x8) || (flag & 0x10))     // 黑白
         {
-            int bpp = lps->format->BitsPerPixel;
-            Uint8 r = (Uint8)((pcolor & RMASK) >> 16);
-            Uint8 g = (Uint8)((pcolor & GMASK) >> 8);
-            Uint8 b = (Uint8)((pcolor & BMASK));
+            //int bpp = lps->format->BitsPerPixel;
+            Uint8 r = (Uint8)((color & RMASK) >> 16);
+            Uint8 g = (Uint8)((color & GMASK) >> 8);
+            Uint8 b = (Uint8)((color & BMASK));
 
 
             //创建临时表面
-            tmps = SDL_CreateRGBSurface(SDL_SWSURFACE, lps->w, lps->h, bpp,
-                lps->format->Rmask, lps->format->Gmask, lps->format->Bmask, g_Surface->format->Amask);
+            //tmps = SDL_CreateRGBSurface(SDL_SWSURFACE, lps->w, lps->h, bpp,
+            //lps->format->Rmask, lps->format->Gmask, lps->format->Bmask, g_Surface->format->Amask);
 
-            SDL_FillRect(tmps, NULL, color);
-            SDL_SetColorKey(tmps, SDL_TRUE, color);
-            SDL_BlitSurface(lps, NULL, tmps, NULL);
-            SDL_LockSurface(tmps);
+            //SDL_FillRect(tmps, NULL, color);
+            //SDL_SetColorKey(tmps, SDL_TRUE, color);
+            //SDL_BlitSurface(lps, NULL, tmps, NULL);
+            //SDL_LockSurface(tmps);
 
-            if (bpp == 16)
+            for (j = 0; j < tmps->h; j++)
             {
-                for (j = 0; j < tmps->h; j++)
+                Uint32* p = (Uint32*)((Uint8*)tmps->pixels + j * tmps->pitch);
+                for (i = 0; i < tmps->w; i++)
                 {
-                    Uint16* p = (Uint16*)((Uint8*)tmps->pixels + j * tmps->pitch);
-                    for (i = 0; i < tmps->w; i++)
+                    if (*p != color)
                     {
-                        if (*p != (Uint16)color)
-                        {
-                            if (flag & 0x4)
-                            { *p = 0; }
-                            else if (flag & 0x8)
-                            { *p = 0xffff; }
-                            else
-                            { *p = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | ((b & 0xf8) >> 3); }
-                        }
-                        p++;
+                        if (flag & 0x4)
+                        { *p = 0 | AMASK; }
+                        else  if (flag & 0x8)
+                        { *p = 0xffffff | AMASK; }
+                        else
+                        { *p = ConvertColor(color); }
                     }
+                    p++;
                 }
             }
-            else if (bpp == 32)
-            {
-                for (j = 0; j < tmps->h; j++)
-                {
-                    Uint32* p = (Uint32*)((Uint8*)tmps->pixels + j * tmps->pitch);
-                    for (i = 0; i < tmps->w; i++)
-                    {
-                        if (*p != color)
-                        {
-                            if (flag & 0x4)
-                            { *p = 0 | AMASK; }
-                            else  if (flag & 0x8)
-                            { *p = 0xffffff | AMASK; }
-                            else
-                            { *p = ConvertColor(pcolor); }
-                        }
-                        p++;
-                    }
-                }
-            }
-            else if (bpp == 24)
-            {
-                for (j = 0; j < tmps->h; j++)
-                {
-                    Uint8* p = (Uint8*)tmps->pixels + j * tmps->pitch;
-                    for (i = 0; i < tmps->w; i++)
-                    {
-                        if ((*p != *(Uint8*)&color) &&
-                            (*(p + 1) != *((Uint8*)&color + 1)) &&
-                            (*(p + 2) != *((Uint8*)&color + 2)))
-                        {
-                            if (flag & 0x4)
-                            {
-                                *p = 0;
-                                *(p + 1) = 0;
-                                *(p + 2) = 0;
-                            }
-                            else if (flag & 0x8)
-                            {
-                                *p = 0xff;
-                                *(p + 1) = 0xff;
-                                *(p + 2) = 0xff;
-                            }
-                            else
-                            {
-                                *p = r;
-                                *(p + 1) = g;
-                                *(p + 2) = b;
-                            }
-                        }
-                        p += 3;
-                    }
-                }
 
-            }
 
-            SDL_UnlockSurface(tmps);
-            SDL_SetSurfaceAlphaMod(tmps, (Uint8)value);
-            SDL_BlitSurface(tmps, NULL, g_Surface, &rect);
-            SDL_FreeSurface(tmps);
+            //SDL_UnlockSurface(tmps);
+            //SDL_SetSurfaceAlphaMod(tmps, (Uint8)value);
+            //SDL_BlitSurface(tmps, NULL, g_Surface, &rect);
+            //SDL_FreeSurface(tmps);
         }
         else
         {
-            SDL_SetSurfaceAlphaMod(lps, (Uint8)value);
-            SDL_BlitSurface(lps, NULL, g_Surface, &rect);
+            SDL_SetTextureAlphaMod(lps, (Uint8)value);
+            SDL_RenderCopy(g_Renderer, lps, NULL, &rect);
+            //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
         }
     }
 

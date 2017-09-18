@@ -525,14 +525,7 @@ int JY_DrawMMap(int x, int y, int Mypic)
 
     SDL_Rect rect;
 
-    if (g_Rotate == 0)
-    {
-        rect = g_Surface->clip_rect;
-    }
-    else
-    {
-        rect = RotateReverseRect(&g_Surface->clip_rect);
-    }
+    rect = g_Surface->clip_rect;
 
     //根据g_Surface的clip来确定循环参数。提高绘制速度
     istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale) - 1 - g_MMapAddX;
@@ -1240,7 +1233,9 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 
                         if ((xx == v1) && (yy == v2))
 
-                        { JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128); }
+                        {
+                            JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128);
+                        }
                         else
                         { JY_LoadPic(0, 0, x1, y1 - d4, showflag, 64); }
                     }

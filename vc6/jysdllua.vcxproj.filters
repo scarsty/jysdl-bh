@@ -33,9 +33,6 @@
     <ClCompile Include="..\src\sdlfun.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\SDL2_rotozoom.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\config.h">

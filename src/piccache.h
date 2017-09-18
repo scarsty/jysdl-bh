@@ -9,6 +9,7 @@
 struct CacheNode                         //贴图cache链表节点
 {
     SDL_Surface* s;                      //此贴图对应的表面
+    SDL_Texture* t;
     int w;                               //贴图宽度
     int h;                               //贴图高度
     int xoff;                            //贴图偏移

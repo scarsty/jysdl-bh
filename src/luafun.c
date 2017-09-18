@@ -94,17 +94,10 @@ int HAPI_ShowSlow(lua_State* pL)
 
 int HAPI_LoadPicture(lua_State* pL)
 {
-
     const char* str = lua_tostring(pL, 1);
-
-
-
     int x = (int)lua_tonumber(pL, 2);
     int y = (int)lua_tonumber(pL, 3);
-
-
     JY_LoadPicture(str, x, y);
-
     return 0;
 }
 
