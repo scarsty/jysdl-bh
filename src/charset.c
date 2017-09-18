@@ -32,7 +32,7 @@ extern SDL_Surface* g_Surface;    //ÆÁÄ»±íÃæ
 extern int g_Rotate;
 
 #define MAX_CACHE_CHAR (10000)
-static char_count = 0;
+static int char_count = 0;
 static SDL_Surface* chars_cache[100][60000] = { 0 };
 static SDL_Surface** chars_record[MAX_CACHE_CHAR] = { 0 };
 
@@ -219,6 +219,8 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     Uint16* p = (Uint16*)tmp2;
     rect1.x = x;
     rect1.y = y;
+    int pi = 0;
+    //printf("%d,%d\n", strlen(str), strlen(tmp2));
     for (int i = 0; i < 128; i++)
     {
         int s = size;
@@ -226,31 +228,48 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         {
             break;
         }
-        if (*p <= 255) { s = size / 2; }
+        if (*p <= 128) { s = size / 2; }
         SDL_Surface** sur = &chars_cache[size][*p];
         if (*sur == NULL)
         {
-            Uint16 tmp[2] = { 0 };
+            Uint16 tmp[2] = { 0, 0 };
             tmp[0] = *p;
             *sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
             char_count++;
+#ifdef _DEBUG
+            if (*p == 54)
+            {
+                *p = 54;
+            }
+            unsigned char out[3] = { 0, 0, 0 };
+            out[0] = *(str + pi);
+            if (out[0] > 128)
+            {
+                out[1] = *(str + pi + 1);
+            }
+            JY_Debug("cache [%d][%s(%d)], total %d", size, out, *p, char_count);
+#endif
         }
-
-        SDL_SetSurfaceColorMod(*sur, c2.r, c2.g, c2.b);
-        SDL_SetSurfaceAlphaMod(*sur, 128);
-
-        rect2.x = rect1.x + 1;
-        rect2.y = rect1.y + 1;
-        SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
-        rect2.x = rect1.x + 1;
-        rect2.y = rect1.y;
-        SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
-        rect2.x = rect1.x;
-        rect2.y = rect1.y + 1;
-        SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
-        SDL_SetSurfaceColorMod(*sur, c.r, c.g, c.b);
-        SDL_SetSurfaceAlphaMod(*sur, 255);
-        SDL_BlitSurface(*sur, NULL, g_Surface, &rect1);
+#ifdef _DEBUG
+        if (*p <= 128) { pi++; } else { pi += 2; }
+#endif
+        if (*p != 32)
+        {
+            SDL_SetSurfaceColorMod(*sur, c2.r, c2.g, c2.b);
+            SDL_SetSurfaceAlphaMod(*sur, 128);
+            rect2.x = rect1.x + 1;
+            rect2.y = rect1.y + 1;
+            SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
+            rect2.x = rect1.x + 1;
+            rect2.y = rect1.y;
+            SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
+            rect2.x = rect1.x;
+            rect2.y = rect1.y + 1;
+            SDL_BlitSurface(*sur, NULL, g_Surface, &rect2);
+            SDL_SetSurfaceColorMod(*sur, c.r, c.g, c.b);
+            SDL_SetSurfaceAlphaMod(*sur, 255);
+            SDL_BlitSurface(*sur, NULL, g_Surface, &rect1);
+        }
         rect1.x = rect1.x + s;
         p++;
     }
