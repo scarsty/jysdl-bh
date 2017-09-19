@@ -1,97 +1,53 @@
 
 // lua中调用的C API接口
 
-
-
 #ifndef __LUAFUN_H
 #define __LUAFUN_H
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 
 
 // luafun.c
-
-
 int HAPI_Debug(lua_State* pL);
-
 int HAPI_DrawStr(lua_State* pL);
-
 int HAPI_FillColor(lua_State* pL);
-
 int HAPI_Background(lua_State* pL);
-
 int HAPI_DrawRect(lua_State* pL);
-
 int HAPI_LoadPicture(lua_State* pL);
-
 int HAPI_EnableKeyRepeat(lua_State* pL);
-
 int HAPI_GetKey(lua_State* pL);
-
 int HAPI_ShowSurface(lua_State* pL);
-
 int HAPI_Delay(lua_State* pL);
-
 int HAPI_GetTime(lua_State* pL);
-
 int HAPI_ShowSlow(lua_State* pL);
-
 int HAPI_SetClip(lua_State* pL);
-
 int HAPI_CharSet(lua_State* pL);
-
 int HAPI_PicLoadCache(lua_State* pL);
-
 int HAPI_PicLoadFile(lua_State* pL);
-
 int HAPI_PicInit(lua_State* pL);
-
 int HAPI_GetPicXY(lua_State* pL);
-
 int HAPI_PlayMIDI(lua_State* pL);
-
-
 int HAPI_PlayWAV(lua_State* pL);
-
 int HAPI_PlayMPEG(lua_State* pL);
-
 int HAPI_LoadMMap(lua_State* pL);
-
 int HAPI_UnloadMMap(lua_State* pL);
-
 int HAPI_DrawMMap(lua_State* pL);
-
 int HAPI_GetMMap(lua_State* pL);
-
 int HAPI_FullScreen(lua_State* pL);
-
 int HAPI_LoadSMap(lua_State* pL);
-
-
 int HAPI_SaveSMap(lua_State* pL);
-
 int HAPI_GetS(lua_State* pL);
-
 int HAPI_SetS(lua_State* pL);
-
 int HAPI_GetD(lua_State* pL);
-
 int HAPI_SetD(lua_State* pL);
-
 int HAPI_DrawSMap(lua_State* pL);
-
 int HAPI_LoadWarMap(lua_State* pL);
-
 int HAPI_GetWarMap(lua_State* pL);
-
 int HAPI_SetWarMap(lua_State* pL);
-
 int HAPI_CleanWarMap(lua_State* pL);
-
 int HAPI_DrawWarMap(lua_State* pL);
-
 int HAPI_SaveSur(lua_State* pL);                    //保存屏幕到临时表面
 int HAPI_LoadSur(lua_State* pL);                    //加载临时表面到屏幕
 int HAPI_FreeSur(lua_State* pL);                    //释放
@@ -136,16 +92,12 @@ int Byte_set32(lua_State* pL);
 int Byte_getstr(lua_State* pL);
 int Byte_setstr(lua_State* pL);
 
-
-
-
-
 int HAPI_InitCache(lua_State* pL);
 int HAPI_LoadPic(lua_State* pL);
 
 
 #ifdef __cplusplus
-extern "C" {
+//}
 #endif
 
 

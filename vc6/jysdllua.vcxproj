@@ -151,18 +151,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\charset.c" />
-    <ClCompile Include="..\src\jymain.c" />
-    <ClCompile Include="..\src\luafun.c" />
-    <ClCompile Include="..\src\mainmap.c" />
-    <ClCompile Include="..\src\piccache.c" />
-    <ClCompile Include="..\src\sdlfun.c" />
+    <ClCompile Include="..\src\charset.cpp" />
+    <ClCompile Include="..\src\jymain.cpp" />
+    <ClCompile Include="..\src\luafun.cpp" />
+    <ClCompile Include="..\src\mainmap.cpp" />
+    <ClCompile Include="..\src\piccache.cpp" />
+    <ClCompile Include="..\src\sdlfun.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\charset.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\jymain.h" />
-    <ClInclude Include="..\src\list.h" />
     <ClInclude Include="..\src\luafun.h" />
     <ClInclude Include="..\src\mainmap.h" />
     <ClInclude Include="..\src\piccache.h" />

@@ -38,6 +38,18 @@
     #define CPU_FREQUENCY 2000
 #endif
 
+#ifdef __cplusplus
+#define EXTERN_C_BEGIN extern "C" {
+#else
+#define EXTERN_C_BEGIN
+#endif
+
+#ifdef __cplusplus
+#define EXTERN_C_END }
+#else
+#define EXTERN_C_END
+#endif
+
 #endif
 
 

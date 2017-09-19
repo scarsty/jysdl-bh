@@ -15,22 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\charset.c">
+    <ClCompile Include="..\src\charset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\jymain.c">
+    <ClCompile Include="..\src\jymain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\luafun.c">
+    <ClCompile Include="..\src\luafun.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\mainmap.c">
+    <ClCompile Include="..\src\mainmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\piccache.c">
+    <ClCompile Include="..\src\piccache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\sdlfun.c">
+    <ClCompile Include="..\src\sdlfun.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -39,9 +39,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\jymain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\luafun.h">

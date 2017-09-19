@@ -1,12 +1,9 @@
-
-
 #pragma once
-
 #include "SDL.h"
 
 //sdlfun.c
 
-static int KeyFilter(const void* data, const SDL_Event *event);
+int KeyFilter(void* data, SDL_Event *event);
 int InitSDL(void);
 
 int ExitSDL(void);
@@ -33,7 +30,7 @@ int StopMIDI();
 
 int JY_PlayWAV(const char *filename);
 
-int JY_GetKey();
+int JY_GetKey(int* key, int* type, int* mx, int* my);
 
 int JY_SetClip(int x1, int y1, int x2, int y2);
 
@@ -49,7 +46,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
 
 int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color);
 
-int JY_PlayMPEG(const char* filename, int esckey);
+int JY_PlayMPEG(char* filename, int esckey);
 
 int JY_FullScreen();
 SDL_Surface *RotateSurface(SDL_Surface *src);
