@@ -238,6 +238,10 @@ int InitGame(void)
 // 释放游戏资源
 int ExitGame(void)
 {
+    SDL_DestroyTexture(g_Texture);
+    SDL_DestroyTexture(g_TextureShow);
+    SDL_DestroyRenderer(g_Renderer);
+    SDL_DestroyWindow(g_Window);
     JY_PicInit("");
     JY_LoadPicture("", 0, 0);
     JY_UnloadMMap();     //释放主地图内存
