@@ -117,6 +117,8 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
             {
                 if (tmpcache->s != NULL)
                 { SDL_FreeSurface(tmpcache->s); }       //删除表面
+                if (tmpcache->t != NULL)
+                { SDL_DestroyTexture(tmpcache->t); }       //删除表面
                 list_del(&tmpcache->list);              //删除链表
                 SafeFree(tmpcache);                  //释放cache内存
                 currentCacheNum--;
@@ -377,6 +379,8 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             h = *(short*)(data + 2);
             cache->xoff = *(short*)(data + 4);
             cache->yoff = *(short*)(data + 6);
+            cache->w = w;
+            cache->h = h;
             cache->s = CreatePicSurface32(data + 8, w, h, datalong - 8);
             cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
             SDL_FreeSurface(cache->s);
@@ -391,6 +395,8 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             }
             cache->xoff = tmpsurf->w / 2;
             cache->yoff = tmpsurf->h;
+            cache->w = tmpsurf->w;
+            cache->h = tmpsurf->h;
             cache->s = tmpsurf;
             cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
             SDL_FreeSurface(cache->s);
@@ -758,18 +764,10 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
     newcache = pic_file[fileid].pcache[picid / 2];
 
-    if (newcache->s)        // 已有，则直接显示
+    if (newcache->t)        // 已有，则直接显示
     {
-        if (g_Rotate == 0)
-        {
-            *w = newcache->s->w;
-            *h = newcache->s->h;
-        }
-        else
-        {
-            *w = newcache->s->h;
-            *h = newcache->s->w;
-        }
+        *w = newcache->w;
+        *h = newcache->h;
         *xoff = newcache->xoff;
         *yoff = newcache->yoff;
     }

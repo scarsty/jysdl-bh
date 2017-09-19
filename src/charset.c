@@ -221,7 +221,6 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     Uint16* p = (Uint16*)tmp2;
     rect1.x = x;
     rect1.y = y;
-    rect1.h = size;
     int pi = 0;
     //printf("%d,%d\n", strlen(str), strlen(tmp2));
     for (int i = 0; i < 128; i++)
@@ -237,9 +236,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         {
             Uint16 tmp[2] = { 0, 0 };
             tmp[0] = *p;
-           SDL_Surface* sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
-           *tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
-           SDL_FreeSurface(sur);
+            SDL_Surface* sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
+            *tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
+            SDL_FreeSurface(sur);
             char_count++;
 #ifdef _DEBUG
             if (*p == 54)
@@ -256,12 +255,13 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 #endif
         }
 #ifdef _DEBUG
-        if (*p <= 128) { pi++; } else { pi += 2; }
+        if (*p <= 128) { pi++; }
+        else { pi += 2; }
 #endif
         if (*p != 32)
         {
-            rect2.w = s;
-            rect2.h = size;
+            SDL_QueryTexture(*tex, NULL, NULL, &rect1.w, &rect1.h);
+            rect2 = rect1;
             SDL_SetRenderTarget(g_Renderer, g_Texture);
             SDL_SetTextureBlendMode(*tex, SDL_BLENDMODE_BLEND);
             SDL_SetTextureColorMod(*tex, c2.r, c2.g, c2.b);
@@ -280,7 +280,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             SDL_SetTextureColorMod(*tex, c.r, c.g, c.b);
             SDL_SetTextureAlphaMod(*tex, 255);
-            rect1.w = s;
+
             SDL_RenderCopy(g_Renderer, *tex, NULL, &rect1);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect1);
         }

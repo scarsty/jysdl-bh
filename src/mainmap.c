@@ -1358,12 +1358,10 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                         int effect = JY_GetWarMap(xx, yy, 4);
                         if (effect > 0)
                         {
-                            JY_LoadPic(v5, v3, x1, y1 - d4, 0, 0);
+                            JY_LoadPic(v5, v3, x1, y1 - d4, 2, 192);
                         }
                     }
                 }
-
-
             }
         }
     }
