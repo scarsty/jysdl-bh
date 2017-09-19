@@ -17,6 +17,7 @@
 SDL_Window* g_Window = NULL;
 SDL_Renderer* g_Renderer = NULL;
 SDL_Texture* g_Texture = NULL;
+SDL_Texture* g_TextureShow = NULL;
 
 SDL_Surface* g_Surface = NULL;        // 游戏使用的视频表面
 Uint32 g_MaskColor32 = 0xff706020;      // 透明色

@@ -237,7 +237,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         {
             Uint16 tmp[2] = { 0, 0 };
             tmp[0] = *p;
-           SDL_Surface* sur =              TTF_RenderUNICODE_Blended(myfont, tmp, white);
+           SDL_Surface* sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
            *tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
            SDL_FreeSurface(sur);
             char_count++;
@@ -263,6 +263,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             rect2.w = s;
             rect2.h = size;
             SDL_SetRenderTarget(g_Renderer, g_Texture);
+            SDL_SetTextureBlendMode(*tex, SDL_BLENDMODE_BLEND);
             SDL_SetTextureColorMod(*tex, c2.r, c2.g, c2.b);
             SDL_SetTextureAlphaMod(*tex, 128);
             rect2.x = rect1.x + 1;

@@ -379,27 +379,8 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             cache->yoff = *(short*)(data + 6);
             cache->s = CreatePicSurface32(data + 8, w, h, datalong - 8);
             cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
-
-            ////如果设置了缩放
-            //if (cache->s != NULL && g_Zoom > 1)
-            //{
-            //    tmpsur = cache->s;
-
-            //    cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
-            //    SDL_FreeSurface(tmpsur);
-
-            //    tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
-
-            //    SDL_FreeSurface(cache->s);
-
-            //    cache->s = tmpsur;
-            //    cache->xoff = (int)(g_Zoom * cache->xoff);
-            //    cache->yoff = (int)(g_Zoom * cache->yoff);
-
-            //    //SDL_SetColorKey(cache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //透明色
-
-            //}
-
+            SDL_FreeSurface(cache->s);
+            cache->s = NULL;
         }
         else        //读取png格式
         {
@@ -412,25 +393,8 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             cache->yoff = tmpsurf->h;
             cache->s = tmpsurf;
             cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
-            ////如果设置了缩放
-            //if (cache->s != NULL && g_Zoom > 1)
-            //{
-            //    tmpsur = cache->s;
-
-            //    cache->s = zoomSurface(tmpsur, g_Zoom, g_Zoom, SMOOTHING_OFF);
-            //    SDL_FreeSurface(tmpsur);
-
-            //    tmpsur = SDL_ConvertSurfaceFormat(cache->s, g_Surface->format->format, 0);
-
-            //    SDL_FreeSurface(cache->s);
-
-            //    cache->s = tmpsur;
-            //    cache->xoff = (int)(g_Zoom * cache->xoff);
-            //    cache->yoff = (int)(g_Zoom * cache->yoff);
-
-            //    //SDL_SetColorKey(cache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //透明色
-
-            //}
+            SDL_FreeSurface(cache->s);
+            cache->s = NULL;
         }
         SDL_FreeRW(fp_SDL);
         SafeFree(p);
@@ -697,6 +661,8 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
             newcache->h = tmpsur->h;
             newcache->s = tmpsur;
             newcache->t = SDL_CreateTextureFromSurface(g_Renderer, newcache->s);
+            SDL_FreeSurface(newcache->s);
+            newcache->s = NULL;
         }
         else
         {

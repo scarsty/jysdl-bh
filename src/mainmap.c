@@ -942,7 +942,7 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
     jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) - 1;
     jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) + 1;
 
-    JY_FillColor(AMASK, 0, 0, 0, 0);
+    JY_FillColor(0, 0, 0, 0, AMASK);
 
     for (j = 0; j <= 2 * jend - 2 * jstart + g_SMapAddY; j++)
     {
@@ -1178,7 +1178,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
     jstart = (rect.y - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) - 1;
     jend = (rect.y + rect.h - g_ScreenH / 2) / (2 * g_YScale * g_Zoom) + 1;
 
-    JY_FillColor(AMASK, 0, 0, 0, 0);
+    JY_FillColor(0, 0, 0, 0, AMASK);
 
     // »æÕ½¶·µØÃæ
     for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
