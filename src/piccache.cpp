@@ -11,8 +11,7 @@
 PicFileCache pic_file[PIC_FILE_NUM];
 //std::forward_list<CacheNode*> pic_cache;     //pic_cache链表
 Uint32 m_color32[256];               // 256调色板
-int g_EnableRLE = 0;
-int CacheFailNum = 0;
+//int CacheFailNum = 0;
 
 void CacheNode::toTexture()
 {
@@ -37,7 +36,7 @@ int Init_Cache()
         pic_file[i].idx = NULL;
         pic_file[i].grp = NULL;
         pic_file[i].fp = NULL;
-        pic_file[i].pcache = NULL;
+        //pic_file[i].pcache = NULL;
     }
     return 0;
 }
@@ -51,7 +50,7 @@ int JY_PicInit(char* PalletteFilename)
     struct list_head* pos, *p;
     int i;
 
-    LoadPallette(PalletteFilename);   //载入调色板
+    LoadPalette(PalletteFilename);   //载入调色板
 
     //如果链表不为空，删除全部链表
     //for (auto& c : pic_cache)
@@ -65,14 +64,20 @@ int JY_PicInit(char* PalletteFilename)
         pic_file[i].num = 0;
         SafeFree(pic_file[i].idx);
         SafeFree(pic_file[i].grp);
-        SafeFree(pic_file[i].pcache);
+
+        for (auto& p : pic_file[i].pcache)
+        {
+            delete p;
+        }
+        pic_file[i].pcache.clear();
+        //SafeFree(pic_file[i].pcache);
         if (pic_file[i].fp)
         {
             fclose(pic_file[i].fp);
             pic_file[i].fp = NULL;
         }
     }
-    CacheFailNum = 0;
+    //CacheFailNum = 0;
     return 0;
 }
 
@@ -90,7 +95,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         return 1;
     }
 
-    if (pic_file[id].pcache)          //释放当前文件占用的空间，并清理cache
+    if (pic_file[id].pcache.size())          //释放当前文件占用的空间，并清理cache
     {
         int i;
         for (i = 0; i < pic_file[id].num; i++)     //循环全部贴图，
@@ -101,7 +106,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
                 delete tmpcache;
             }
         }
-        SafeFree(pic_file[id].pcache);
+        //SafeFree(pic_file[id].pcache);
     }
     SafeFree(pic_file[id].idx);
     SafeFree(pic_file[id].grp);
@@ -157,9 +162,8 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         pic_file[id].fp = fp;
     }
 
-
-    pic_file[id].pcache = (struct CacheNode**)malloc(pic_file[id].num * sizeof(struct CacheNode*));
-    if (pic_file[id].pcache == NULL)
+    pic_file[id].pcache.resize(pic_file[id].num);
+    if (pic_file[id].pcache.size() == 0)
     {
         JY_Error("JY_PicLoadFile: cannot malloc pcache memory!\n");
         return 1;
@@ -211,7 +215,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
     if (pic_file[fileid].pcache[picid] == NULL)     //当前贴图没有加载
     {
         //生成cache数据
-        newcache = (struct CacheNode*)malloc(sizeof(struct CacheNode));
+        newcache = new CacheNode();
         if (newcache == NULL)
         {
             JY_Error("JY_LoadPic: cannot malloc newcache memory!\n");
@@ -248,7 +252,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
         //}
         pic_file[fileid].pcache[picid] = newcache;
     }
-    else     //已加载贴图
+    else
     {
         newcache = pic_file[fileid].pcache[picid];
     }
@@ -326,10 +330,10 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
             cache->yoff = *(short*)(data + 6);
             cache->w = w;
             cache->h = h;
-            cache->t = CreatePicSurface32(data + 8, w, h, datalong - 8);
+            cache->t = CreateTextureFromRLE(data + 8, w, h, datalong - 8);
             //cache->t = SDL_CreateTextureFromSurface(g_Renderer, cache->s);
             //SDL_FreeSurface(cache->s);
-            //cache->s = NULL;
+            cache->s = NULL;
         }
         else        //读取png格式
         {
@@ -391,7 +395,7 @@ int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 }
 
 //按照原来游戏的RLE格式创建表面
-SDL_Texture* CreatePicSurface32(unsigned char* data, int w, int h, int datalong)
+SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalong)
 {
     int p = 0;
     int i, j;
@@ -472,7 +476,7 @@ SDL_Texture* CreatePicSurface32(unsigned char* data, int w, int h, int datalong)
 
 // 读取调色板
 // 文件名为空则直接返回
-static int LoadPallette(char* filename)
+static int LoadPalette(char* filename)
 {
     FILE* fp;
     char color[3];
@@ -481,7 +485,7 @@ static int LoadPallette(char* filename)
     { return 1; }
     if ((fp = fopen(filename, "rb")) == NULL)
     {
-        JY_Error("Pallette File not open ---%s", filename);
+        JY_Error("palette File not open ---%s", filename);
         return 1;
     }
     for (i = 0; i < 256; i++)
@@ -505,7 +509,7 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         return 1;
     }
 
-    if (pic_file[fileid].pcache)          //释放当前文件占用的空间，并清理cache
+    if (pic_file[fileid].pcache.size())          //释放当前文件占用的空间，并清理cache
     {
         int i;
         for (i = 0; i < pic_file[fileid].num; i++)     //循环全部贴图，
@@ -516,14 +520,14 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
                 delete tmpcache;
             }
         }
-        SafeFree(pic_file[fileid].pcache);
+        //SafeFree(pic_file[fileid].pcache);
     }
 
     pic_file[fileid].num = num;
     sprintf(pic_file[fileid].path, "%s", path);
 
-    pic_file[fileid].pcache = (struct CacheNode**)malloc(pic_file[fileid].num * sizeof(struct CacheNode*));
-    if (pic_file[fileid].pcache == NULL)
+    pic_file[fileid].pcache.resize(pic_file[fileid].num);
+    if (pic_file[fileid].pcache.size() == 0)
     {
         JY_Error("JY_LoadPNGPath: cannot malloc pcache memory!\n");
         return 1;
@@ -558,7 +562,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         sprintf(str, "%s/%d.png", pic_file[fileid].path, picid);
 
         //生成cache数据
-        newcache = (struct CacheNode*)malloc(sizeof(struct CacheNode));
+        newcache = new CacheNode();
         if (newcache == NULL)
         {
             JY_Error("JY_LoadPNG: cannot malloc newcache memory!\n");
@@ -645,7 +649,6 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 
 int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 {
-    struct CacheNode* newcache;
     int r = JY_LoadPNG(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0);   //加载贴图到看不见的位置
 
     *w = 0;
@@ -656,7 +659,7 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
     if (r != 0)
     { return 1; }
 
-    newcache = pic_file[fileid].pcache[picid / 2];
+    auto newcache = pic_file[fileid].pcache[picid / 2];
 
     if (newcache->t)        // 已有，则直接显示
     {
@@ -668,3 +671,88 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
     return 0;
 }
+
+
+// 把表面blit到背景或者前景表面
+// x,y 要加载到表面的左上角坐标
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color)
+{
+    SDL_Surface* tmps;
+    SDL_Rect rect;
+    int i, j;
+    //color = ConvertColor(g_MaskColor32);
+    if (value > 255)
+    { value = 255; }
+    rect.x = x;
+    rect.y = y;
+    SDL_QueryTexture(lps, NULL, NULL, &rect.w, &rect.h);
+    if (!lps)
+    {
+        JY_Error("BlitSurface: lps is null!");
+        return 1;
+    }
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
+    if ((flag & 0x2) == 0)          // 没有alpha
+    {
+        SDL_SetTextureColorMod(lps, 255, 255, 255);
+        SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureAlphaMod(lps, 255);
+        SDL_RenderCopy(g_Renderer, lps, NULL, &rect);
+        //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
+    }
+    else    // 有alpha
+    {
+        if ((flag & 0x4) || (flag & 0x8) || (flag & 0x10))     // 4-黑, 8-白, 16-颜色
+        {
+            SDL_Texture* tmps = lps;
+            // 4-黑, 8-白, 16-颜色
+            if (flag & 0x4)
+            {
+                SDL_SetTextureColorMod(tmps, 64, 64, 64);
+                SDL_SetTextureBlendMode(tmps, SDL_BLENDMODE_BLEND);
+            }
+            else if (flag & 0x8)
+            {
+                tmps = createRenderedTexture(lps);
+                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_NONE);
+                SDL_SetRenderTarget(g_Renderer, tmps);
+                SDL_RenderCopy(g_Renderer, lps, NULL, NULL);
+                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_ADD);
+                SDL_RenderCopy(g_Renderer, lps, NULL, NULL);
+                SDL_SetTextureColorMod(tmps, 255, 255, 255);
+                SDL_SetTextureBlendMode(tmps, SDL_BLENDMODE_BLEND);
+                SDL_SetRenderTarget(g_Renderer, g_Texture);
+                //*p = 0xffffff | AMASK;
+            }
+            else
+            {
+                Uint8 r = (Uint8)((color & RMASK) >> 16);
+                Uint8 g = (Uint8)((color & GMASK) >> 8);
+                Uint8 b = (Uint8)((color & BMASK));
+                Uint8 a = 255;
+                SDL_SetTextureColorMod(tmps, r, g, b);
+                SDL_SetTextureBlendMode(tmps, SDL_BLENDMODE_BLEND);
+                //*p = ConvertColor(color);
+            }
+            SDL_SetTextureAlphaMod(tmps, (Uint8)value);
+            SDL_RenderCopy(g_Renderer, tmps, NULL, &rect);
+            //SDL_BlitSurface(tmps, NULL, g_Surface, &rect);
+            if (tmps && tmps != lps)
+            {
+                SDL_DestroyTexture(tmps);
+            }
+            //SDL_FreeSurface(tmps);
+        }
+        else
+        {
+            SDL_SetTextureColorMod(lps, 255, 255, 255);
+            SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
+            SDL_SetTextureAlphaMod(lps, (Uint8)value);
+            SDL_RenderCopy(g_Renderer, lps, NULL, &rect);
+            //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
+        }
+    }
+    return 0;
+}
+
+

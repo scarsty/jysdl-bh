@@ -33,7 +33,6 @@ int HAPI_DrawStr(lua_State* pL)
     return 0;
 }
 
-
 int HAPI_FillColor(lua_State* pL)
 {
     int x1 = (int)lua_tonumber(pL, 1);
@@ -45,7 +44,6 @@ int HAPI_FillColor(lua_State* pL)
     JY_FillColor(x1, y1, x2, y2, color);
     return 0;
 }
-
 
 int HAPI_Background(lua_State* pL)
 {
@@ -82,10 +80,6 @@ int HAPI_ShowSlow(lua_State* pL)
     return 0;
 }
 
-
-
-
-
 int HAPI_LoadPicture(lua_State* pL)
 {
     const char* str = lua_tostring(pL, 1);
@@ -94,8 +88,6 @@ int HAPI_LoadPicture(lua_State* pL)
     JY_LoadPicture(str, x, y);
     return 0;
 }
-
-
 
 int HAPI_GetKey(lua_State* pL)
 {
@@ -118,16 +110,12 @@ int HAPI_EnableKeyRepeat(lua_State* pL)
     return 0;
 }
 
-
-
 int HAPI_ShowSurface(lua_State* pL)
 {
     int flag = (int)lua_tonumber(pL, 1);
     JY_ShowSurface(flag);
     return 0;
 }
-
-
 
 int HAPI_GetTime(lua_State* pL)
 {
@@ -136,7 +124,6 @@ int HAPI_GetTime(lua_State* pL)
     lua_pushnumber(pL, t);
     return 1;
 }
-
 
 int HAPI_Delay(lua_State* pL)
 {
@@ -147,14 +134,10 @@ int HAPI_Delay(lua_State* pL)
 
 int HAPI_Debug(lua_State* pL)
 {
-
     const char* str = lua_tostring(pL, 1);
-
     JY_Debug(str);
-
     return 0;
 }
-
 
 int HAPI_CharSet(lua_State* pL)
 {
@@ -164,23 +147,20 @@ int HAPI_CharSet(lua_State* pL)
     char* dest;
 
     length = strlen(src);
-
     dest = (char*)malloc(length + 2);
-
     JY_CharSet(src, dest, flag);
-
     lua_pushstring(pL, dest);
-
     SafeFree(dest);
-
     return 1;
 }
 
-
+int HAPI_PicLoadCache(lua_State* pL)
+{
+    return 0;
+}
 
 int HAPI_SetClip(lua_State* pL)
 {
-
     if (lua_isnoneornil(pL, 1) == 0)
     {
         int x1 = (int)lua_tonumber(pL, 1);
@@ -197,27 +177,19 @@ int HAPI_SetClip(lua_State* pL)
     return 0;
 }
 
-
 int HAPI_PlayMIDI(lua_State* pL)
 {
-
     const char* filename = lua_tostring(pL, 1);
-
     JY_PlayMIDI(filename);
-
     return 0;
 }
 
 int HAPI_PlayWAV(lua_State* pL)
 {
-
     const char* filename = lua_tostring(pL, 1);
-
     JY_PlayWAV(filename);
-
     return 0;
 }
-
 
 int HAPI_PlayMPEG(lua_State* pL)
 {
@@ -226,9 +198,6 @@ int HAPI_PlayMPEG(lua_State* pL)
     JY_PlayMPEG((char*)filename, 0);
     return 0;
 }
-
-
-
 
 int HAPI_PicInit(lua_State* pL)
 {
@@ -288,8 +257,6 @@ int HAPI_LoadPic(lua_State* pL)
     return 0;
 }
 
-
-
 int HAPI_GetPicXY(lua_State* pL)
 {
     int fileid = (int)lua_tonumber(pL, 1);
@@ -305,11 +272,6 @@ int HAPI_GetPicXY(lua_State* pL)
 
     return 4;
 }
-
-
-
-
-
 
 int HAPI_LoadMMap(lua_State* pL)
 {
@@ -327,7 +289,6 @@ int HAPI_LoadMMap(lua_State* pL)
 
     return 0;
 }
-
 
 int HAPI_DrawMMap(lua_State* pL)
 {
@@ -363,8 +324,6 @@ int HAPI_FullScreen(lua_State* pL)
     return 0;
 }
 
-
-
 int HAPI_LoadSMap(lua_State* pL)
 {
     const char* Sfilename = lua_tostring(pL, 1);
@@ -382,8 +341,6 @@ int HAPI_LoadSMap(lua_State* pL)
     return 0;
 }
 
-
-
 int HAPI_SaveSMap(lua_State* pL)
 {
     const char* Sfilename = lua_tostring(pL, 1);
@@ -393,12 +350,8 @@ int HAPI_SaveSMap(lua_State* pL)
     return 0;
 }
 
-
-
-
 int HAPI_GetS(lua_State* pL)
 {
-
     int id = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
     int y = (int)lua_tonumber(pL, 3);
@@ -409,7 +362,6 @@ int HAPI_GetS(lua_State* pL)
 
     lua_pushnumber(pL, v);
     return 1;
-
 }
 
 int HAPI_SetS(lua_State* pL)
@@ -429,7 +381,6 @@ int HAPI_SetS(lua_State* pL)
 
 int HAPI_GetD(lua_State* pL)
 {
-
     int Sceneid = (int)lua_tonumber(pL, 1);
     int id = (int)lua_tonumber(pL, 2);
     int i = (int)lua_tonumber(pL, 3);
@@ -440,22 +391,18 @@ int HAPI_GetD(lua_State* pL)
 
     lua_pushnumber(pL, v);
     return 1;
-
 }
 
 int HAPI_SetD(lua_State* pL)
 {
-
     int Sceneid = (int)lua_tonumber(pL, 1);
     int id = (int)lua_tonumber(pL, 2);
     int i = (int)lua_tonumber(pL, 3);
     int v = (int)lua_tonumber(pL, 4);
 
-
     JY_SetD(Sceneid, id, i, v);
 
     return 0;
-
 }
 
 int HAPI_DrawSMap(lua_State* pL)
@@ -472,7 +419,6 @@ int HAPI_DrawSMap(lua_State* pL)
     return 0;
 }
 
-
 int HAPI_LoadWarMap(lua_State* pL)
 {
     const char* WarIDXfilename = lua_tostring(pL, 1);
@@ -487,11 +433,8 @@ int HAPI_LoadWarMap(lua_State* pL)
     return 0;
 }
 
-
-
 int HAPI_GetWarMap(lua_State* pL)
 {
-
     int x = (int)lua_tonumber(pL, 1);
     int y = (int)lua_tonumber(pL, 2);
     int level = (int)lua_tonumber(pL, 3);
@@ -501,12 +444,10 @@ int HAPI_GetWarMap(lua_State* pL)
 
     lua_pushnumber(pL, v);
     return 1;
-
 }
 
 int HAPI_SetWarMap(lua_State* pL)
 {
-
     int x = (int)lua_tonumber(pL, 1);
     int y = (int)lua_tonumber(pL, 2);
     int level = (int)lua_tonumber(pL, 3);
@@ -514,18 +455,15 @@ int HAPI_SetWarMap(lua_State* pL)
     JY_SetWarMap(x, y, level, v);
 
     return 0;
-
 }
 
 int HAPI_CleanWarMap(lua_State* pL)
 {
-
     int level = (int)lua_tonumber(pL, 1);
     int v = (int)lua_tonumber(pL, 2);
     JY_CleanWarMap(level, v);
 
     return 0;
-
 }
 
 int HAPI_DrawWarMap(lua_State* pL)
@@ -554,7 +492,6 @@ int HAPI_DrawWarMap(lua_State* pL)
     return 0;
 }
 
-
 int HAPI_SaveSur(lua_State* pL)         //保存屏幕到临时表面
 {
     int x = (int)lua_tonumber(pL, 1);
@@ -565,6 +502,7 @@ int HAPI_SaveSur(lua_State* pL)         //保存屏幕到临时表面
     lua_pushnumber(pL, id);
     return 1;
 }
+
 int HAPI_LoadSur(lua_State* pL)             //加载临时表面到屏幕
 {
     int id = (int)lua_tonumber(pL, 1);
@@ -573,6 +511,7 @@ int HAPI_LoadSur(lua_State* pL)             //加载临时表面到屏幕
     JY_LoadSur(id, x, y);
     return 0;
 }
+
 int HAPI_FreeSur(lua_State* pL)                 //释放
 {
     int id = (int)lua_tonumber(pL, 1);
@@ -585,6 +524,7 @@ int HAPI_ScreenWidth(lua_State* pL)             //屏幕宽度
     lua_pushnumber(pL, g_ScreenW);
     return 1;
 }
+
 int HAPI_ScreenHeight(lua_State* pL)            //屏幕高度
 {
     lua_pushnumber(pL, g_ScreenH);
@@ -646,10 +586,6 @@ int HAPI_GetPNGXY(lua_State* pL)
     return 4;
 }
 
-
-
-
-
 // byte数组lua函数
 /*  lua 调用形式：(注意，位置都是从0开始
      handle=Byte_create(size);
@@ -683,6 +619,10 @@ int Byte_create(lua_State* pL)
     return 1;
 }
 
+int Byte_release(lua_State * pL)
+{
+    return 0;
+}
 
 int Byte_loadfile(lua_State* pL)
 {
@@ -801,7 +741,6 @@ int Byte_unzip(lua_State* pL)
     unzClose(zip);
     return 0;
 }
-
 
 int Byte_zip(lua_State* pL)
 {
@@ -924,7 +863,6 @@ int Byte_setstr(lua_State* pL)
 
     for (i = 0; i < l; i++)
     { p[start + i] = s[i]; }
-
 
     lua_pushstring(pL, s);
 

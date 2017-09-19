@@ -193,15 +193,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         strcpy(tmp2, str);
     }
 
-
-    if (g_Rotate == 0)
-    {
-        rect = g_Surface->clip_rect;
-    }
-    else
-    {
-        rect = RotateReverseRect(&g_Surface->clip_rect);
-    }
+    SDL_RenderGetClipRect(g_Renderer, &rect);
+    if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
+    if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
 
     TTF_SizeUNICODE(myfont, (Uint16*)tmp2, &w, &h);
 

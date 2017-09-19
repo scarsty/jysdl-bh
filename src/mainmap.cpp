@@ -9,14 +9,6 @@
 #include "jymain.h"
 #include "piccache.h"
 
-
-template <typename T> void swap(T&a, T&b) 
-{
-    auto t = a;
-    a = b;
-    b = t;
-}
-
 //主地图数据
 static Sint16* pEarth = NULL;
 static Sint16* pSurface = NULL;
@@ -78,7 +70,6 @@ int JY_LoadMMap(const char* earthname, const char* surfacename, const char* buil
     }
     else                    //部分读取
     {
-
         int rangex = g_ScreenW / (2 * g_XScale) / 2 + 1 + g_MMapAddX;   //计算主地图访问坐标范围
         int rangey = g_ScreenH / (2 * g_YScale) / 2 + 1;
 
@@ -145,8 +136,6 @@ int LoadMMap_Sub(const char* filename, Sint16** p)
 
     return 0;
 }
-
-
 
 //部分读取主地图数据
 // read 0 根据需要读取  1 强制读取
@@ -409,7 +398,6 @@ int JY_SetMMap(short x, short y, int flag, short v)
 // Mypic 主角贴图编号
 int BuildingSort(short x, short y, short Mypic)
 {
-
     int rangex = g_ScreenW / (2 * g_XScale * g_Zoom) / 2 + 1 + g_MMapAddX;
     int rangey = g_ScreenH / (2 * g_YScale * g_Zoom) / 2 + 1;
 
@@ -452,7 +440,6 @@ int BuildingSort(short x, short y, short Mypic)
                         repeat = 1;
                         if (k == p - 1)
                         { break; }
-
                         for (m = j - 1; m >= dy; m--)
                         {
                             int im3 = JY_GetMMap(i, m, 3);
@@ -508,10 +495,10 @@ int JY_DrawMMap(int x, int y, int Mypic)
     SDL_Rect rect;
 
     swap(tex, g_Texture);
-    rect = g_Surface->clip_rect;
-
+    SDL_RenderGetClipRect(g_Renderer, &rect);
+    if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
+    if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
     //根据g_Surface的clip来确定循环参数。提高绘制速度
-
     istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) - 1 - g_MMapAddX;
     iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) + 1 + g_MMapAddX;
 
@@ -650,7 +637,6 @@ int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_m
     D_Num2 = d_num2;
 
     //读取D文件
-
 
     if (pD == NULL)
     { pD = (Sint16*)malloc(D_Num1 * D_Num2 * S_Num * 2); }
@@ -900,15 +886,10 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
         return 0;
     }
 
-    if (g_Rotate == 0)
-    {
-        rect = g_Surface->clip_rect;
-    }
-    else
-    {
-        rect = RotateReverseRect(&g_Surface->clip_rect);
-    }
     swap(tex, g_Texture);
+    SDL_RenderGetClipRect(g_Renderer, &rect);
+    if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
+    if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
     //根据g_Surface的剪裁来确定循环参数。提高绘制速度
     istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) - 1 - g_SMapAddX;
     iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) + 1 + g_SMapAddX;
@@ -1023,7 +1004,10 @@ int JY_LoadWarMap(const char* WarIDXfilename, const char* WarGRPfilename, int ma
     JY_UnloadWarMap();
 
     if (pWar == NULL)
-    { pWar = (Sint16*)malloc(x_max * y_max * num * 2); }
+    {
+        pWar = (Sint16*)malloc(x_max * y_max * num * 2);
+        memset(pWar, 0, x_max * y_max * num * 2);
+    }
 
     if (pWar == NULL)
     {
@@ -1058,14 +1042,11 @@ int JY_LoadWarMap(const char* WarIDXfilename, const char* WarGRPfilename, int ma
     fclose(fp);
 
     return 0;
-
 }
 
 int JY_UnloadWarMap()
 {
-
     SafeFree(pWar);
-
     return 0;
 }
 
@@ -1073,17 +1054,14 @@ int JY_UnloadWarMap()
 int JY_GetWarMap(int x, int y, int level)
 {
     int s;
-
     if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 8)
     {
         JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
         return 0;
     }
-
     s = War_XMax * War_YMax * level + y * War_XMax + x;
 
     return *(pWar + s);
-
 }
 
 //存战斗地图数据
@@ -1140,9 +1118,10 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 
     SDL_Rect rect;
 
-    rect = g_Surface->clip_rect;
-
     swap(tex, g_Texture);
+    SDL_RenderGetClipRect(g_Renderer, &rect);
+    if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
+    if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
     //根据g_Surface的剪裁来确定循环参数。提高绘制速度
     istart = (rect.x - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) - 1 - g_WMapAddX;
     iend = (rect.x + rect.w - g_ScreenW / 2) / (2 * g_XScale * g_Zoom) + 1 + g_WMapAddX;
