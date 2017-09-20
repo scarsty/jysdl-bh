@@ -17,6 +17,7 @@ SDL_Window* g_Window = NULL;
 SDL_Renderer* g_Renderer = NULL;
 SDL_Texture* g_Texture = NULL;
 SDL_Texture* g_TextureShow = NULL;
+SDL_Texture* g_TextureTmp = NULL;
 
 SDL_Surface* g_Surface = NULL;          // 游戏使用的视频表面
 Uint32 g_MaskColor32 = 0xff706020;      // 透明色
@@ -53,8 +54,6 @@ char g_MidSF2[255];                     //音色库对应的文件
 float g_Zoom = 1;                       //图片放大
 
 lua_State* pL_main = NULL;
-int g_Delay = 50;
-int g_Interval = 20;
 
 //定义的lua接口函数名
 static const struct luaL_Reg jylib[] =
@@ -62,6 +61,7 @@ static const struct luaL_Reg jylib[] =
     {"Debug", HAPI_Debug},
 
     {"GetKey", HAPI_GetKey},
+    {"GetKeyState", HAPI_GetKeyState},
     {"EnableKeyRepeat", HAPI_EnableKeyRepeat},
 
     {"Delay", HAPI_Delay},
@@ -69,7 +69,6 @@ static const struct luaL_Reg jylib[] =
 
     {"CharSet", HAPI_CharSet},
     {"DrawStr", HAPI_DrawStr},
-
 
     {"SetClip", HAPI_SetClip},
     {"FillColor", HAPI_FillColor},

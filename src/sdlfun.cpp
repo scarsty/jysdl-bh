@@ -190,6 +190,8 @@ int InitGame(void)
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     g_Texture = createRenderedTexture(g_ScreenW, g_ScreenH);
     g_TextureShow = createRenderedTexture(g_ScreenW, g_ScreenH);
+    g_TextureTmp = createRenderedTexture(g_ScreenW, g_ScreenH);
+
     g_Surface = SDL_CreateRGBSurface(0, 1, 1, 32, RMASK, GMASK, BMASK, AMASK);
     //SDL_WM_SetCaption("The Fall of Star",_("ff.ico"));         //这是显示窗口的
     //SDL_WM_SetIcon(IMG_Load(_("ff.ico")), NULL);
@@ -321,12 +323,15 @@ int JY_ShowSurface(int flag)
         SDL_RenderCopy(g_Renderer, g_Texture, NULL, NULL);
     }
     SDL_SetRenderTarget(g_Renderer, NULL);
+    //SDL_Rect r;
+    //SDL_RenderGetClipRect(g_Renderer, &r);
     SDL_RenderSetClipRect(g_Renderer, NULL);
     if (g_Rotate == 0)
     { SDL_RenderCopy(g_Renderer, g_TextureShow, NULL, NULL); }
     else
     { SDL_RenderCopyEx(g_Renderer, g_TextureShow, NULL, NULL, 90, NULL, SDL_FLIP_NONE); }
     SDL_RenderPresent(g_Renderer);
+    //SDL_RenderSetClipRect(g_Renderer, &r);
     return 0;
 }
 
@@ -454,7 +459,6 @@ int StopMIDI()
     return 0;
 }
 
-
 //播放音效
 int JY_PlayWAV(const char* filename)
 {
@@ -492,9 +496,6 @@ int JY_PlayWAV(const char* filename)
 // 得到前面按下的字符
 int JY_GetKey(int* key, int* type, int* mx, int* my)
 {
-    static int pressed = 0;
-    static int pressed_key = -1;
-    static Uint32 ticks = 0;
     SDL_Event event;
     int win_w, win_h, r;
     *key = -1;
@@ -513,12 +514,6 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
                 *key = SDLK_RETURN;
             }
             *type = 1;
-            if (pressed == 0 || pressed_key != *key)
-            {
-                SDL_Delay(g_Delay);
-            }
-            pressed = 1;
-            pressed_key = event.key.keysym.sym;
             break;
         case SDL_KEYUP:
             //*key = event.key.keysym.sym;
@@ -526,9 +521,6 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             //{
             //    *key = SDLK_RETURN;
             //}
-            //pressed_key = event.key.keysym.sym;
-            pressed = 0;
-            //*type = -1;
             break;
         case SDL_MOUSEMOTION:           //鼠标移动
             SDL_GetWindowSize(g_Window, &win_w, &win_h);
@@ -591,38 +583,20 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             break;
         }
     }
-    if (SDL_GetTicks() - ticks > g_Interval)
-    {
-        static SDL_Scancode pre_pressed = SDL_SCANCODE_UNKNOWN;
-        const Uint8* state = SDL_GetKeyboardState(NULL);
-        auto cur_pressed = pre_pressed;
-        //check the previous pressed key
-        if (state[pre_pressed])
-        {
-            *key = SDL_GetKeyFromScancode(pre_pressed);
-            cur_pressed = pre_pressed;
-        }
-        for (int i = SDL_SCANCODE_RIGHT; i <= SDL_SCANCODE_UP; i++)
-        {
-            //if the pressed key is different to the previous, use the newer
-            if (i != pre_pressed && state[i])
-            {
-                *key = SDL_GetKeyFromScancode(SDL_Scancode(i));
-                cur_pressed = SDL_Scancode(i);
-                break;
-            }
-        }
-        pre_pressed = cur_pressed;
-    }
-    ticks = SDL_GetTicks();
+
     return *key;
 }
 
+int JY_GetKeyState(int key)
+{
+    return SDL_GetKeyboardState(NULL)[SDL_GetScancodeFromKey(key)];
+}
 
 //设置裁剪
 int JY_SetClip(int x1, int y1, int x2, int y2)
 {
     SDL_Rect rect;
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
     if (x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0)
     {
         rect = { 0, 0, g_ScreenW, g_ScreenH };
@@ -638,8 +612,7 @@ int JY_SetClip(int x1, int y1, int x2, int y2)
         rect.w = (Uint16)(x2 - x1);
         rect.h = (Uint16)(y2 - y1);
         ClipRect[currentRect] = rect;
-        SDL_RenderSetClipRect(g_Renderer, &ClipRect[currentRect]);
-        //SDL_SetClipRect(g_Surface, &ClipRect[currentRect]);
+        SDL_RenderSetClipRect(g_Renderer, &rect);
         currentRect = currentRect + 1;
         if (currentRect >= RECTNUM)
         {

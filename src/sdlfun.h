@@ -21,6 +21,7 @@ int JY_PlayMIDI(const char* filename);
 int StopMIDI();
 int JY_PlayWAV(const char* filename);
 int JY_GetKey(int* key, int* type, int* mx, int* my);
+int JY_GetKeyState(int key);
 int JY_SetClip(int x1, int y1, int x2, int y2);
 int JY_DrawRect(int x1, int y1, int x2, int y2, int color);
 void HLine32(int x1, int x2, int y, int color);

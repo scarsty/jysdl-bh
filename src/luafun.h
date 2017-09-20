@@ -18,6 +18,7 @@ int HAPI_DrawRect(lua_State* pL);
 int HAPI_LoadPicture(lua_State* pL);
 int HAPI_EnableKeyRepeat(lua_State* pL);
 int HAPI_GetKey(lua_State* pL);
+int HAPI_GetKeyState(lua_State* pL);
 int HAPI_ShowSurface(lua_State* pL);
 int HAPI_Delay(lua_State* pL);
 int HAPI_GetTime(lua_State* pL);

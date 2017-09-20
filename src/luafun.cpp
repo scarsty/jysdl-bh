@@ -100,12 +100,17 @@ int HAPI_GetKey(lua_State* pL)
     return 4;
 }
 
+int HAPI_GetKeyState(lua_State * pL)
+{
+    int state = JY_GetKeyState((int)lua_tonumber(pL, 1));
+    lua_pushnumber(pL, state);
+    return 1;
+}
+
 int HAPI_EnableKeyRepeat(lua_State* pL)
 {
     int delay = (int)lua_tonumber(pL, 1);
     int interval = (int)lua_tonumber(pL, 2);
-    g_Delay = delay;
-    g_Interval = interval;
     //SDL_EnableKeyRepeat(delay,interval);
     return 0;
 }

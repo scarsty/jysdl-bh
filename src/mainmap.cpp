@@ -485,7 +485,6 @@ int BuildingSort(short x, short y, short Mypic)
 // 绘制主地图
 int JY_DrawMMap(int x, int y, int Mypic)
 {
-    SDL_Texture* tex = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
     int i, j;
     int i1, j1;
     int x1, y1;
@@ -494,7 +493,6 @@ int JY_DrawMMap(int x, int y, int Mypic)
 
     SDL_Rect rect;
 
-    swap(tex, g_Texture);
     SDL_RenderGetClipRect(g_Renderer, &rect);
     if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
     if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
@@ -562,13 +560,10 @@ int JY_DrawMMap(int x, int y, int Mypic)
     r.h = g_ScreenH / g_Zoom;
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
-    swap(tex, g_Texture);
-    SDL_SetRenderTarget(g_Renderer, g_Texture);
-    SDL_RenderCopy(g_Renderer, tex, &r, NULL);
-    SDL_DestroyTexture(tex);
+    RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
+    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
     return 0;
 }
-
 
 //读取S*D*
 int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_max, int y_max,
@@ -637,7 +632,6 @@ int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_m
     D_Num2 = d_num2;
 
     //读取D文件
-
     if (pD == NULL)
     { pD = (Sint16*)malloc(D_Num1 * D_Num2 * S_Num * 2); }
     if (pD == NULL)
@@ -869,7 +863,6 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
 
     //int rangex=g_ScreenW/(2*g_XScale)/2+1+g_SMapAddX;
     //int rangey=(g_ScreenH)/(2*g_YScale)/2+1;
-    SDL_Texture* tex = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
     int i, j;
     int i1, j1;
     int x1, y1;
@@ -886,7 +879,6 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
         return 0;
     }
 
-    swap(tex, g_Texture);
     SDL_RenderGetClipRect(g_Renderer, &rect);
     if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
     if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
@@ -974,10 +966,8 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
     r.h = g_ScreenH / g_Zoom;
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
-    swap(tex, g_Texture);
-    SDL_SetRenderTarget(g_Renderer, g_Texture);
-    SDL_RenderCopy(g_Renderer, tex, &r, NULL);
-    SDL_DestroyTexture(tex);
+    RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
+    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
     return 0;
 }
 
@@ -1106,19 +1096,15 @@ int JY_CleanWarMap(int level, int v)
 
 int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5, int ex, int ey)
 {
-    SDL_Texture* tex = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, g_ScreenW, g_ScreenH);
     //int rangex=g_ScreenW/(2*g_XScale)/2+1+g_WMapAddX;
     //int rangey=g_ScreenH/(2*g_YScale)/2+1 ;
     int i, j;
     int i1, j1;
     int x1, y1;
     int xx, yy;
-
     int istart, iend, jstart, jend;
 
     SDL_Rect rect;
-
-    swap(tex, g_Texture);
     SDL_RenderGetClipRect(g_Renderer, &rect);
     if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
     if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
@@ -1166,16 +1152,11 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                     { color = 0x0000f0; }       //大吉
                     else if (n == 4)
                     { color = 0xA010A0; }       //大凶
-
-
                     JY_LoadPicColor(0, 0, x1, y1 - d4, 2 + 16, 192, color);     //地面
                 }
-
             }
         }
     }
-
-
 
     if ((flag == 1) || (flag == 2))       //在地面上绘制移动范围
     {
@@ -1202,12 +1183,8 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                         { showflag = 2 + 8; }
                         if (v4 >= 0)
                         { d4 = JY_GetS(v4, xx, yy, 4); }
-
                         if ((xx == v1) && (yy == v2))
-
-                        {
-                            JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128);
-                        }
+                        { JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128); }
                         else
                         { JY_LoadPic(0, 0, x1, y1 - d4, showflag, 64); }
                     }
@@ -1289,7 +1266,6 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                             {
                                 JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
                             }
-
                             break;
                         }
                     }
@@ -1321,10 +1297,8 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
     r.h = g_ScreenH / g_Zoom;
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
-    swap(tex, g_Texture);
-    SDL_SetRenderTarget(g_Renderer, g_Texture);
-    SDL_RenderCopy(g_Renderer, tex, &r, NULL);
-    SDL_DestroyTexture(tex);
+    RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
+    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
 
     return 0;
 }

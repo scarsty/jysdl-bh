@@ -83,6 +83,7 @@ extern SDL_Window* g_Window;
 extern SDL_Renderer* g_Renderer;
 extern SDL_Texture* g_Texture;
 extern SDL_Texture* g_TextureShow;
+extern SDL_Texture* g_TextureTmp;
 
 extern SDL_Surface* g_Surface;               // 游戏使用的视频表面
 extern Uint32 g_MaskColor32;                 // 透明色
@@ -119,5 +120,3 @@ extern char g_MidSF2[255];                   //音色库对应的文件
 extern float g_Zoom;                         //图片放大
 
 extern lua_State* pL_main;
-extern int g_Delay;
-extern int g_Interval;

@@ -543,7 +543,6 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
 
 int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 {
-
     struct CacheNode* newcache, *tmpcache;
     SDL_Surface* tmpsur;
     SDL_Rect r;
@@ -640,12 +639,12 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
     //SDL_BlitSurface(newcache->s, NULL, g_Surface, &r);
     r.w = newcache->w;
     r.h = newcache->h;
+
     SDL_SetRenderTarget(g_Renderer, g_Texture);
     SDL_RenderCopy(g_Renderer, newcache->t, NULL, &r);
 
     return 0;
 }
-
 
 int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 {
@@ -678,7 +677,7 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color)
 {
     SDL_Surface* tmps;
-    SDL_Rect rect;
+    SDL_Rect rect, rect0;
     int i, j;
     //color = ConvertColor(g_MaskColor32);
     if (value > 255)
@@ -686,43 +685,48 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
     rect.x = x;
     rect.y = y;
     SDL_QueryTexture(lps, NULL, NULL, &rect.w, &rect.h);
+    rect0 = rect;
+    rect0.x = 0;
+    rect0.y = 0;
     if (!lps)
     {
         JY_Error("BlitSurface: lps is null!");
         return 1;
     }
-    SDL_SetRenderTarget(g_Renderer, g_Texture);
+
     if ((flag & 0x2) == 0)          // 没有alpha
     {
         SDL_SetTextureColorMod(lps, 255, 255, 255);
         SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
         SDL_SetTextureAlphaMod(lps, 255);
-        SDL_RenderCopy(g_Renderer, lps, NULL, &rect);
+        RenderToTexture(lps, NULL, g_Texture, &rect);
         //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
     }
     else    // 有alpha
     {
         if ((flag & 0x4) || (flag & 0x8) || (flag & 0x10))     // 4-黑, 8-白, 16-颜色
         {
-            SDL_Texture* tmps = lps;
             // 4-黑, 8-白, 16-颜色
             if (flag & 0x4)
             {
-                SDL_SetTextureColorMod(tmps, 64, 64, 64);
-                SDL_SetTextureBlendMode(tmps, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureColorMod(lps, 32, 32, 32);
+                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(lps, (Uint8)value);
+                RenderToTexture(lps, NULL, g_Texture, &rect);
             }
             else if (flag & 0x8)
             {
-                tmps = createRenderedTexture(lps);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_NONE);
-                SDL_SetRenderTarget(g_Renderer, tmps);
-                SDL_RenderCopy(g_Renderer, lps, NULL, NULL);
+                RenderToTexture(lps, NULL, g_TextureTmp, &rect);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_ADD);
-                SDL_RenderCopy(g_Renderer, lps, NULL, NULL);
-                SDL_SetTextureColorMod(tmps, 255, 255, 255);
-                SDL_SetTextureBlendMode(tmps, SDL_BLENDMODE_BLEND);
-                SDL_SetRenderTarget(g_Renderer, g_Texture);
-                //*p = 0xffffff | AMASK;
+                SDL_SetRenderDrawColor(g_Renderer, 255, 255, 255, 255);
+                SDL_SetRenderDrawBlendMode(g_Renderer, SDL_BLENDMODE_ADD);
+                SDL_RenderFillRect(g_Renderer, &rect);
+                SDL_SetTextureColorMod(g_TextureTmp, 255, 255, 255);
+                SDL_SetTextureBlendMode(g_TextureTmp, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(g_TextureTmp, (Uint8)value);
+                RenderToTexture(g_TextureTmp, &rect, g_Texture, &rect);
+                SDL_SetTextureAlphaMod(g_TextureTmp, 255);
             }
             else
             {
@@ -730,25 +734,18 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
                 Uint8 g = (Uint8)((color & GMASK) >> 8);
                 Uint8 b = (Uint8)((color & BMASK));
                 Uint8 a = 255;
-                SDL_SetTextureColorMod(tmps, r, g, b);
-                SDL_SetTextureBlendMode(tmps, SDL_BLENDMODE_BLEND);
-                //*p = ConvertColor(color);
+                SDL_SetTextureColorMod(lps, r, g, b);
+                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(lps, (Uint8)value);
+                RenderToTexture(lps, NULL, g_Texture, &rect);
             }
-            SDL_SetTextureAlphaMod(tmps, (Uint8)value);
-            SDL_RenderCopy(g_Renderer, tmps, NULL, &rect);
-            //SDL_BlitSurface(tmps, NULL, g_Surface, &rect);
-            if (tmps && tmps != lps)
-            {
-                SDL_DestroyTexture(tmps);
-            }
-            //SDL_FreeSurface(tmps);
         }
         else
         {
             SDL_SetTextureColorMod(lps, 255, 255, 255);
             SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
             SDL_SetTextureAlphaMod(lps, (Uint8)value);
-            SDL_RenderCopy(g_Renderer, lps, NULL, &rect);
+            RenderToTexture(lps, NULL, g_Texture, &rect);
             //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
         }
     }
