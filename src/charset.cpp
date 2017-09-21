@@ -272,6 +272,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 
             SDL_RenderCopy(g_Renderer, *tex, NULL, &rect1);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect1);
+            s = rect1.w;
         }
         rect1.x = rect1.x + s;
         p++;

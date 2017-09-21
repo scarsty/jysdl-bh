@@ -716,7 +716,9 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
             }
             else if (flag & 0x8)
             {
+                SDL_SetTextureColorMod(lps, 255, 255, 255);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_NONE);
+                SDL_SetTextureAlphaMod(lps, 255);
                 RenderToTexture(lps, NULL, g_TextureTmp, &rect);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_ADD);
                 SDL_SetRenderDrawColor(g_Renderer, 255, 255, 255, 255);
