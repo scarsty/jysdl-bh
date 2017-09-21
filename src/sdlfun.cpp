@@ -188,9 +188,9 @@ int InitGame(void)
     g_Window = SDL_CreateWindow("The Fall of Star", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
-    g_Texture = createRenderedTexture(g_ScreenW, g_ScreenH);
-    g_TextureShow = createRenderedTexture(g_ScreenW, g_ScreenH);
-    g_TextureTmp = createRenderedTexture(g_ScreenW, g_ScreenH);
+    g_Texture = CreateRenderedTexture(g_ScreenW, g_ScreenH);
+    g_TextureShow = CreateRenderedTexture(g_ScreenW, g_ScreenH);
+    g_TextureTmp = CreateRenderedTexture(g_ScreenW, g_ScreenH);
 
     g_Surface = SDL_CreateRGBSurface(0, 1, 1, 32, RMASK, GMASK, BMASK, AMASK);
     //SDL_WM_SetCaption("The Fall of Star",_("ff.ico"));         //这是显示窗口的
@@ -231,14 +231,14 @@ int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_
     return SDL_RenderCopy(g_Renderer, src, src_rect, dst_rect);
 }
 
-SDL_Texture* createRenderedTexture(SDL_Texture* ref)
+SDL_Texture* CreateRenderedTexture(SDL_Texture* ref)
 {
     int w, h;
     SDL_QueryTexture(ref, NULL, NULL, &w, &h);
-    return createRenderedTexture(w, h);
+    return CreateRenderedTexture(w, h);
 }
 
-SDL_Texture* createRenderedTexture(int w, int h)
+SDL_Texture* CreateRenderedTexture(int w, int h)
 {
     return SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
 }
