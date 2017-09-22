@@ -34,7 +34,7 @@ int g_SoundVolume = 32;                 // 音效声音大小
 int g_XScale = 18;                      //贴图x,y方向一半大小
 int g_YScale = 9;
 
-                                        //各个地图绘制时xy方向需要多绘制的余量。保证可以全部显示
+//各个地图绘制时xy方向需要多绘制的余量。保证可以全部显示
 int g_MMapAddX;
 int g_MMapAddY;
 int g_SMapAddX;
@@ -167,22 +167,6 @@ int main(int argc, char* argv[])
 
     JY_Debug("LoadMB();");
     LoadMB(_(HZMB_FILE));  //加载汉字字符集转换码表
-
-
-#ifdef _DEBUG
-    //SDL_Event e;
-    //while (SDL_PollEvent(&e) >= 0)
-    //{
-    //    if (e.type == SDL_KEYUP)
-    //    {
-    //        printf("%u\n", e.key.keysym.sym);
-    //        if (e.key.keysym.sym == SDLK_ESCAPE)
-    //        {
-    //            break;
-    //        }
-    //    }
-    //}
-#endif
 
     JY_Debug("Lua_Main();");
     Lua_Main(pL_main);          //调用Lua主函数，开始游戏
@@ -320,7 +304,7 @@ int getfieldstr(lua_State* pL, const char* key, char* str)
     const char* tmp;
     lua_getfield(pL, -1, key);
     tmp = (const char*)lua_tostring(pL, -1);
-    strcpy(str, tmp);
+    if (tmp) { strcpy(str, tmp); }
     lua_pop(pL, 1);
     return 0;
 }
@@ -335,13 +319,15 @@ int JY_Debug(const char* fmt, ...)
     FILE* fp;
     struct tm* newtime;
     va_list argptr;
+#ifndef _DEBUG
+    if (IsDebug == 0)
+    { return 0; }
+#endif
     char string[1024];
     // concatenate all the arguments in one string
     va_start(argptr, fmt);
     vsnprintf(string, sizeof(string), fmt, argptr);
     va_end(argptr);
-    if (IsDebug == 0)
-    { return 0; }
     time(&t);
     newtime = localtime(&t);
 #ifdef _DEBUG
@@ -359,9 +345,11 @@ int JY_Debug(const char* fmt, ...)
 int JY_Error(const char* fmt, ...)
 {
     //无酒不欢：不再输出error信息
-#ifdef _DEBUG
+#ifndef _DEBUG
     if (IsDebug == 0)
     { return 0; }
+#endif
+#ifdef _DEBUG
     time_t t;
     FILE* fp;
     struct tm* newtime;
