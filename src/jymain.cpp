@@ -194,15 +194,21 @@ int Lua_Main(lua_State* pL_main)
     //³õÊ¼»¯lua
 
     //×¢²áluaº¯Êý
-    //luaL_register(pL_main,"lib", jylib);
-    //luaL_register(pL_main, "Byte", bytelib);
+#if LUA_VERSION_NUM	== 501
+    luaL_register(pL_main,"lib", jylib);
+    luaL_register(pL_main, "Byte", bytelib);
+#endif
     lua_newtable(pL_main);
+#if LUA_VERSION_NUM	== 502
     luaL_setfuncs(pL_main, jylib, 0);
+#endif
     lua_pushvalue(pL_main, -1);
     lua_setglobal(pL_main, "lib");
 
     lua_newtable(pL_main);
+#if LUA_VERSION_NUM	== 502
     luaL_setfuncs(pL_main, bytelib, 1);
+#endif
     lua_pushvalue(pL_main, -1);
     lua_setglobal(pL_main, "Byte");
 

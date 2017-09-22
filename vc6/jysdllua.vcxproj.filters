@@ -61,7 +61,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\Lua\lib\lua52.lib" />
     <Library Include="..\Bass\lib\bass.lib" />
     <Library Include="..\Bass\lib\bassmidi.lib" />
     <Library Include="..\SDL2\lib\SDL2.lib" />
