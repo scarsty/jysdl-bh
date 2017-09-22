@@ -121,4 +121,4 @@ extern float g_Zoom;                         //Í¼Æ¬·Å´ó
 
 extern lua_State* pL_main;
 
-extern void* tinypot;
+extern void* g_Tinypot;

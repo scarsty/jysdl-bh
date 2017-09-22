@@ -736,10 +736,23 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
                 Uint8 g = (Uint8)((color & GMASK) >> 8);
                 Uint8 b = (Uint8)((color & BMASK));
                 Uint8 a = 255;
-                SDL_SetTextureColorMod(lps, r, g, b);
-                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
-                SDL_SetTextureAlphaMod(lps, (Uint8)value);
-                RenderToTexture(lps, NULL, g_Texture, &rect);
+                SDL_SetTextureColorMod(lps, 255, 255, 255);
+                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_NONE);
+                SDL_SetTextureAlphaMod(lps, 255);
+                RenderToTexture(lps, NULL, g_TextureTmp, &rect);
+                SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_ADD);
+                SDL_SetRenderDrawColor(g_Renderer, r, g, b, a);
+                SDL_SetRenderDrawBlendMode(g_Renderer, SDL_BLENDMODE_ADD);
+                SDL_RenderFillRect(g_Renderer, &rect);
+                SDL_SetTextureColorMod(g_TextureTmp, 255, 255, 255);
+                SDL_SetTextureBlendMode(g_TextureTmp, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(g_TextureTmp, (Uint8)value);
+                RenderToTexture(g_TextureTmp, &rect, g_Texture, &rect);
+                SDL_SetTextureAlphaMod(g_TextureTmp, 255);
+                //SDL_SetTextureColorMod(lps, r, g, b);
+                //SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
+                //SDL_SetTextureAlphaMod(lps, (Uint8)value);
+                //RenderToTexture(lps, NULL, g_Texture, &rect);
             }
         }
         else

@@ -10,6 +10,7 @@
 #include "sdlfun.h"
 #include <stdio.h>
 #include "jymain.h"
+#include <map>
 
 // 显示TTF 字符串
 // 为快速显示，程序将保存已经打开的相应字号的字体结构。这样做可以加快程序速度
@@ -30,7 +31,7 @@ static Uint16 big5_unicode[128][256];
 
 #define MAX_CACHE_CHAR (10000)
 static int char_count = 0;
-static SDL_Texture* chars_cache[100][60000] = { 0 };
+static std::map<int, SDL_Texture*> chars_cache;
 static SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
 //初始化
@@ -54,13 +55,17 @@ int InitFont()
 int ExitFont()
 {
     JY_Debug("%d chars cached.", char_count);
-    for (int i = 0; i < 100; i++)
+    /*for (int i = 0; i < 100; i++)
     {
         for (int j = 0; j < 60000; j++)
         {
             if (chars_cache[i][j])
             { SDL_DestroyTexture(chars_cache[i][j]); }
         }
+    }*/
+    for (auto& c : chars_cache)
+    {
+        SDL_DestroyTexture(c.second);
     }
 
     for (int i = 0; i < FONTNUM; i++)    //释放字体数据
@@ -220,20 +225,19 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             break;
         }
         if (*p <= 128) { s = size / 2; }
-        SDL_Texture** tex = &chars_cache[size][*p];
-        if (*tex == NULL)
+        SDL_Texture* tex = NULL;
+        if (chars_cache.count(*p + size * 65536))
+        { tex = chars_cache[*p + size * 65536]; }
+        if (tex == NULL)
         {
             Uint16 tmp[2] = { 0, 0 };
             tmp[0] = *p;
             SDL_Surface* sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
-            *tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
+            tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
+            chars_cache[*p + size * 65536] = tex;
             SDL_FreeSurface(sur);
             char_count++;
 #ifdef _DEBUG
-            if (*p == 54)
-            {
-                *p = 54;
-            }
             unsigned char out[3] = { 0, 0, 0 };
             out[0] = *(str + pi);
             if (out[0] > 128)
@@ -249,28 +253,28 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 #endif
         if (*p != 32)
         {
-            SDL_QueryTexture(*tex, NULL, NULL, &rect1.w, &rect1.h);
+            SDL_QueryTexture(tex, NULL, NULL, &rect1.w, &rect1.h);
             rect2 = rect1;
             SDL_SetRenderTarget(g_Renderer, g_Texture);
-            SDL_SetTextureBlendMode(*tex, SDL_BLENDMODE_BLEND);
-            SDL_SetTextureColorMod(*tex, c2.r, c2.g, c2.b);
-            SDL_SetTextureAlphaMod(*tex, 128);
+            SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+            SDL_SetTextureColorMod(tex, c2.r, c2.g, c2.b);
+            SDL_SetTextureAlphaMod(tex, 128);
             rect2.x = rect1.x + 1;
             rect2.y = rect1.y + 1;
-            SDL_RenderCopy(g_Renderer, *tex, NULL, &rect2);
+            SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             rect2.x = rect1.x + 1;
             rect2.y = rect1.y;
-            SDL_RenderCopy(g_Renderer, *tex, NULL, &rect2);
+            SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             rect2.x = rect1.x;
             rect2.y = rect1.y + 1;
-            SDL_RenderCopy(g_Renderer, *tex, NULL, &rect2);
+            SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
-            SDL_SetTextureColorMod(*tex, c.r, c.g, c.b);
-            SDL_SetTextureAlphaMod(*tex, 255);
+            SDL_SetTextureColorMod(tex, c.r, c.g, c.b);
+            SDL_SetTextureAlphaMod(tex, 255);
 
-            SDL_RenderCopy(g_Renderer, *tex, NULL, &rect1);
+            SDL_RenderCopy(g_Renderer, tex, NULL, &rect1);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect1);
             s = rect1.w;
         }

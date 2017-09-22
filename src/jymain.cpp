@@ -55,7 +55,7 @@ float g_Zoom = 1;                       //图片放大
 
 lua_State* pL_main = NULL;
 
-void* tinypot;
+void* g_Tinypot;
 
 //定义的lua接口函数名
 static const struct luaL_Reg jylib[] =
