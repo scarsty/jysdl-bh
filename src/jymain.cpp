@@ -345,10 +345,6 @@ int JY_Debug(const char* fmt, ...)
 int JY_Error(const char* fmt, ...)
 {
     //无酒不欢：不再输出error信息
-#ifndef _DEBUG
-    if (IsDebug == 0)
-    { return 0; }
-#endif
 #ifdef _DEBUG
     time_t t;
     FILE* fp;
