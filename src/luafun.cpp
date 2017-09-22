@@ -10,12 +10,6 @@
 #include "piccache.h"
 #include "mainmap.h"
 
-#if LUA_VERSION_NUM == 501
-#pragma comment(lib, "../Lua51/lib/lua51.lib")
-#else
-#pragma comment(lib, "../Lua52/lib/lua52.lib")
-#endif
-
 //以下为所有包装的lua接口函数，对应于每个实际的函数
 
 int HAPI_DrawStr(lua_State* pL)

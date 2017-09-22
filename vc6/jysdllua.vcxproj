@@ -61,7 +61,7 @@
       <Optimization>MaxSpeed</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>..\Bass\include;..\SDL2\include;..\Lua52\include;..\minizip\include;..\tinypot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Bass\include;..\SDL2\include;..\Lua\include;..\minizip\include;..\tinypot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
       <BrowseInformation>true</BrowseInformation>
@@ -171,6 +171,7 @@
   <ItemGroup>
     <Library Include="..\Bass\lib\bass.lib" />
     <Library Include="..\Bass\lib\bassmidi.lib" />
+    <Library Include="..\Lua\lib\lua52.lib" />
     <Library Include="..\minizip\lib\libminizip.lib" />
     <Library Include="..\SDL2\lib\SDL2.lib" />
     <Library Include="..\SDL2\lib\SDL2main.lib" />

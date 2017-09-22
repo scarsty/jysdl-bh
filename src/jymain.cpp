@@ -55,6 +55,8 @@ float g_Zoom = 1;                       //图片放大
 
 lua_State* pL_main = NULL;
 
+void* tinypot;
+
 //定义的lua接口函数名
 static const struct luaL_Reg jylib[] =
 {
@@ -194,21 +196,13 @@ int Lua_Main(lua_State* pL_main)
     //初始化lua
 
     //注册lua函数
-#if LUA_VERSION_NUM	== 501
-    luaL_register(pL_main,"lib", jylib);
-    luaL_register(pL_main, "Byte", bytelib);
-#endif
     lua_newtable(pL_main);
-#if LUA_VERSION_NUM	== 502
     luaL_setfuncs(pL_main, jylib, 0);
-#endif
     lua_pushvalue(pL_main, -1);
     lua_setglobal(pL_main, "lib");
 
     lua_newtable(pL_main);
-#if LUA_VERSION_NUM	== 502
     luaL_setfuncs(pL_main, bytelib, 1);
-#endif
     lua_pushvalue(pL_main, -1);
     lua_setglobal(pL_main, "Byte");
 

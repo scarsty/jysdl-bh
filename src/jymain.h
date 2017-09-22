@@ -120,3 +120,5 @@ extern char g_MidSF2[255];                   //音色库对应的文件
 extern float g_Zoom;                         //图片放大
 
 extern lua_State* pL_main;
+
+extern void* tinypot;

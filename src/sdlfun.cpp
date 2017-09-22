@@ -160,6 +160,7 @@ int ExitSDL(void)
     }
     //Mix_CloseAudio();
     BASS_Free();
+    if (tinypot) { PotDestory(tinypot); }
     JY_LoadPicture("", 0, 0);    // 释放可能加载的图片表面
     SDL_Quit();
     return 0;
@@ -727,10 +728,9 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
 // esckey 停止播放的按键
 int JY_PlayMPEG(char* filename, int esckey)
 {
-    void* tinypot = NULL;
-    tinypot = PotCreateFromWindow(g_Window);
+    if (tinypot == NULL)
+    { tinypot = PotCreateFromWindow(g_Window); }
     int r = PotInputVideo(tinypot, filename);
-    PotDestory(tinypot);
     if (r == 1)
     {
         SDL_Event e;

@@ -69,6 +69,7 @@
     <Library Include="..\SDL2\lib\SDL2main.lib" />
     <Library Include="..\tinypot\lib\TinyPot.lib" />
     <Library Include="..\minizip\lib\libminizip.lib" />
+    <Library Include="..\Lua\lib\lua52.lib" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
