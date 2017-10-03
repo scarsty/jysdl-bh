@@ -255,9 +255,13 @@ int Lua_Config(lua_State* pL, const char* filename)
 
     lua_getglobal(pL, "CONFIG");            //读取config定义的值
     if (getfield(pL, "Width") != 0)
-    { g_ScreenW = getfield(pL, "Width"); }
+    {
+        g_ScreenW = getfield(pL, "Width");
+    }
     if (getfield(pL, "Height") != 0)
-    { g_ScreenH = getfield(pL, "Height"); }
+    {
+        g_ScreenH = getfield(pL, "Height");
+    }
     g_ScreenBpp = getfield(pL, "bpp");
     g_FullScreen = getfield(pL, "FullScreen");
     g_XScale = getfield(pL, "XScale");
@@ -321,7 +325,9 @@ int JY_Debug(const char* fmt, ...)
     va_list argptr;
 #ifndef _DEBUG
     if (IsDebug == 0)
-    { return 0; }
+    {
+        return 0;
+    }
 #endif
     char string[1024];
     // concatenate all the arguments in one string
@@ -369,9 +375,13 @@ int JY_Error(const char* fmt, ...)
 int limitX(int x, int xmin, int xmax)
 {
     if (x > xmax)
-    { x = xmax; }
+    {
+        x = xmax;
+    }
     if (x < xmin)
-    { x = xmin; }
+    {
+        x = xmin;
+    }
     return x;
 }
 

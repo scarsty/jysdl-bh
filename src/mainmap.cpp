@@ -439,7 +439,9 @@ int BuildingSort(short x, short y, short Mypic)
                     {
                         repeat = 1;
                         if (k == p - 1)
-                        { break; }
+                        {
+                            break;
+                        }
                         for (m = j - 1; m >= dy; m--)
                         {
                             int im3 = JY_GetMMap(i, m, 3);
@@ -581,7 +583,9 @@ int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_m
     {
         strcpy(TempS_filename, tmpfilename);
         if (pS == NULL)
-        { pS = (Sint16*)malloc(S_XMax * S_YMax * 6 * 2); }
+        {
+            pS = (Sint16*)malloc(S_XMax * S_YMax * 6 * 2);
+        }
 
         if (pS == NULL)
         {
@@ -611,7 +615,9 @@ int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_m
     else        //全部读入内存
     {
         if (pS == NULL)
-        { pS = (Sint16*)malloc(S_XMax * S_YMax * 6 * 2 * S_Num); }
+        {
+            pS = (Sint16*)malloc(S_XMax * S_YMax * 6 * 2 * S_Num);
+        }
 
         if (pS == NULL)
         {
@@ -633,7 +639,9 @@ int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_m
 
     //读取D文件
     if (pD == NULL)
-    { pD = (Sint16*)malloc(D_Num1 * D_Num2 * S_Num * 2); }
+    {
+        pD = (Sint16*)malloc(D_Num1 * D_Num2 * S_Num * 2);
+    }
     if (pD == NULL)
     {
         JY_Error("JY_LoadSMap error: can not malloc memory\n");
@@ -658,7 +666,9 @@ int JY_SaveSMap(const char* Sfilename, const char* Dfilename)
     int i;
 
     if (pS == NULL)
-    { return 0; }
+    {
+        return 0;
+    }
 
     if (g_LoadFullS == 0)      //读取部分S时的保存
     {
@@ -696,7 +706,9 @@ int JY_SaveSMap(const char* Sfilename, const char* Dfilename)
 
 
     if (pD == NULL)
-    { return 0; }
+    {
+        return 0;
+    }
 
     if ((fp = fopen(Dfilename, "wb")) == NULL)
     {
@@ -723,7 +735,9 @@ int ReadS(int id)
 {
     FILE* fp;
     if (id < 0 || id >= S_Num)
-    { return 1; }
+    {
+        return 1;
+    }
 
     if ((fp = fopen(TempS_filename, "rb")) == NULL)
     {
@@ -742,7 +756,9 @@ int WriteS(int id)
 {
     FILE* fp;
     if (id < 0 || id >= S_Num)
-    { return 1; }
+    {
+        return 1;
+    }
 
     if ((fp = fopen(TempS_filename, "r+b")) == NULL)
     {
@@ -1136,22 +1152,34 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 
 
                 if (num > 0)
-                { JY_LoadPic(0, num, x1, y1, 0, 0); }     //地面
+                {
+                    JY_LoadPic(0, num, x1, y1, 0, 0);
+                }     //地面
 
                 if (n > 0)      //绘制吉凶地
                 {
                     int d4 = 0;
                     int color = 0xffffff;
                     if (v4 >= 0)
-                    { d4 = JY_GetS(v4, xx, yy, 4); }
+                    {
+                        d4 = JY_GetS(v4, xx, yy, 4);
+                    }
                     if (n == 1)
-                    { color = 0x05d010; }       //吉
+                    {
+                        color = 0x05d010;
+                    }       //吉
                     else if (n == 2)
-                    { color = 0xd52210; }       //凶
+                    {
+                        color = 0xd52210;
+                    }       //凶
                     else if (n == 3)
-                    { color = 0x0000f0; }       //大吉
+                    {
+                        color = 0x0000f0;
+                    }       //大吉
                     else if (n == 4)
-                    { color = 0xA010A0; }       //大凶
+                    {
+                        color = 0xA010A0;
+                    }       //大凶
                     JY_LoadPicColor(0, 0, x1, y1 - d4, 2 + 16, 192, color);     //地面
                 }
             }
@@ -1178,15 +1206,25 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                         int showflag;
                         int d4 = 0;
                         if (flag == 1)
-                        { showflag = 2 + 4; }
+                        {
+                            showflag = 2 + 4;
+                        }
                         else
-                        { showflag = 2 + 8; }
+                        {
+                            showflag = 2 + 8;
+                        }
                         if (v4 >= 0)
-                        { d4 = JY_GetS(v4, xx, yy, 4); }
+                        {
+                            d4 = JY_GetS(v4, xx, yy, 4);
+                        }
                         if ((xx == v1) && (yy == v2))
-                        { JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128); }
+                        {
+                            JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128);
+                        }
                         else
-                        { JY_LoadPic(0, 0, x1, y1 - d4, showflag, 64); }
+                        {
+                            JY_LoadPic(0, 0, x1, y1 - d4, showflag, 64);
+                        }
                     }
                 }
                 //无酒不欢：显示武功选择层
@@ -1195,13 +1233,21 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                 {
                     int d4 = 0;
                     if (v4 >= 0)
-                    { d4 = JY_GetS(v4, xx, yy, 4); }
+                    {
+                        d4 = JY_GetS(v4, xx, yy, 4);
+                    }
                     if (fw == 1)
-                    { JY_LoadPic(0, 0, x1, y1 - d4, 2, 112); }
+                    {
+                        JY_LoadPic(0, 0, x1, y1 - d4, 2, 112);
+                    }
                     else if (fw == 2)
-                    { JY_LoadPic(0, 0, x1, y1 - d4, 2, 200); }
+                    {
+                        JY_LoadPic(0, 0, x1, y1 - d4, 2, 200);
+                    }
                     else if (fw == 3)
-                    { JY_LoadPic(0, 360, x1, y1 - d4, 2, 128); }
+                    {
+                        JY_LoadPic(0, 360, x1, y1 - d4, 2, 128);
+                    }
                 }
             }
         }
@@ -1224,9 +1270,13 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                 int d4 = 0;
                 int num = JY_GetWarMap(xx, yy, 1);    //  建筑
                 if (v4 >= 0)
-                { d4 = JY_GetS(v4, xx, yy, 4); }
+                {
+                    d4 = JY_GetS(v4, xx, yy, 4);
+                }
                 if (num > 0)
-                { JY_LoadPic(0, num, x1, y1 - d4, 0, 0); }
+                {
+                    JY_LoadPic(0, num, x1, y1 - d4, 0, 0);
+                }
 
 
                 num = JY_GetWarMap(xx, yy, 2);        // 战斗人
@@ -1245,18 +1295,26 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                             break;
                         case 3:
                             if (JY_GetWarMap(xx, yy, 4) > 1)   //命中
-                            { JY_LoadPic(0, pic, x1, y1 - d4, 4 + 2, 255); }  //变黑
+                            {
+                                JY_LoadPic(0, pic, x1, y1 - d4, 4 + 2, 255);
+                            }  //变黑
                             else
-                            { JY_LoadPic(0, pic, x1, y1 - d4, 0, 0); }
+                            {
+                                JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
+                            }
 
                             break;
                         case 4:
                             if ((xx == x) && (yy == y))
                             {
                                 if (v2 == 0)
-                                { JY_LoadPic(0, pic, x1, y1 - d4, 0, 0); }
+                                {
+                                    JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
+                                }
                                 else
-                                { JY_LoadPic(v2, v1, x1, y1 - d4, 0, 0); }
+                                {
+                                    JY_LoadPic(v2, v1, x1, y1 - d4, 0, 0);
+                                }
                             }
                             else if (pic < 1000)        //合击动画
                             {

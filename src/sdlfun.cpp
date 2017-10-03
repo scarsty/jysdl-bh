@@ -126,7 +126,9 @@ int InitSDL(void)
     }
     currentWav = 0;
     for (i = 0; i < WAVNUM; i++)
-    { WavChunk[i] = 0; }
+    {
+        WavChunk[i] = 0;
+    }
     SDL_SetEventFilter(KeyFilter, NULL);
     if (g_MP3 != 1)
     {
@@ -148,7 +150,9 @@ int ExitSDL(void)
     ExitFont();
     StopMIDI();
     if (midfonts.font)
-    { BASS_MIDI_FontFree(midfonts.font); }
+    {
+        BASS_MIDI_FontFree(midfonts.font);
+    }
     for (int i = 0; i < WAVNUM; i++)
     {
         if (WavChunk[i])
@@ -205,7 +209,9 @@ int InitGame(void)
         SDL_SetWindowFullscreen(g_Window, 0);
     }
     if (g_Window == NULL || g_Renderer == NULL || g_Texture == NULL || g_TextureShow == NULL)
-    { JY_Error("Cannot set video mode"); }
+    {
+        JY_Error("Cannot set video mode");
+    }
     Init_Cache();
     JY_PicInit("");        // 初始化贴图cache
     return 0;
@@ -328,9 +334,13 @@ int JY_ShowSurface(int flag)
     //SDL_RenderGetClipRect(g_Renderer, &r);
     SDL_RenderSetClipRect(g_Renderer, NULL);
     if (g_Rotate == 0)
-    { SDL_RenderCopy(g_Renderer, g_TextureShow, NULL, NULL); }
+    {
+        SDL_RenderCopy(g_Renderer, g_TextureShow, NULL, NULL);
+    }
     else
-    { SDL_RenderCopyEx(g_Renderer, g_TextureShow, NULL, NULL, 90, NULL, SDL_FLIP_NONE); }
+    {
+        SDL_RenderCopyEx(g_Renderer, g_TextureShow, NULL, NULL, 90, NULL, SDL_FLIP_NONE);
+    }
     SDL_RenderPresent(g_Renderer);
     //SDL_RenderSetClipRect(g_Renderer, &r);
     return 0;
@@ -366,15 +376,21 @@ int JY_ShowSlow(int delaytime, int Flag)
     for (i = 0; i <= 32; i++)
     {
         if (Flag == 0)
-        { step = 32 - i; }
+        {
+            step = 32 - i;
+        }
         else
-        { step = i; }
+        {
+            step = i;
+        }
         t1 = (int)JY_GetTime();
         //SDL_SetRenderDrawColor(g_Renderer, 0, 0, 0, 0);
         //SDL_RenderFillRect(g_Renderer, NULL);          //当前表面变黑
         alpha = step << 3;
         if (alpha > 255)
-        { alpha = 255; }
+        {
+            alpha = 255;
+        }
         //SDL_SetTextureAlphaMod(lps1, (Uint8)alpha);  //设置alpha
         //SDL_RenderCopy(g_Renderer, lps1, NULL, NULL);
         //SDL_BlitSurface(lps1, NULL, g_Surface, NULL);
@@ -386,7 +402,9 @@ int JY_ShowSlow(int delaytime, int Flag)
         JY_ShowSurface(0);
         t2 = (int)JY_GetTime();
         if (delaytime > t2 - t1)
-        { JY_Delay(delaytime - (t2 - t1)); }
+        {
+            JY_Delay(delaytime - (t2 - t1));
+        }
         //JY_GetKey();
     }
     SDL_DestroyTexture(lps1);       //释放表面
@@ -430,7 +448,9 @@ int JY_PlayMIDI(const char* filename)
         return 0;
     }
     if (strcmp(currentfile, filename) == 0) //与当前播放文件相同，直接返回
-    { return 0; }
+    {
+        return 0;
+    }
     StopMIDI();
     //currentMusic = BASS_MIDI_StreamCreateFile(0, filename, 0, 0, 0, 0);
     currentMusic = BASS_StreamCreateFile(0, filename, 0, 0, 0);
@@ -440,7 +460,9 @@ int JY_PlayMIDI(const char* filename)
         return 1;
     }
     if (g_MP3 == 1)
-    { BASS_MIDI_StreamSetFonts(currentMusic, &midfonts, 1); } // set for current stream too
+    {
+        BASS_MIDI_StreamSetFonts(currentMusic, &midfonts, 1);
+    } // set for current stream too
     BASS_ChannelSetAttribute(currentMusic, BASS_ATTRIB_VOL, (float)(g_MusicVolume / 100.0));
     BASS_ChannelFlags(currentMusic, BASS_SAMPLE_LOOP, BASS_SAMPLE_LOOP);
     BASS_ChannelPlay(currentMusic, FALSE);
@@ -465,7 +487,9 @@ int JY_PlayWAV(const char* filename)
 {
     HCHANNEL ch;
     if (g_EnableSound == 0)
-    { return 1; }
+    {
+        return 1;
+    }
     if (WavChunk[currentWav])            //释放当前音效
     {
         //Mix_FreeChunk(WavChunk[currentWav]);
@@ -485,7 +509,9 @@ int JY_PlayWAV(const char* filename)
         BASS_ChannelPlay(ch, 0);
         currentWav++;
         if (currentWav >= WAVNUM)
-        { currentWav = 0; }
+        {
+            currentWav = 0;
+        }
     }
     else
     {
@@ -705,10 +731,14 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
 {
     SDL_Rect r1;
     if (x2 <= x1 || y2 <= y1)
-    { return 0; }
+    {
+        return 0;
+    }
     Bright = 256 - Bright;
     if (Bright > 255)
-    { Bright = 255; }
+    {
+        Bright = 255;
+    }
     r1.x = (Sint16)x1;
     r1.y = (Sint16)y1;
     r1.w = (Uint16)(x2 - x1);
@@ -729,7 +759,9 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
 int JY_PlayMPEG(char* filename, int esckey)
 {
     if (g_Tinypot == NULL)
-    { g_Tinypot = PotCreateFromWindow(g_Window); }
+    {
+        g_Tinypot = PotCreateFromWindow(g_Window);
+    }
     int r = PotInputVideo(g_Tinypot, filename);
     if (r == 1)
     {

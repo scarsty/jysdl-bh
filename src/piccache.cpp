@@ -170,10 +170,14 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
     }
 
     for (i = 0; i < pic_file[id].num; i++)
-    { pic_file[id].pcache[i] = NULL; }
+    {
+        pic_file[id].pcache[i] = NULL;
+    }
 
     if (height == 0)
-    { height = width; }
+    {
+        height = width;
+    }
 
     if (width > 0)
     {
@@ -210,7 +214,9 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
     picid = picid / 2;
 
     if (fileid < 0 || fileid >= PIC_FILE_NUM || picid < 0 || picid >= pic_file[fileid].num)    // 参数错误
-    { return 1; }
+    {
+        return 1;
+    }
 
     if (pic_file[fileid].pcache[picid] == NULL)     //当前贴图没有加载
     {
@@ -297,10 +303,14 @@ static int LoadPic(int fileid, int picid, struct CacheNode* cache)
 
     // 处理一些特殊情况，按照修改器中的代码
     if (id1 < 0)
-    { datalong = 0; }
+    {
+        datalong = 0;
+    }
 
     if (id2 > pic_file[fileid].filelength)
-    { id2 = pic_file[fileid].filelength; }
+    {
+        id2 = pic_file[fileid].filelength;
+    }
 
     datalong = id2 - id1;
 
@@ -379,7 +389,9 @@ int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
     *yoff = 0;
 
     if (r != 0)
-    { return 1; }
+    {
+        return 1;
+    }
 
     newcache = pic_file[fileid].pcache[picid / 2];
 
@@ -415,7 +427,9 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
     }
 
     for (i = 0; i < w * h; i++)
-    { data32[i] = 0; }
+    {
+        data32[i] = 0;
+    }
 
     for (i = 0; i < h; i++)
     {
@@ -430,7 +444,9 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
             {
                 x = x + data[p];    // i行空白点个数，跳个透明点
                 if (x >= w)        // i行宽度到头，结束
-                { break; }
+                {
+                    break;
+                }
 
                 p++;
                 solidnum = data[p];  // 不透明点个数
@@ -449,12 +465,18 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
                     x++;
                 }
                 if (x >= w)
-                { break; }     // i行宽度到头，结束
+                {
+                    break;
+                }     // i行宽度到头，结束
                 if (p - start >= row)
-                { break; }    // i行没有数据，结束
+                {
+                    break;
+                }    // i行没有数据，结束
             }
             if (p + 1 >= datalong)
-            { break; }
+            {
+                break;
+            }
         }
     }
     ps1 = SDL_CreateRGBSurfaceFrom(data32, w, h, 32, w * 4, RMASK, GMASK, BMASK, AMASK);  //创建32位表面
@@ -482,7 +504,9 @@ static int LoadPalette(char* filename)
     char color[3];
     int i;
     if (strlen(filename) == 0)
-    { return 1; }
+    {
+        return 1;
+    }
     if ((fp = fopen(filename, "rb")) == NULL)
     {
         JY_Error("palette File not open ---%s", filename);
@@ -533,7 +557,9 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         return 1;
     }
     for (i = 0; i < pic_file[fileid].num; i++)
-    { pic_file[fileid].pcache[i] = NULL; }
+    {
+        pic_file[fileid].pcache[i] = NULL;
+    }
 
     pic_file[fileid].percent = percent;
     sprintf(pic_file[fileid].suffix, "%s", suffix);
@@ -550,7 +576,9 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
     picid = picid / 2;
 
     if (fileid < 0 || fileid >= PIC_FILE_NUM || picid < 0 || picid >= pic_file[fileid].num)    // 参数错误
-    { return 1; }
+    {
+        return 1;
+    }
 
     if (pic_file[fileid].pcache[picid] == NULL)     //当前贴图没有加载
     {
@@ -656,7 +684,9 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
     *yoff = 0;
 
     if (r != 0)
-    { return 1; }
+    {
+        return 1;
+    }
 
     auto newcache = pic_file[fileid].pcache[picid / 2];
 
@@ -681,7 +711,9 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
     int i, j;
     //color = ConvertColor(g_MaskColor32);
     if (value > 255)
-    { value = 255; }
+    {
+        value = 255;
+    }
     rect.x = x;
     rect.y = y;
     SDL_QueryTexture(lps, NULL, NULL, &rect.w, &rect.h);

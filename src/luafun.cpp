@@ -95,7 +95,7 @@ int HAPI_GetKey(lua_State* pL)
     return 4;
 }
 
-int HAPI_GetKeyState(lua_State * pL)
+int HAPI_GetKeyState(lua_State* pL)
 {
     int state = JY_GetKeyState((int)lua_tonumber(pL, 1));
     lua_pushnumber(pL, state);
@@ -203,9 +203,13 @@ int HAPI_PicInit(lua_State* pL)
 {
     char* filename;
     if (lua_isnoneornil(pL, 1) == 0)
-    { filename = (char*)lua_tostring(pL, 1); }
+    {
+        filename = (char*)lua_tostring(pL, 1);
+    }
     else
-    { filename = "\0"; }
+    {
+        filename = "\0";
+    }
 
     JY_PicInit(filename);
 
@@ -247,10 +251,14 @@ int HAPI_LoadPic(lua_State* pL)
     int bright = 0;
 
     if (lua_isnoneornil(pL, 5) == 0)
-    { nooffset = (int)lua_tonumber(pL, 5); }
+    {
+        nooffset = (int)lua_tonumber(pL, 5);
+    }
 
     if (lua_isnoneornil(pL, 6) == 0)
-    { bright = (int)lua_tonumber(pL, 6); }
+    {
+        bright = (int)lua_tonumber(pL, 6);
+    }
 
     JY_LoadPic(fileid, picid, x, y, nooffset, bright);
 
@@ -482,11 +490,17 @@ int HAPI_DrawWarMap(lua_State* pL)
     int ey = -1;
 
     if (n >= 8)
-    { v5 = (int)lua_tonumber(pL, 8); }
+    {
+        v5 = (int)lua_tonumber(pL, 8);
+    }
     if (n >= 9)
-    { ex = (int)lua_tonumber(pL, 9); }
+    {
+        ex = (int)lua_tonumber(pL, 9);
+    }
     if (n >= 10)
-    { ey = (int)lua_tonumber(pL, 10); }
+    {
+        ey = (int)lua_tonumber(pL, 10);
+    }
 
     JY_DrawWarMap(flag, x, y, v1, v2, v3, v4, v5, ex, ey);
     return 0;
@@ -541,10 +555,14 @@ int HAPI_LoadPNGPath(lua_State* pL)             //按图片读取PNG
     const char* suffix = "png";
 
     if (n > 3)
-    { percent = (int)lua_tonumber(pL, 4); }
+    {
+        percent = (int)lua_tonumber(pL, 4);
+    }
 
     if (n > 4)
-    { suffix = lua_tostring(pL, 5); }
+    {
+        suffix = lua_tostring(pL, 5);
+    }
 
     JY_LoadPNGPath(path, fileid, num, percent, suffix);
 
@@ -561,9 +579,13 @@ int HAPI_LoadPNG(lua_State* pL)             //按图片读取PNG
     int value = 0;
 
     if (n > 4)
-    { flag = (int)lua_tonumber(pL, 5); }
+    {
+        flag = (int)lua_tonumber(pL, 5);
+    }
     if (n > 5)
-    { value = (int)lua_tonumber(pL, 6); }
+    {
+        value = (int)lua_tonumber(pL, 6);
+    }
 
     JY_LoadPNG(fileid, picid, x, y, flag, value);
 
@@ -614,12 +636,14 @@ int Byte_create(lua_State* pL)
         return 1;
     }
     for (i = 0; i < x; i++)
-    { p[i] = 0; }
+    {
+        p[i] = 0;
+    }
 
     return 1;
 }
 
-int Byte_release(lua_State * pL)
+int Byte_release(lua_State* pL)
 {
     return 0;
 }
@@ -840,7 +864,9 @@ int Byte_getstr(lua_State* pL)
     char* s = (char*)malloc(length + 1);
     int i;
     for (i = 0; i < length; i++)
-    { s[i] = p[start + i]; }
+    {
+        s[i] = p[start + i];
+    }
 
     s[length] = '\0';
     lua_pushstring(pL, s);
@@ -857,12 +883,16 @@ int Byte_setstr(lua_State* pL)
     int i;
     int l = (int)strlen(s);
     for (i = 0; i < length; i++)
-    { p[start + i] = 0; }
+    {
+        p[start + i] = 0;
+    }
 
     if (l > length) { l = length; }
 
     for (i = 0; i < l; i++)
-    { p[start + i] = s[i]; }
+    {
+        p[start + i] = s[i];
+    }
 
     lua_pushstring(pL, s);
 
