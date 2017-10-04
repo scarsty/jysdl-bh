@@ -283,7 +283,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
 }
 
 // 加载贴图到表面
-static int LoadPic(int fileid, int picid, struct CacheNode* cache)
+int LoadPic(int fileid, int picid, struct CacheNode* cache)
 {
 
     SDL_RWops* fp_SDL;
@@ -498,7 +498,7 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
 
 // 读取调色板
 // 文件名为空则直接返回
-static int LoadPalette(char* filename)
+int LoadPalette(char* filename)
 {
     FILE* fp;
     char color[3];

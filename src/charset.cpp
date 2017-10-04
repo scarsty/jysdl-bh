@@ -19,20 +19,20 @@
 // 考虑到一般打开的字体不多，比如640*480模式实际上只用了16*24*32三种字体。
 // 设置数组为10已经足够。
 
-static UseFont Font[FONTNUM];         //保存已打开的字体
+UseFont Font[FONTNUM];         //保存已打开的字体
 
-static int currentFont = 0;
+int currentFont = 0;
 
 //字符集转换数组
-static Uint16 gbk_unicode[128][256];
-static Uint16 gbk_big5[128][256];
-static Uint16 big5_gbk[128][256];
-static Uint16 big5_unicode[128][256];
+Uint16 gbk_unicode[128][256];
+Uint16 gbk_big5[128][256];
+Uint16 big5_gbk[128][256];
+Uint16 big5_unicode[128][256];
 
 #define MAX_CACHE_CHAR (10000)
-static int char_count = 0;
-static std::map<int, SDL_Texture*> chars_cache;
-static SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
+int char_count = 0;
+std::map<int, SDL_Texture*> chars_cache;
+SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
 //初始化
 int InitFont()
@@ -85,7 +85,7 @@ int ExitFont()
 
 // 根据字体文件名和字号打开字体
 // size 为按像素大小的字号
-static TTF_Font* GetFont(const char* filename, int size)
+TTF_Font* GetFont(const char* filename, int size)
 {
     int i;
     TTF_Font* myfont = NULL;

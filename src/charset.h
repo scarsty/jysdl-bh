@@ -20,7 +20,7 @@ int ExitFont();
 
 // 根据字体文件名和字号打开字体
 // size 为按像素大小的字号
-static TTF_Font *GetFont(const char *filename, int size);
+TTF_Font *GetFont(const char *filename, int size);
 
 // 写字符串
 // x,y 坐标

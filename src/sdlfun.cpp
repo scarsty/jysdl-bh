@@ -10,18 +10,18 @@
 #include "mainmap.h"
 #include "piccache.h"
 
-static HSTREAM currentMusic = 0;            //播放音乐数据，由于同时只播放一个，用一个变量
+HSTREAM currentMusic = 0;            //播放音乐数据，由于同时只播放一个，用一个变量
 #define WAVNUM 5
-static HSAMPLE WavChunk[WAVNUM];            //播放音效数据，可以同时播放几个，因此用数组
-static BASS_MIDI_FONT midfonts;
-static int currentWav = 0;                  //当前播放的音效
+HSAMPLE WavChunk[WAVNUM];            //播放音效数据，可以同时播放几个，因此用数组
+BASS_MIDI_FONT midfonts;
+int currentWav = 0;                  //当前播放的音效
 
 #define RECTNUM  20
-static SDL_Rect ClipRect[RECTNUM];          // 当前设置的剪裁矩形
-static int currentRect = 0;
+SDL_Rect ClipRect[RECTNUM];          // 当前设置的剪裁矩形
+int currentRect = 0;
 
 #define SURFACE_NUM  20
-static SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
+SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
 
 //过滤ESC、RETURN、SPACE键，使他们按下后不能重复。
 int KeyFilter(void* data, SDL_Event* event)

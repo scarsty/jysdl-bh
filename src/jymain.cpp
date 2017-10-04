@@ -58,7 +58,7 @@ lua_State* pL_main = NULL;
 void* g_Tinypot;
 
 //定义的lua接口函数名
-static const struct luaL_Reg jylib[] =
+const struct luaL_Reg jylib[] =
 {
     {"Debug", HAPI_Debug},
 
@@ -125,7 +125,7 @@ static const struct luaL_Reg jylib[] =
 
 
 
-static const struct luaL_Reg bytelib[] =
+const struct luaL_Reg bytelib[] =
 {
     {"create", Byte_create},
     {"loadfile", Byte_loadfile},

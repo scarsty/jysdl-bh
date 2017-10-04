@@ -10,46 +10,46 @@
 #include "piccache.h"
 
 //主地图数据
-static Sint16* pEarth = NULL;
-static Sint16* pSurface = NULL;
-static Sint16* pBuilding = NULL;
-static Sint16* pBuildX = NULL;
-static Sint16* pBuildY = NULL;
+Sint16* pEarth = NULL;
+Sint16* pSurface = NULL;
+Sint16* pBuilding = NULL;
+Sint16* pBuildX = NULL;
+Sint16* pBuildY = NULL;
 
-static Sint16* tmp_M = NULL;
+Sint16* tmp_M = NULL;
 
 //主地图文件名
-static FILE* fpEarth = NULL;
-static FILE* fpSurface = NULL;
-static FILE* fpBuilding = NULL;
-static FILE* fpBuildX = NULL;
-static FILE* fpBuildY = NULL;
+FILE* fpEarth = NULL;
+FILE* fpSurface = NULL;
+FILE* fpBuilding = NULL;
+FILE* fpBuildX = NULL;
+FILE* fpBuildY = NULL;
 
-static int M_XMax, M_YMax;              //主地图大小
+int M_XMax, M_YMax;              //主地图大小
 
-static int M_X0, M_Y0;                  //部分读取主地图的起始坐标
-static int M_Scope;                     //部分读取主地图时的坐标范围。每次显示主地图访问坐标范围为此值的两倍。而预读的主地图范围为4倍。
-static int old_M_Y0 = -1;
+int M_X0, M_Y0;                  //部分读取主地图的起始坐标
+int M_Scope;                     //部分读取主地图时的坐标范围。每次显示主地图访问坐标范围为此值的两倍。而预读的主地图范围为4倍。
+int old_M_Y0 = -1;
 
-static int BuildNumber;                 //实际排序个数
-static BuildingType Build[2000];        //建筑排序数组
+int BuildNumber;                 //实际排序个数
+BuildingType Build[2000];        //建筑排序数组
 
-static int S_XMax, S_YMax;              //场景地图大小
-static int S_Num;
-static Sint16* pS = NULL;               //场景S*数据
+int S_XMax, S_YMax;              //场景地图大小
+int S_Num;
+Sint16* pS = NULL;               //场景S*数据
 
 //为减少内存占用，对S文件采用临时文件方式访问，只在内存中保存当前场景的S数据
-static char TempS_filename[255];        //临时S文件名
-static int currentS = -1;               //当前加载的场景S数据
+char TempS_filename[255];        //临时S文件名
+int currentS = -1;               //当前加载的场景S数据
 
-static int D_Num1;                      //每个场景D的个数
-static int D_Num2;                      //每个D的数据个数
+int D_Num1;                      //每个场景D的个数
+int D_Num2;                      //每个D的数据个数
 
-static Sint16* pD = NULL;               //场景D*数据
+Sint16* pD = NULL;               //场景D*数据
 
-static int War_XMax, War_YMax;          //战斗地图大小
-static int War_Num;                     //战斗地图层数
-static Sint16* pWar = NULL;             //战斗地图数据
+int War_XMax, War_YMax;          //战斗地图大小
+int War_Num;                     //战斗地图层数
+Sint16* pWar = NULL;             //战斗地图数据
 
 // 读取主地图数据
 int JY_LoadMMap(const char* earthname, const char* surfacename, const char* buildingname,
@@ -292,7 +292,7 @@ int JY_UnloadMMap(void)
 }
 
 // 得到主地图数据偏移地址。如果超出当前内存的数据范围，返回-1
-static int GetMMapOffset(int x, int y)
+int GetMMapOffset(int x, int y)
 {
     int s;
     if (g_LoadMMapType == 0)

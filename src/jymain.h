@@ -28,15 +28,15 @@ EXTERN_C_END
 #define FALSE (BOOL) 0
 #endif
 
-static char* JY_CurrentPath = "./";
-
-#ifdef ANDROID
-* JY_CurrentPath = "/sdcard/JYLDCR/";
+#ifdef _WIN32
+#define JY_CurrentPath "./"
+#else
+#define JY_CurrentPath "/sdcard/JYLDCR/"
 #endif
 
-//安全free指针的宏
 #define swap16( x )  ( ((x & 0x00ffU) << 8) |  ((x & 0xff00U) >> 8) )
 
+//安全free指针的宏
 #define SafeFree(p) do {if(p) {free(p);p=NULL;}} while(0)
 
 //全程变量
