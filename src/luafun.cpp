@@ -247,20 +247,32 @@ int HAPI_LoadPic(lua_State* pL)
     int picid = (int)lua_tonumber(pL, 2);
     int x = (int)lua_tonumber(pL, 3);
     int y = (int)lua_tonumber(pL, 4);
-    int nooffset = 0;
-    int bright = 0;
+    int flag = 0;
+    int value = 0;
+    int width = -1;
+    int height = -1;
 
     if (lua_isnoneornil(pL, 5) == 0)
     {
-        nooffset = (int)lua_tonumber(pL, 5);
+        flag = (int)lua_tonumber(pL, 5);
     }
 
     if (lua_isnoneornil(pL, 6) == 0)
     {
-        bright = (int)lua_tonumber(pL, 6);
+        value = (int)lua_tonumber(pL, 6);
     }
 
-    JY_LoadPic(fileid, picid, x, y, nooffset, bright);
+    if (lua_isnoneornil(pL, 7) == 0)
+    {
+        width = (int)lua_tonumber(pL, 7);
+    }
+
+    if (lua_isnoneornil(pL, 8) == 0)
+    {
+        height = (int)lua_tonumber(pL, 8);
+    }
+
+    JY_LoadPic(fileid, picid, x, y, flag, value,width,height);
 
     return 0;
 }

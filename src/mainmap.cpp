@@ -1180,7 +1180,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
                     {
                         color = 0xA010A0;
                     }       //大凶
-                    JY_LoadPicColor(0, 0, x1, y1 - d4, 2 + 16, 192, color);     //地面
+                    JY_LoadPic(0, 0, x1, y1 - d4, 2 + 16, 192, color);     //地面
                 }
             }
         }

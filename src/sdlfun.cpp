@@ -762,6 +762,7 @@ int JY_PlayMPEG(char* filename, int esckey)
     {
         g_Tinypot = PotCreateFromWindow(g_Window);
     }
+    StopMIDI();
     int r = PotInputVideo(g_Tinypot, filename);
     if (r == 1)
     {
@@ -769,6 +770,8 @@ int JY_PlayMPEG(char* filename, int esckey)
         e.type = SDL_QUIT;
         SDL_PushEvent(&e);
     }
+
+    //g_Tinypot = NULL;
     return 0;
 }
 

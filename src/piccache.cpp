@@ -188,11 +188,6 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
     return 0;
 }
 
-int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value)
-{
-    return JY_LoadPicColor(fileid, picid, x, y, flag, value, 0);
-}
-
 // 加载并显示贴图
 // fileid        贴图文件id
 // picid     贴图编号
@@ -204,9 +199,8 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value)
 //  B3            1 全白
 //  value 按照flag定义，为alpha值，
 
-int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, int color)
+int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int color, int width, int height)
 {
-
     struct CacheNode* newcache, *tmpcache;
     int xnew, ynew;
     SDL_Surface* tmpsur;
@@ -278,7 +272,7 @@ int JY_LoadPicColor(int fileid, int picid, int x, int y, int flag, int value, in
         xnew = x - newcache->xoff;
         ynew = y - newcache->yoff;
     }
-    RenderTexture(newcache->t, xnew, ynew, flag, value, color);
+    RenderTexture(newcache->t, xnew, ynew, flag, value, color, width, height);
     return 0;
 }
 
@@ -704,7 +698,7 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
 // 把表面blit到背景或者前景表面
 // x,y 要加载到表面的左上角坐标
-int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color)
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height)
 {
     SDL_Surface* tmps;
     SDL_Rect rect, rect0;
@@ -717,6 +711,17 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
     rect.x = x;
     rect.y = y;
     SDL_QueryTexture(lps, NULL, NULL, &rect.w, &rect.h);
+
+    if (width > 0 && height > 0)
+    {
+        rect.w = width;
+        rect.h = height;
+    }
+    else if (width > 0 && height <= 0)
+    {
+        rect.w = width;
+        rect.h = width * rect.h / rect.w;
+    }
     rect0 = rect;
     rect0.x = 0;
     rect0.y = 0;
