@@ -719,8 +719,8 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
     }
     else if (width > 0 && height <= 0)
     {
-        rect.w = width;
         rect.h = width * rect.h / rect.w;
+        rect.w = width;
     }
     rect0 = rect;
     rect0.x = 0;
