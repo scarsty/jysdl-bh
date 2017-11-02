@@ -53,6 +53,12 @@ int g_MP3 = 0;                          //是否打开MP3
 char g_MidSF2[255];                     //音色库对应的文件
 float g_Zoom = 1;                       //图片放大
 
+#ifdef _WIN32
+char* JY_CurrentPath = "./";
+#else
+char* JY_CurrentPath = "/sdcard/JYLDCR/";
+#endif
+
 lua_State* pL_main = NULL;
 
 void* g_Tinypot;
@@ -144,7 +150,36 @@ const struct luaL_Reg bytelib[] =
     {NULL, NULL}
 };
 
+static const struct luaL_Reg configLib[] = {
 
+    { "GetPath", Config_GetPath },
+    { NULL, NULL }
+};
+
+void GetModes(int *width, int *height)
+{
+    char buf[10];
+    FILE *fp = fopen(_("resolution.txt"), "r");
+
+    if (!fp) {
+        JY_Error("GetModes: cannot open resolution.txt");
+        return;
+    }
+
+    //宽
+    memset(buf, 0, 10);
+    fgets(buf, 10, fp);
+    *width = atoi(buf);
+
+    //高
+    memset(buf, 0, 10);
+    fgets(buf, 10, fp);
+    *height = atoi(buf);
+
+    JY_Debug("GetModes: width=%d, height=%d", *width, *height);
+
+    fclose(fp);
+}
 
 // 主程序
 int main(int argc, char* argv[])

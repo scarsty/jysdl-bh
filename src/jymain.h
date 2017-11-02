@@ -28,12 +28,6 @@ EXTERN_C_END
 #define FALSE (BOOL) 0
 #endif
 
-#ifdef _WIN32
-#define JY_CurrentPath "./"
-#else
-#define JY_CurrentPath "/sdcard/JYLDCR/"
-#endif
-
 #define swap16( x )  ( ((x & 0x00ffU) << 8) |  ((x & 0xff00U) >> 8) )
 
 //安全free指针的宏
@@ -122,3 +116,6 @@ extern float g_Zoom;                         //图片放大
 extern lua_State* pL_main;
 
 extern void* g_Tinypot;
+
+extern char* JY_CurrentPath;
+

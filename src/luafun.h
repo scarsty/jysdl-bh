@@ -96,6 +96,7 @@ int Byte_setstr(lua_State* pL);
 int HAPI_InitCache(lua_State* pL);
 int HAPI_LoadPic(lua_State* pL);
 
+int Config_GetPath(lua_State *pL);
 
 #ifdef __cplusplus
 //}

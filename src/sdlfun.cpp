@@ -164,7 +164,9 @@ int ExitSDL(void)
     }
     //Mix_CloseAudio();
     BASS_Free();
+#ifdef WIN32
     if (g_Tinypot) { PotDestory(g_Tinypot); }
+#endif
     JY_LoadPicture("", 0, 0);    // 释放可能加载的图片表面
     SDL_Quit();
     return 0;
@@ -626,7 +628,10 @@ int JY_SetClip(int x1, int y1, int x2, int y2)
     SDL_SetRenderTarget(g_Renderer, g_Texture);
     if (x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0)
     {
-        rect = { 0, 0, g_ScreenW, g_ScreenH };
+        rect.x = 0;
+        rect.y = 0;
+        rect.w = g_ScreenW;
+        rect.h = g_ScreenH;
         SDL_RenderSetClipRect(g_Renderer, &rect);
         //SDL_SetClipRect(g_Surface, NULL);
         currentRect = 0;
@@ -758,6 +763,7 @@ int JY_Background(int x1, int y1, int x2, int y2, int Bright, int color)
 // esckey 停止播放的按键
 int JY_PlayMPEG(char* filename, int esckey)
 {
+#ifdef WIN32
     if (g_Tinypot == NULL)
     {
         g_Tinypot = PotCreateFromWindow(g_Window);
@@ -770,7 +776,7 @@ int JY_PlayMPEG(char* filename, int esckey)
         e.type = SDL_QUIT;
         SDL_PushEvent(&e);
     }
-
+#endif
     //g_Tinypot = NULL;
     return 0;
 }

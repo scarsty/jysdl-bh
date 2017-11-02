@@ -911,14 +911,9 @@ int Byte_setstr(lua_State* pL)
     return 1;
 }
 
-
-
-
-
-
-
-
-
-
-
+int Config_GetPath(lua_State *pL)
+{
+    lua_pushstring(pL, JY_CurrentPath);
+    return 1;
+}
 
