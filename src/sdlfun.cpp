@@ -9,6 +9,7 @@
 #include "sdlfun.h"
 #include "mainmap.h"
 #include "piccache.h"
+#include <map>
 
 HSTREAM currentMusic = 0;            //播放音乐数据，由于同时只播放一个，用一个变量
 #define WAVNUM 5
@@ -20,8 +21,8 @@ int currentWav = 0;                  //当前播放的音效
 SDL_Rect ClipRect[RECTNUM];          // 当前设置的剪裁矩形
 int currentRect = 0;
 
-#define SURFACE_NUM  20
-SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
+//#define SURFACE_NUM  20
+//SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
 
 //过滤ESC、RETURN、SPACE键，使他们按下后不能重复。
 int KeyFilter(void* data, SDL_Event* event)
@@ -816,21 +817,16 @@ int JY_FullScreen()
     return 0;
 }
 
+
+#define SURFACE_NUM  20
+std::map<int, SDL_Texture*> tmp_Surface;
+int tmp_Surface_count = 0;
 //保存屏幕到临时表面
 int JY_SaveSur(int x, int y, int w, int h)
 {
-    int id = -1;
+    int id = tmp_Surface_count;
     int i;
     SDL_Rect r1;
-    for (i = 0; i < SURFACE_NUM; i++)
-    {
-        if (tmp_Surface[i] == NULL)
-        {
-            id = i;
-            break;
-        }
-    }
-    if (id < 0) { return -1; }
     if (w + x > g_ScreenW) { w = g_ScreenW - x; }
     if (h + y > g_ScreenH) { h = g_ScreenH - h; }
     if (w <= 0 || h <= 0) { return -1; }
@@ -838,33 +834,47 @@ int JY_SaveSur(int x, int y, int w, int h)
     r1.y = y;
     r1.w = w;
     r1.h = h;
-    if (tmp_Surface[id] != NULL)
-    {
-        SDL_DestroyTexture(tmp_Surface[id]);
-    }
+
     tmp_Surface[id] = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
     SDL_SetRenderTarget(g_Renderer, tmp_Surface[id]);
     SDL_RenderCopy(g_Renderer, g_Texture, &r1, NULL);
     //tmp_Surface[id] = SDL_CreateRGBSurface(SDL_SWSURFACE, r1.w, r1.h, g_Surface->format->BitsPerPixel
     //    , g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
     //SDL_BlitSurface(g_Surface, &r1, tmp_Surface[id], NULL);
+    tmp_Surface_count++;
+
+    if (tmp_Surface_count % 10 == 0 && tmp_Surface_count > SURFACE_NUM)
+    {
+        for (auto it = tmp_Surface.begin(); it != tmp_Surface.end();)
+        {
+            if (it->first < tmp_Surface_count - SURFACE_NUM)
+            {
+                SDL_DestroyTexture(it->second);
+                it = tmp_Surface.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
+    }
+    JY_Debug("total temp surface: %d, real: %d", tmp_Surface_count, tmp_Surface.size());
     return id;
 }
 
-//加载临时表面到屏幕
 int JY_LoadSur(int id, int x, int y)
 {
-    SDL_Rect r1;
-    if (id < 0 || id > SURFACE_NUM - 1 || tmp_Surface[id] == NULL)
+    if (id < 0 || id >= tmp_Surface_count)
     {
         return 1;
     }
+    if (tmp_Surface.count(id) == 0)
+    {
+        return 1;
+    }
+    SDL_Rect r1;
     r1.x = (Sint16)x;
     r1.y = (Sint16)y;
-    if (tmp_Surface[id] == NULL)
-    {
-        return 1;
-    }
     SDL_QueryTexture(tmp_Surface[id], NULL, NULL, &r1.w, &r1.h);
     SDL_SetRenderTarget(g_Renderer, g_Texture);
     SDL_RenderCopy(g_Renderer, tmp_Surface[id], NULL, &r1);
@@ -872,18 +882,17 @@ int JY_LoadSur(int id, int x, int y)
     return 0;
 }
 
-//释放
 int JY_FreeSur(int id)
 {
-    if (id < 0 || id > SURFACE_NUM - 1 || tmp_Surface[id] == NULL)
-    {
-        return 1;
-    }
-    if (tmp_Surface[id] != NULL)
-    {
-        SDL_DestroyTexture(tmp_Surface[id]);
-        tmp_Surface[id] = NULL;
-    }
+    //if (id < 0 || id > SURFACE_NUM - 1 || tmp_Surface[id] == NULL)
+    //{
+    //    return 1;
+    //}
+    //if (tmp_Surface[id] != NULL)
+    //{
+    //    SDL_DestroyTexture(tmp_Surface[id]);
+    //    tmp_Surface[id] = NULL;
+    //}
     return 0;
 }
 
