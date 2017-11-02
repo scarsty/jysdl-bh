@@ -249,6 +249,7 @@ int HAPI_LoadPic(lua_State* pL)
     int y = (int)lua_tonumber(pL, 4);
     int flag = 0;
     int value = 0;
+    int color = 0;
     int width = -1;
     int height = -1;
 
@@ -264,15 +265,20 @@ int HAPI_LoadPic(lua_State* pL)
 
     if (lua_isnoneornil(pL, 7) == 0)
     {
-        width = (int)lua_tonumber(pL, 7);
+        color = (int)lua_tonumber(pL, 7);
     }
 
     if (lua_isnoneornil(pL, 8) == 0)
     {
-        height = (int)lua_tonumber(pL, 8);
+        width = (int)lua_tonumber(pL, 8);
     }
 
-    JY_LoadPic(fileid, picid, x, y, flag, value,width,height);
+    if (lua_isnoneornil(pL, 9) == 0)
+    {
+        height = (int)lua_tonumber(pL, 9);
+    }
+
+    JY_LoadPic(fileid, picid, x, y, flag, value, color, width, height);
 
     return 0;
 }
@@ -911,7 +917,7 @@ int Byte_setstr(lua_State* pL)
     return 1;
 }
 
-int Config_GetPath(lua_State *pL)
+int Config_GetPath(lua_State* pL)
 {
     lua_pushstring(pL, JY_CurrentPath);
     return 1;
