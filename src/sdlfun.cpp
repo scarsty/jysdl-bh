@@ -217,6 +217,13 @@ int InitGame(void)
     }
     Init_Cache();
     JY_PicInit("");        // ³õÊ¼»¯ÌùÍ¼cache
+
+    particle = new ParticleExample();
+    particle->setRenderer(g_Renderer);
+    particle->setPosition(w / 2, h/2);
+    particle->setStyle(ParticleExample::SNOW);
+    particle->setGravity({ 0, 20 });
+
     return 0;
 }
 
@@ -336,6 +343,7 @@ int JY_ShowSurface(int flag)
     //SDL_Rect r;
     //SDL_RenderGetClipRect(g_Renderer, &r);
     SDL_RenderSetClipRect(g_Renderer, NULL);
+
     if (g_Rotate == 0)
     {
         SDL_RenderCopy(g_Renderer, g_TextureShow, NULL, NULL);

@@ -14,7 +14,6 @@
     <SccProjectName />
     <SccLocalPath />
     <ProjectGuid>{339C9F14-6B77-4647-B9AD-96175F86F43D}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -25,7 +24,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -155,6 +154,8 @@
     <ClCompile Include="..\src\jymain.cpp" />
     <ClCompile Include="..\src\luafun.cpp" />
     <ClCompile Include="..\src\mainmap.cpp" />
+    <ClCompile Include="..\src\ParticleExample.cpp" />
+    <ClCompile Include="..\src\ParticleSystem.cpp" />
     <ClCompile Include="..\src\piccache.cpp" />
     <ClCompile Include="..\src\sdlfun.cpp" />
   </ItemGroup>
@@ -164,6 +165,8 @@
     <ClInclude Include="..\src\jymain.h" />
     <ClInclude Include="..\src\luafun.h" />
     <ClInclude Include="..\src\mainmap.h" />
+    <ClInclude Include="..\src\ParticleExample.h" />
+    <ClInclude Include="..\src\ParticleSystem.h" />
     <ClInclude Include="..\src\piccache.h" />
     <ClInclude Include="..\src\sdlfun.h" />
     <ClInclude Include="resource.h" />

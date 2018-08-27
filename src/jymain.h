@@ -17,6 +17,8 @@ EXTERN_C_BEGIN
 #include "luafun.h"
 EXTERN_C_END
 
+#include "ParticleExample.h"
+
 // 公共部分
 #ifndef BOOL
 #define BOOL unsigned char
@@ -118,4 +120,6 @@ extern lua_State* pL_main;
 extern void* g_Tinypot;
 
 extern char* JY_CurrentPath;
+
+extern ParticleExample* particle;
 

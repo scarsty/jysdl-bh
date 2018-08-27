@@ -564,6 +564,9 @@ int JY_DrawMMap(int x, int y, int Mypic)
     r.y = g_ScreenH / 2 - r.h / 2;
     RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
     RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
+
+    particle->draw();
+
     return 0;
 }
 
@@ -983,7 +986,11 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
     RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
+    SDL_SetTextureColorMod(g_TextureTmp, 128, 128, 192);
     RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
+
+    particle->draw();
+
     return 0;
 }
 
@@ -1357,6 +1364,8 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
     r.y = g_ScreenH / 2 - r.h / 2;
     RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
     RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
+
+    particle->draw();
 
     return 0;
 }
