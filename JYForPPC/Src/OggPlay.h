@@ -10,13 +10,13 @@ extern "C"
 {
 #endif
 
-VOID OGG_FillBuffer(LPBYTE stream,INT len);
+    inline VOID OGG_FillBuffer(LPBYTE stream, INT len) {}
 
-INT OGG_Init(VOID);
+    inline INT OGG_Init(VOID) { return 0; }
 
-VOID OGG_Shutdown(VOID);
+    inline VOID OGG_Shutdown(VOID) {}
 
-VOID OGG_Play(INT iNumOGG,INT iFloopTimes);
+    inline VOID OGG_Play(INT iNumOGG, INT iFloopTimes) {}
 
 #ifdef __cplusplus
 }

@@ -38,8 +38,8 @@ INT JY_VideoInit(WORD wScreenWidth,WORD wScreenHeight,BOOL fFullScreen)
 	g_fSclW = g_wInitialWidth / 320.f;
 	g_fSclH = g_wInitialHeight / 240.f;
 
-	gpScreenReal = SDL_SetVideoMode(wScreenWidth, wScreenHeight, 8,
-		SDL_HWSURFACE | SDL_RESIZABLE | (fFullScreen ? SDL_FULLSCREEN : 0));
+	//gpScreenReal = SDL_SetVideoMode(wScreenWidth, wScreenHeight, 8,
+	//	SDL_HWSURFACE | SDL_RESIZABLE | (fFullScreen ? SDL_FULLSCREEN : 0));
 
 	if (gpScreenReal == NULL)
 	{
@@ -226,7 +226,7 @@ INT JY_ShowSurface(VOID)
 		SDL_BlitSurface(gpScreen,NULL,gpScreenReal,NULL);
 	}
 
-	SDL_Flip(gpScreenReal);
+	//SDL_Flip(gpScreenReal);
 	return 0;
 }
 
@@ -1961,7 +1961,7 @@ VOID JY_DrawGetThingDialog(short iWuPin, short iNum)
 	JY_ShowSurface();	
 }
 //绘提示信息
-short JY_DrawTextDialog(LPSTR strInfo,JY_POS pos,bool bBk,bool bWaitKey,BOOL bOffset)
+short JY_DrawTextDialog(LPCSTR strInfo,JY_POS pos,bool bBk,bool bWaitKey,BOOL bOffset)
 {
 	int x1 = JY_X(pos);
 	int y1 = JY_Y(pos);

@@ -386,7 +386,8 @@ SDL_Surface* CreatePicSurface32(unsigned char *data, INT w,INT h,INT datalong)
 	if(ps1==NULL){
 		TerminateOnError("CreatePicSurface32: 不能分配内存  SDL_Surface ps1!");
 	}
-	ps2=SDL_DisplayFormat(ps1);   // 把32位表面改为当前表面
+    ps2 = ps1;
+	//ps2=SDL_DisplayFormat(ps1);   // 把32位表面改为当前表面
 	if(ps2==NULL){
 		TerminateOnError("CreatePicSurface32: 不能分配内存  SDL_Surface ps2!\n");
 	}

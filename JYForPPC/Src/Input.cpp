@@ -200,7 +200,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
 			switch (lpEvent->key.keysym.sym)
 			{
 			case SDLK_UP:
-			case SDLK_KP8:
+			case SDLK_KP_8:
 				if (g_InputState.dir == kDirNorth)
 				{
 					g_InputState.dir = g_InputState.prevdir;
@@ -210,7 +210,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
 				break;
 
 			case SDLK_DOWN:
-			case SDLK_KP2:
+			case SDLK_KP_2:
 				if (g_InputState.dir == kDirSouth)
 				{
 					g_InputState.dir = g_InputState.prevdir;
@@ -220,7 +220,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
 				break;
 
 			case SDLK_LEFT:
-			case SDLK_KP4:
+			case SDLK_KP_4:
 				if (g_InputState.dir == kDirWest)
 				{
 					g_InputState.dir = g_InputState.prevdir;
@@ -230,7 +230,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
 				break;
 
 			case SDLK_RIGHT:
-			case SDLK_KP6:
+			case SDLK_KP_6:
 				if (g_InputState.dir == kDirEast)
 				{
 					g_InputState.dir = g_InputState.prevdir;
@@ -353,28 +353,28 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
       switch (lpEvent->key.keysym.sym)
       {
       case SDLK_UP:
-      case SDLK_KP8:
+      case SDLK_KP_8:
          g_InputState.prevdir = g_InputState.dir;
          g_InputState.dir = kDirNorth;
          g_InputState.dwKeyPress |= kKeyUp;
          break;
 
       case SDLK_DOWN:
-      case SDLK_KP2:
+      case SDLK_KP_2:
          g_InputState.prevdir = g_InputState.dir;
          g_InputState.dir = kDirSouth;
          g_InputState.dwKeyPress |= kKeyDown;
          break;
 
       case SDLK_LEFT:
-      case SDLK_KP4:
+      case SDLK_KP_4:
          g_InputState.prevdir = g_InputState.dir;
          g_InputState.dir = kDirWest;
          g_InputState.dwKeyPress |= kKeyLeft;
          break;
 
       case SDLK_RIGHT:
-      case SDLK_KP6:
+      case SDLK_KP_6:
          g_InputState.prevdir = g_InputState.dir;
          g_InputState.dir = kDirEast;
          g_InputState.dwKeyPress |= kKeyRight;
@@ -384,7 +384,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
       case SDLK_INSERT:
       case SDLK_LALT:
       case SDLK_RALT:
-      case SDLK_KP0:
+      case SDLK_KP_0:
          g_InputState.dwKeyPress |= kKeyMenu;
          break;
 
@@ -395,12 +395,12 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
          break;
 
       case SDLK_PAGEUP:
-      case SDLK_KP9:
+      case SDLK_KP_9:
          g_InputState.dwKeyPress |= kKeyPgUp;
          break;
 
       case SDLK_PAGEDOWN:
-      case SDLK_KP3:
+      case SDLK_KP_3:
          g_InputState.dwKeyPress |= kKeyPgDn;
          break;
 
@@ -457,7 +457,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
       switch (lpEvent->key.keysym.sym)
       {
       case SDLK_UP:
-      case SDLK_KP8:
+      case SDLK_KP_8:
          if (g_InputState.dir == kDirNorth)
          {
             g_InputState.dir = g_InputState.prevdir;
@@ -466,7 +466,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
          break;
 
       case SDLK_DOWN:
-      case SDLK_KP2:
+      case SDLK_KP_2:
          if (g_InputState.dir == kDirSouth)
          {
             g_InputState.dir = g_InputState.prevdir;
@@ -475,7 +475,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
          break;
 
       case SDLK_LEFT:
-      case SDLK_KP4:
+      case SDLK_KP_4:
          if (g_InputState.dir == kDirWest)
          {
             g_InputState.dir = g_InputState.prevdir;
@@ -484,7 +484,7 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
          break;
 
       case SDLK_RIGHT:
-      case SDLK_KP6:
+      case SDLK_KP_6:
          if (g_InputState.dir == kDirEast)
          {
             g_InputState.dir = g_InputState.prevdir;
@@ -499,16 +499,16 @@ static VOID JY_KeyboardEventFilter(const SDL_Event *lpEvent)
    }
 }
 
-static int SDLCALL JY_EventFilter(const SDL_Event *lpEvent)
+static int SDLCALL JY_EventFilter(void *userdata, SDL_Event * lpEvent)
 {
    switch (lpEvent->type)
    {
-   case SDL_VIDEORESIZE:
+   //case SDL_VIDEORESIZE:
       //
       // resized the window
       //
       //VIDEO_Resize(lpEvent->resize.w, lpEvent->resize.h);
-      break;
+      //break;
 
    case SDL_QUIT:
       //
@@ -537,7 +537,7 @@ VOID JY_InitInput(VOID)
 	g_InputState.dir = kDirUnknown;
 	g_InputState.prevdir = kDirUnknown;
 	g_InputState.dwKeyPress = 0;
-	SDL_SetEventFilter(JY_EventFilter);
+	SDL_SetEventFilter(JY_EventFilter, NULL);
 	gpGlobals->curDefKey.bVkey = FALSE;
 	gpGlobals->curDefKey.uK_a = 0;
 	gpGlobals->curDefKey.uK_down = 0;

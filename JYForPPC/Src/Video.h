@@ -58,7 +58,7 @@ typedef struct tagMENUITEM
 {
    short          wValue;
    short          wNumWord;
-   LPSTR         pText;//LPCSTR
+   LPCSTR         pText;//LPCSTR
    BOOL          fEnabled;
    JY_POS        pos;
 } MENUITEM, *LPMENUITEM;
@@ -87,7 +87,7 @@ VOID JY_ThingDilagBack(short iFlag);
 short JY_DrawThingDilag(short iFristItem,short iCurrentItem,short iEndItem,short iType);
 VOID JY_DrawPersonStatus(short iCurrentItem);
 VOID JY_DrawGetThingDialog(short iWuPin, short iNum);
-short JY_DrawTextDialog(LPSTR strInfo,JY_POS pos,bool bBk,bool bWaitKey,BOOL bOffset);
+short JY_DrawTextDialog(LPCSTR strInfo,JY_POS pos,bool bBk,bool bWaitKey,BOOL bOffset);
 INT JY_GetColor(INT r,INT g,INT b);
 VOID JY_DrawMemUse(VOID);
 VOID JY_BlitSurfaceRoat(VOID);

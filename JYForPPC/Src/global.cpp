@@ -30,7 +30,7 @@ int FindChars(const char* p, const char* f, BOOL br)
 	return -1;
 }
 
-char** spilwhit(char* str, char* strsp, DWORD* buf, int buflen, int* ct)
+char** spilwhit(char* str, const char* strsp, DWORD* buf, int buflen, int* ct)
 {
 	int splen = strlen(strsp), k = 0;
 	char *s = str, *p = str;
@@ -972,7 +972,7 @@ VOID JY_TRANS(VOID)
 		TerminateOnError(s);
 	}
 }
-VOID JY_TRANS_DATA(LPSTR fileName,LPSTR fileidxName,INT iType)
+VOID JY_TRANS_DATA(LPSTR fileName,LPCSTR fileidxName,INT iType)
 {
 	INT iLen = 0;
 	INT i = 0;

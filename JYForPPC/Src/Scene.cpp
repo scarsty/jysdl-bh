@@ -5139,10 +5139,10 @@ short War_FightMenu(VOID)
 				{
 					if (gpGlobals->g.pWuGongList[tmp].Name1[i] == 0)
 					{
-						pMenu[iNum].pText[i] =0;
+						//pMenu[iNum].pText[i] =0;
 						break;
 					}
-					pMenu[iNum].pText[i] = gpGlobals->g.pWuGongList[tmp].Name1[i] ;//^ 0xFF;
+					//pMenu[iNum].pText[i] = gpGlobals->g.pWuGongList[tmp].Name1[i] ;//^ 0xFF;
 					iLen++;
 				}
 				Big5toUnicode((LPBYTE)pMenu[iNum].pText,iLen);
@@ -6744,7 +6744,7 @@ VOID JY_Shop(VOID)
 
 			Big5toUnicode((LPBYTE)buf,iLen);
 			pMenu[iNum].pText = (LPSTR)malloc(32);
-			sprintf(pMenu[iNum].pText,"%-12s %5d",buf,tmpJiaGe);
+			//sprintf(pMenu[iNum].pText,"%-12s %5d",buf,tmpJiaGe);
 			SafeFree(buf);
 			pMenu[iNum].pos = JY_XY(g_wInitialWidth/2-80,g_wInitialHeight/2-20+iNum*(g_iFontSize+4));
 			pMenu[iNum].wValue = iNum;

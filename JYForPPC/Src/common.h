@@ -7,14 +7,14 @@ extern "C"
 #endif
 #define _CRTDBG_MAP_ALLOC//¼ì²âÄÚ´æÐ¹Â©
 
-#include <winbase.h>//release use
+#include <windows.h>//release use
 #include <windef.h>//release use
-#include <winnls.h>
-#include <winnt.h>//release use
+//#include <winnls.h>
+//#include <winnt.h>//release use
 
 //#include <wingdi.h>
 //#include <winuser.h>
-#include <types.h>
+//#include <types.h>
 #include <stdio.h>
 #include <stdlib.h>
 //#include "../crtdbg.h"//¼ì²âÄÚ´æÐ¹Â©
@@ -26,9 +26,9 @@ extern "C"
 
 #include "../SDL/SDL.h"
 #include "../SDL/SDL_endian.h"
-#pragma comment(lib, "SDL/SDL.lib")
+//#pragma comment(lib, "SDL/SDL.lib")
 #include "../SDL/SDL_ttf.h"
-#pragma comment(lib, "SDL/SDL_ttf.lib")
+//#pragma comment(lib, "SDL/SDL_ttf.lib")
 //#include "../SDL/SDL_mixer.h"
 //#pragma comment(lib, "SDL/SDL_mixer.lib")
 //#include "../SDL/SDL_image.h"
@@ -85,8 +85,33 @@ char* GetAppPath();
 
 #ifndef _LPCBYTE_DEFINED
 #define _LPCBYTE_DEFINED
-typedef const BYTE *LPCBYTE;
+typedef const unsigned char *LPCBYTE;
 #endif
+
+//typedef void* LPBYTE;
+//typedef int INT;
+//typedef uint32_t DWORD;
+//typedef int32_t WORD;
+//
+//#define VOID void
+//#define BOOL bool
+typedef uint16_t ushort;
+//typedef int16_t SHORT;
+//#define FALSE false
+//#define TRUE true
+//typedef const char* LPSTR;
+//
+//typedef unsigned char BYTE;
+
+#define JY_PREFIX "."
+typedef int SDLKey;
+#define SDL_SRCCOLORKEY 1
+#define SDL_SRCALPHA 1
+#define SDL_LOGPAL 1
+#define SDL_PHYSPAL 1
+#define SDL_HWSURFACE 1
+#define SDL_SetPalette 0
+#define SDL_SetAlpha 0
 
 #ifdef __cplusplus
 }

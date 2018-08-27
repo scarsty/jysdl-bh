@@ -145,7 +145,7 @@ int main(int argc,char *argv[])
 	//初始化环境
 	JY_Init();
 
-	SDL_WM_SetCaption("JYForPPC", 0);
+	//SDL_WM_SetCaption("JYForPPC", 0);
 	
 	//初始化缓存
 	Init_Cache();
