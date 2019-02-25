@@ -252,7 +252,9 @@ int HAPI_LoadPic(lua_State* pL)
     int color = 0;
     int width = -1;
     int height = -1;
-
+	double rotate = NULL;
+	int fz = 0;
+	SDL_RendererFlip reversal = SDL_FLIP_NONE;
     if (lua_isnoneornil(pL, 5) == 0)
     {
         flag = (int)lua_tonumber(pL, 5);
@@ -277,8 +279,25 @@ int HAPI_LoadPic(lua_State* pL)
     {
         height = (int)lua_tonumber(pL, 9);
     }
-
-    JY_LoadPic(fileid, picid, x, y, flag, value, color, width, height);
+	//旋转
+	if (lua_isnoneornil(pL, 10) == 0)
+	{
+		rotate = (double)lua_tonumber(pL, 10);
+	}
+	//反转
+	if (lua_isnoneornil(pL, 11) == 0)
+	{
+		fz = (int)lua_tonumber(pL, 11);
+	}
+	if (fz == 1)
+	{
+		 reversal = SDL_FLIP_HORIZONTAL;
+	}
+	else if (fz == 2)
+	{
+		 reversal = SDL_FLIP_VERTICAL;
+	}
+    JY_LoadPic(fileid, picid, x, y, flag, value, color, width, height, rotate, reversal);
 
     return 0;
 }
@@ -503,25 +522,33 @@ int HAPI_DrawWarMap(lua_State* pL)
     int v3 = (int)lua_tonumber(pL, 6);
     int v4 = (int)lua_tonumber(pL, 7);
 
-    int v5 = -1;
-    int ex = -1;
-    int ey = -1;
-
-    if (n >= 8)
-    {
-        v5 = (int)lua_tonumber(pL, 8);
-    }
-    if (n >= 9)
-    {
-        ex = (int)lua_tonumber(pL, 9);
-    }
-    if (n >= 10)
-    {
-        ey = (int)lua_tonumber(pL, 10);
-    }
-
-    JY_DrawWarMap(flag, x, y, v1, v2, v3, v4, v5, ex, ey);
-    return 0;
+	int v5 = -1;
+	int ex = -1;
+	int ey = -1;
+	int pyx = 0;
+	int pyy = 0;
+	if (n >= 8)
+	{
+		v5 = (int)lua_tonumber(pL, 8);
+	}
+	if (n >= 9)
+	{
+		ex = (int)lua_tonumber(pL, 9);
+	}
+	if (n >= 10)
+	{
+		ey = (int)lua_tonumber(pL, 10);
+	}
+	if (n >= 11)
+	{
+		pyx = (int)lua_tonumber(pL, 11);
+	}
+	if (n >= 12)
+	{
+		pyy = (int)lua_tonumber(pL, 12);
+	}
+	JY_DrawWarMap(flag, x, y, v1, v2, v3, v4, v5, ex, ey, pyx, pyy);
+	return 0;
 }
 
 int HAPI_SaveSur(lua_State* pL)         //保存屏幕到临时表面

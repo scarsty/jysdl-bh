@@ -244,7 +244,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             {
                 out[1] = *(str + pi + 1);
             }
-            JY_Debug("cache [%d][%s(%d)], total %d", size, out, *p, char_count);
+            //JY_Debug("cache [%d][%s(%d)], total %d", size, out, *p, char_count);
 #endif
         }
 #ifdef _DEBUG
@@ -259,9 +259,15 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
             SDL_SetTextureColorMod(tex, c2.r, c2.g, c2.b);
             SDL_SetTextureAlphaMod(tex, 128);
+
+			if ((c.r == 0x00000000) && (c.g == 0x00000000) && (c.b == 0x00000000))
+			{
+			}
+			else
+			{
             rect2.x = rect1.x + 1;
             rect2.y = rect1.y + 1;
-            SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+			SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             rect2.x = rect1.x + 1;
             rect2.y = rect1.y;
@@ -270,6 +276,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             rect2.x = rect1.x;
             rect2.y = rect1.y + 1;
             SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+			}
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             SDL_SetTextureColorMod(tex, c.r, c.g, c.b);
             SDL_SetTextureAlphaMod(tex, 255);

@@ -562,11 +562,8 @@ int JY_DrawMMap(int x, int y, int Mypic)
     r.h = g_ScreenH / g_Zoom;
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
-    RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
-    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
-
-    particle->draw();
-
+    RenderToTexture(g_Texture, &r, g_TextureTmp, &r, NULL, NULL, SDL_FLIP_NONE);
+    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL, NULL, NULL, SDL_FLIP_NONE);
     return 0;
 }
 
@@ -779,7 +776,7 @@ int WriteS(int id)
 int JY_GetS(int id, int x, int y, int level)
 {
     int s;
-    if (id < 0 || id >= S_Num || x < 0 || x >= S_XMax || y < 0 || y >= S_YMax || level < 0 || level >= 6)
+    if (id < 0 || id >= S_Num || x < 0 || x >= S_XMax || y < 0 || y >= S_YMax || level < 0 || level >= 11)
     {
         JY_Error("GetS error: data out of range! id=%d,x=%d,y=%d,level=%d\n", id, x, y, level);
         return 0;
@@ -808,7 +805,7 @@ int JY_SetS(int id, int x, int y, int level, int v)
     FILE* fp;
     int s;
     short value = (short)v;
-    if (id < 0 || id >= S_Num || x < 0 || x >= S_XMax || y < 0 || y >= S_YMax || level < 0 || level >= 6)
+    if (id < 0 || id >= S_Num || x < 0 || x >= S_XMax || y < 0 || y >= S_YMax || level < 0 || level >= 11)
     {
         JY_Error("GetS error: data out of range! id=%d,x=%d,y=%d,level=%d\n", id, x, y, level);
         return 0;
@@ -962,7 +959,7 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
                 }
                 if (d2 > 0)
                 {
-                    JY_LoadPic(0, d2, x1, y1 - d5 * g_Zoom, 0, 0);        //空中
+                    JY_LoadPic(0, d2, x1, y1 - d5, 0, 0);        //空中
                 }
                 if (d3 >= 0)             // 事件
                 {
@@ -985,12 +982,8 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
     r.h = g_ScreenH / g_Zoom;
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
-    RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
-    SDL_SetTextureColorMod(g_TextureTmp, 128, 128, 192);
-    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
-
-    particle->draw();
-
+    RenderToTexture(g_Texture, &r, g_TextureTmp, &r, NULL, NULL, SDL_FLIP_NONE);
+    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL, NULL, NULL, SDL_FLIP_NONE);
     return 0;
 }
 
@@ -1067,9 +1060,9 @@ int JY_UnloadWarMap()
 int JY_GetWarMap(int x, int y, int level)
 {
     int s;
-    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 8)
+    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 11)
     {
-        JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
+       // JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
         return 0;
     }
     s = War_XMax * War_YMax * level + y * War_XMax + x;
@@ -1082,9 +1075,9 @@ int JY_SetWarMap(int x, int y, int level, int v)
 {
     int s;
 
-    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 8)
+    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 11)
     {
-        JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
+       // JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
         return 0;
     }
 
@@ -1117,10 +1110,14 @@ int JY_CleanWarMap(int level, int v)
 //     =4  战斗动作动画  v1 战斗人物pic, v2贴图所属的加载文件id
 //                       v3 武功效果pic  -1表示没有武功效果
 
-int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5, int ex, int ey)
+int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5, int ex, int ey, int pyx, int pyy)
 {
     //int rangex=g_ScreenW/(2*g_XScale)/2+1+g_WMapAddX;
     //int rangey=g_ScreenH/(2*g_YScale)/2+1 ;
+
+	//int N = 1 + rand() % 21;
+	//int M = 1 + rand() % 5;
+
     int i, j;
     int i1, j1;
     int x1, y1;
@@ -1140,232 +1137,350 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 
     JY_FillColor(0, 0, 0, 0, AMASK);
 
-    // 绘战斗地面
-    for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
-    {
-        for (i = istart; i <= iend; i++)
-        {
-            i1 = i + j / 2 + jstart;
-            j1 = -i + j / 2 + j % 2 + jstart;
+	// 绘战斗地面
+	for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
+	{
+		for (i = istart; i <= iend; i++)
+		{
+			i1 = i + j / 2 + jstart;
+			j1 = -i + j / 2 + j % 2 + jstart;
 
-            x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
-            y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
-            xx = x + i1;
-            yy = y + j1;
-            if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
-            {
-                int num = JY_GetWarMap(xx, yy, 0);
-                int n = JY_GetWarMap(xx, yy, 6);
+			x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
+			y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
 
+			//太极猫手动偏移坐标
+			if (pyx == NULL)
+			{
+				pyx = 0;
+			}
+			if (pyy == NULL)
+			{
+				pyy = 0;
+			}
+			x1 = x1 + pyx;
 
-                if (num > 0)
-                {
-                    JY_LoadPic(0, num, x1, y1, 0, 0);
-                }     //地面
-
-                if (n > 0)      //绘制吉凶地
-                {
-                    int d4 = 0;
-                    int color = 0xffffff;
-                    if (v4 >= 0)
-                    {
-                        d4 = JY_GetS(v4, xx, yy, 4);
-                    }
-                    if (n == 1)
-                    {
-                        color = 0x05d010;
-                    }       //吉
-                    else if (n == 2)
-                    {
-                        color = 0xd52210;
-                    }       //凶
-                    else if (n == 3)
-                    {
-                        color = 0x0000f0;
-                    }       //大吉
-                    else if (n == 4)
-                    {
-                        color = 0xA010A0;
-                    }       //大凶
-                    JY_LoadPic(0, 0, x1, y1 - d4, 2 + 16, 192, color);     //地面
-                }
-            }
-        }
-    }
-
-    if ((flag == 1) || (flag == 2))       //在地面上绘制移动范围
-    {
-        for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
-        {
-            for (i = istart; i <= iend; i++)
-            {
-                i1 = i + j / 2 + jstart;
-                j1 = -i + j / 2 + j % 2 + jstart;
-
-                x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
-                y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
-                xx = x + i1;
-                yy = y + j1;
-                if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
-                {
-                    if (JY_GetWarMap(xx, yy, 3) < 128)
-                    {
-                        int showflag;
-                        int d4 = 0;
-                        if (flag == 1)
-                        {
-                            showflag = 2 + 4;
-                        }
-                        else
-                        {
-                            showflag = 2 + 8;
-                        }
-                        if (v4 >= 0)
-                        {
-                            d4 = JY_GetS(v4, xx, yy, 4);
-                        }
-                        if ((xx == v1) && (yy == v2))
-                        {
-                            JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128);
-                        }
-                        else
-                        {
-                            JY_LoadPic(0, 0, x1, y1 - d4, showflag, 64);
-                        }
-                    }
-                }
-                //无酒不欢：显示武功选择层
-                int fw = JY_GetWarMap(xx, yy, 7);
-                if (fw >= 1)
-                {
-                    int d4 = 0;
-                    if (v4 >= 0)
-                    {
-                        d4 = JY_GetS(v4, xx, yy, 4);
-                    }
-                    if (fw == 1)
-                    {
-                        JY_LoadPic(0, 0, x1, y1 - d4, 2, 112);
-                    }
-                    else if (fw == 2)
-                    {
-                        JY_LoadPic(0, 0, x1, y1 - d4, 2, 200);
-                    }
-                    else if (fw == 3)
-                    {
-                        JY_LoadPic(0, 360, x1, y1 - d4, 2, 128);
-                    }
-                }
-            }
-        }
-    }
-
-    // 绘战斗建筑和人
-    for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
-    {
-        for (i = istart; i <= iend; i++)
-        {
-            i1 = i + j / 2 + jstart;
-            j1 = -i + j / 2 + j % 2 + jstart;
-
-            x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
-            y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
-            xx = x + i1;
-            yy = y + j1;
-            if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
-            {
-                int d4 = 0;
-                int num = JY_GetWarMap(xx, yy, 1);    //  建筑
-                if (v4 >= 0)
-                {
-                    d4 = JY_GetS(v4, xx, yy, 4);
-                }
-                if (num > 0)
-                {
-                    JY_LoadPic(0, num, x1, y1 - d4, 0, 0);
-                }
+			xx = x + i1;
+			yy = y + j1;
+			if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
+			{
+				int num = JY_GetWarMap(xx, yy, 0);
+				int n = JY_GetWarMap(xx, yy, 6);
 
 
-                num = JY_GetWarMap(xx, yy, 2);        // 战斗人
-                if (num >= 0)
-                {
-                    int pic = JY_GetWarMap(xx, yy, 5);  // 人贴图
-                    if (pic >= 0)
-                    {
-                        switch (flag)
-                        {
-                        case 0:
-                        case 1:
-                        case 2:
-                        case 5: //人物常规显示
-                            JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
-                            break;
-                        case 3:
-                            if (JY_GetWarMap(xx, yy, 4) > 1)   //命中
-                            {
-                                JY_LoadPic(0, pic, x1, y1 - d4, 4 + 2, 255);
-                            }  //变黑
-                            else
-                            {
-                                JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
-                            }
+				if (num > 0)
+				{
+					JY_LoadPic(0, num, x1, y1, 0, 0);
+				}     //地面
 
-                            break;
-                        case 4:
-                            if ((xx == x) && (yy == y))
-                            {
-                                if (v2 == 0)
-                                {
-                                    JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
-                                }
-                                else
-                                {
-                                    JY_LoadPic(v2, v1, x1, y1 - d4, 0, 0);
-                                }
-                            }
-                            else if (pic < 1000)        //合击动画
-                            {
-                                JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
-                            }
-                            else
-                            {
-                                JY_LoadPic(0, pic, x1, y1 - d4, 0, 0);
-                            }
-                            break;
-                        }
-                    }
-                }
+				if (n > 0)      //绘制吉凶地
+				{
+					int d4 = 0;
+					int color = 0xffffff;
+					if (v4 >= 0)
+					{
+						d4 = JY_GetS(v4, xx, yy, 4);
+					}
+					if (n == 1)
+					{
+						color = 0x05d010;
+					}       //吉
+					else if (n == 2)
+					{
+						color = 0xd52210;
+					}       //凶
+					else if (n == 3)
+					{
+						color = 0x0000f0;
+					}       //大吉
+					else if (n == 4)
+					{
+						color = 0xA010A0;
+					}       //大凶
+					JY_LoadPic(0, 0, x1, y1 - d4, 2 + 16, 192, color);     //地面
+				}
+			}
+		}
+	}
 
-                if (flag == 4 && v3 >= 0 && v5 >= 0)     //武功效果
-                {
-                    if (ex >= 0 && ey >= 0)
-                    {
-                        if (ex == xx && ey == yy)
-                        {
-                            JY_LoadPic(v5, v3, x1, y1 - d4, 0, 0);
-                        }
-                    }
-                    else
-                    {
-                        int effect = JY_GetWarMap(xx, yy, 4);
-                        if (effect > 0)
-                        {
-                            JY_LoadPic(v5, v3, x1, y1 - d4, 2, 192);
-                        }
-                    }
-                }
-            }
-        }
-    }
+	//太极猫，第8层用于地面动画显示
+	for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
+	{
+		for (i = istart; i <= iend; i++)
+		{
+			i1 = i + j / 2 + jstart;
+			j1 = -i + j / 2 + j % 2 + jstart;
+
+			x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
+			y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
+			xx = x + i1;
+			yy = y + j1;
+			if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
+			{
+				int fw1 = JY_GetWarMap(xx, yy, 8);
+				if (fw1 >= 1)
+				{
+					int d4 = 0;
+					if (v4 >= 0)
+					{
+						d4 = JY_GetS(v4, xx, yy, 4);
+					}
+					JY_LoadPic(3, fw1, x1, y1 - d4 - g_YScale, 2, 192);
+				}
+			}
+		}
+	}
+
+	if ((flag == 1) || (flag == 2))       //在地面上绘制移动范围
+	{
+		for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
+		{
+			for (i = istart; i <= iend; i++)
+			{
+				i1 = i + j / 2 + jstart;
+				j1 = -i + j / 2 + j % 2 + jstart;
+
+				x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
+				y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
+				xx = x + i1;
+				yy = y + j1;
+				if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
+				{
+					if (JY_GetWarMap(xx, yy, 3) < 128)
+					{
+						int showflag;
+						int d4 = 0;
+						if (flag == 1)
+						{
+							showflag = 2 + 4;
+						}
+						else
+						{
+							showflag = 2 + 8;
+						}
+						if (v4 >= 0)
+						{
+							d4 = JY_GetS(v4, xx, yy, 4);
+						}
+						if ((xx == v1) && (yy == v2))
+						{
+							JY_LoadPic(0, 0, x1, y1 - d4, showflag, 128);
+						}
+						else
+						{
+							JY_LoadPic(0, 0, x1, y1 - d4, showflag, 64);
+						}
+					}
+				}
+				//无酒不欢：显示武功选择层
+				int fw = JY_GetWarMap(xx, yy, 7);
+				if (fw >= 1)
+				{
+					int d4 = 0;
+					if (v4 >= 0)
+					{
+						d4 = JY_GetS(v4, xx, yy, 4);
+					}
+					if (fw == 1)
+					{
+						JY_LoadPic(0, 0, x1, y1 - d4, 2, 112);
+					}
+					else if (fw == 2)
+					{
+						JY_LoadPic(0, 0, x1, y1 - d4, 2, 200);
+					}
+					else if (fw == 3)
+					{
+						JY_LoadPic(0, 360, x1, y1 - d4, 2, 128);
+					}
+				}
+			}
+		}
+	}
+
+	// 绘战斗建筑和人
+	for (j = 0; j <= 2 * jend - 2 * jstart + g_WMapAddY; j++)
+	{
+		for (i = istart; i <= iend; i++)
+		{
+			i1 = i + j / 2 + jstart;
+			j1 = -i + j / 2 + j % 2 + jstart;
+
+			x1 = g_XScale * (i1 - j1) + g_ScreenW / 2;
+			y1 = g_YScale * (i1 + j1) + g_ScreenH / 2;
+
+			//太极猫手动偏移坐标
+			if (pyx == NULL)
+			{
+				pyx = 0;
+			}
+			if (pyy == NULL)
+			{
+				pyy = 0;
+			}
+			x1 = x1 + pyx;
+
+			xx = x + i1;
+			yy = y + j1;
+			if ((xx >= 0) && (xx < War_XMax) && (yy >= 0) && (yy < War_YMax))
+			{
+				int d4 = 0;
+				int num = JY_GetWarMap(xx, yy, 1);    //  建筑
+				if (v4 >= 0)
+				{
+					d4 = JY_GetS(v4, xx, yy, 4);
+				}
+				if (num > 0)
+				{
+					JY_LoadPic(0, num, x1, y1 - d4, 0, 0);
+				}
+
+
+				num = JY_GetWarMap(xx, yy, 2);        // 战斗人
+				if (num >= 0)
+				{
+					int pic = JY_GetWarMap(xx, yy, 5);  // 人贴图
+					int jj = JY_GetWarMap(xx, yy, 4);
+					if (pic >= 0)
+					{
+						switch (flag)
+						{
+						case 0:
+						case 1:
+						case 2:
+						case 5: //人物常规显示
+							JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							break;
+						case 3:
+							if (JY_GetWarMap(xx, yy, 4) > 1)   //命中
+							{
+								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 4 + 2, 255);
+							}  //变黑
+							else
+							{
+								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							}
+
+							break;
+						case 4:
+							if ((xx == x) && (yy == y))
+							{
+								if (v2 == 0)
+								{
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								}
+								else
+								{
+									JY_LoadPic(v2, v1, x1, y1 - d4, 0, 0);
+								}
+							}
+							else if (pic < 1000)        //合击动画
+							{
+								if (JY_GetWarMap(xx, yy, 4) > 10 && JY_GetWarMap(xx, yy, 4) <= 20)       //合击动画
+								{
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (jj - 10) * 2, y1 - d4 + (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (jj - 10) * 2, y1 - d4 - (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (jj - 10) * 2, y1 - d4 + (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (jj - 10) * 2, y1 - d4 - (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+								}
+								else if (JY_GetWarMap(xx, yy, 4) >= 21 && JY_GetWarMap(xx, yy, 4) <= 30)       //合击动画
+								{
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (30 - jj) * 2, y1 - d4 + (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (30 - jj) * 2, y1 - d4 - (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (30 - jj) * 2, y1 - d4 + (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (30 - jj) * 2, y1 - d4 - (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+								}
+								else
+								{
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								}
+							}
+							else
+							{
+								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							}
+							break;
+						case 6:
+							if ((xx == x) && (yy == y))
+							{
+								if (v2 == 0)
+								{
+									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								}
+								else
+								{
+									if (pyy > 0)
+									{
+										JY_LoadPic(v2, v1, x1, y1 - d4, 10, 120, NULL, 0, pyy);
+									}
+									JY_LoadPic(v2, v1, x1, y1 - d4, 0, 0);
+								}
+							}
+							else if (pic < 1000)        //合击动画
+							{
+								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							}
+							else
+							{
+								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							}
+							break;
+						case 7:
+							JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							break;
+						}
+					}
+				}
+
+				int n = JY_GetWarMap(xx, yy, 9);
+				if (n >0)
+				{
+					JY_LoadPic(3, n, x1, y1 - d4, 2, 192);
+				}
+
+				if (flag == 4 && v3 >= 0 && v5 >= 0)     //武功效果
+				{
+					if (ex >= 0 && ey >= 0)
+					{
+						if (ex == xx && ey == yy)
+						{
+							JY_LoadPic(v5, v3, x1, y1 - d4, 0, 0);
+						}
+					}
+					else
+					{
+						int effect = JY_GetWarMap(xx, yy, 4);
+						if (effect > 0)
+						{
+							JY_LoadPic(v5, v3, x1, y1 - d4, 2, 192);
+						}
+					}
+				}
+				if (flag == 6 && v3 >= 0 && v5 >= 0)     //武功效果
+				{
+					if (x == xx && y == yy)
+					{
+						JY_LoadPic(v5, v3, x1, y1 - d4, 2, 192);
+					}
+				}
+				if (flag == 7 && v5 >= 0)     //武功效果
+				{
+					int eff = JY_GetWarMap(xx, yy, 10) - 2;
+					if (eff >= 0)
+					{
+						JY_LoadPic(v5, eff, x1, y1 - d4, 2, 192);
+					}
+				}
+			}
+		}
+	}
     SDL_Rect r;
     r.w = g_ScreenW / g_Zoom;
     r.h = g_ScreenH / g_Zoom;
     r.x = g_ScreenW / 2 - r.w / 2;
     r.y = g_ScreenH / 2 - r.h / 2;
-    RenderToTexture(g_Texture, &r, g_TextureTmp, &r);
-    RenderToTexture(g_TextureTmp, &r, g_Texture, NULL);
 
-    particle->draw();
+    RenderToTexture(g_Texture, &r, g_TextureTmp, &r, NULL, NULL, SDL_FLIP_NONE);
+	RenderToTexture(g_TextureTmp, &r, g_Texture, NULL, NULL, NULL, SDL_FLIP_NONE);
 
     return 0;
 }

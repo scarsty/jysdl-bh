@@ -192,8 +192,8 @@ int InitGame(void)
     }
     //putenv ("SDL_VIDEO_WINDOW_POS");
     //putenv ("SDL_VIDEO_CENTERED=1");
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-    g_Window = SDL_CreateWindow("The Fall of Star", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, g_Softener);
+    g_Window = SDL_CreateWindow("Jin Shu QunXia", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     g_Texture = CreateRenderedTexture(g_ScreenW, g_ScreenH);
@@ -217,13 +217,6 @@ int InitGame(void)
     }
     Init_Cache();
     JY_PicInit("");        // 初始化贴图cache
-
-    particle = new ParticleExample();
-    particle->setRenderer(g_Renderer);
-    particle->setPosition(w / 2, h/2);
-    particle->setStyle(ParticleExample::SNOW);
-    particle->setGravity({ 0, 20 });
-
     return 0;
 }
 
@@ -242,10 +235,10 @@ int ExitGame(void)
     return 0;
 }
 
-int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_Rect* dst_rect)
+int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_Rect* dst_rect, double angle, SDL_Point*center, SDL_RendererFlip filp)
 {
-    SDL_SetRenderTarget(g_Renderer, dst);
-    return SDL_RenderCopy(g_Renderer, src, src_rect, dst_rect);
+	SDL_SetRenderTarget(g_Renderer, dst);
+	return SDL_RenderCopyEx(g_Renderer, src, src_rect, dst_rect, angle, center, filp);
 }
 
 SDL_Texture* CreateRenderedTexture(SDL_Texture* ref)
@@ -308,7 +301,7 @@ int JY_LoadPicture(const char* str, int x, int y)
     }
     if (tex)
     {
-        RenderToTexture(tex, NULL, g_Texture, &r);
+        RenderToTexture(tex, NULL, g_Texture, &r, NULL, NULL, SDL_FLIP_NONE);
     }
     else
     {
@@ -343,7 +336,6 @@ int JY_ShowSurface(int flag)
     //SDL_Rect r;
     //SDL_RenderGetClipRect(g_Renderer, &r);
     SDL_RenderSetClipRect(g_Renderer, NULL);
-
     if (g_Rotate == 0)
     {
         SDL_RenderCopy(g_Renderer, g_TextureShow, NULL, NULL);
@@ -826,63 +818,59 @@ int JY_FullScreen()
 }
 
 
+
 #define SURFACE_NUM  20
-std::map<int, SDL_Texture*> tmp_Surface;
-int tmp_Surface_count = 0;
+SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
+//保存屏幕到临时表面
 //保存屏幕到临时表面
 int JY_SaveSur(int x, int y, int w, int h)
 {
-    int id = tmp_Surface_count;
-    int i;
-    SDL_Rect r1;
-    if (w + x > g_ScreenW) { w = g_ScreenW - x; }
-    if (h + y > g_ScreenH) { h = g_ScreenH - h; }
-    if (w <= 0 || h <= 0) { return -1; }
-    r1.x = x;
-    r1.y = y;
-    r1.w = w;
-    r1.h = h;
-
-    tmp_Surface[id] = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
-    SDL_SetRenderTarget(g_Renderer, tmp_Surface[id]);
-    SDL_RenderCopy(g_Renderer, g_Texture, &r1, NULL);
-    //tmp_Surface[id] = SDL_CreateRGBSurface(SDL_SWSURFACE, r1.w, r1.h, g_Surface->format->BitsPerPixel
-    //    , g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
-    //SDL_BlitSurface(g_Surface, &r1, tmp_Surface[id], NULL);
-    tmp_Surface_count++;
-
-    if (tmp_Surface_count % 10 == 0 && tmp_Surface_count > SURFACE_NUM)
-    {
-        for (auto it = tmp_Surface.begin(); it != tmp_Surface.end();)
-        {
-            if (it->first < tmp_Surface_count - SURFACE_NUM)
-            {
-                SDL_DestroyTexture(it->second);
-                it = tmp_Surface.erase(it);
-            }
-            else
-            {
-                it++;
-            }
-        }
-    }
-    JY_Debug("total temp surface: %d, real: %d", tmp_Surface_count, tmp_Surface.size());
-    return id;
+	int id = -1;
+	int i;
+	SDL_Rect r1;
+	for (i = 0; i < SURFACE_NUM; i++)
+	{
+		if (tmp_Surface[i] == NULL)
+		{
+			id = i;
+			break;
+		}
+	}
+	if (id < 0) { return -1; }
+	if (w + x > g_ScreenW) { w = g_ScreenW - x; }
+	if (h + y > g_ScreenH) { h = g_ScreenH - h; }
+	if (w <= 0 || h <= 0) { return -1; }
+	r1.x = x;
+	r1.y = y;
+	r1.w = w;
+	r1.h = h;
+	if (tmp_Surface[id] != NULL)
+	{
+		SDL_DestroyTexture(tmp_Surface[id]);
+	}
+	tmp_Surface[id] = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
+	SDL_SetRenderTarget(g_Renderer, tmp_Surface[id]);
+	SDL_RenderCopy(g_Renderer, g_Texture, &r1, NULL);
+	//tmp_Surface[id] = SDL_CreateRGBSurface(SDL_SWSURFACE, r1.w, r1.h, g_Surface->format->BitsPerPixel
+	//    , g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
+	//SDL_BlitSurface(g_Surface, &r1, tmp_Surface[id], NULL);
+	return id;
 }
 
+//加载临时表面到屏幕
 int JY_LoadSur(int id, int x, int y)
 {
-    if (id < 0 || id >= tmp_Surface_count)
-    {
-        return 1;
-    }
-    if (tmp_Surface.count(id) == 0)
-    {
-        return 1;
-    }
     SDL_Rect r1;
+    if (id < 0 || id > SURFACE_NUM - 1 || tmp_Surface[id] == NULL)
+    {
+        return 1;
+    }
     r1.x = (Sint16)x;
     r1.y = (Sint16)y;
+    if (tmp_Surface[id] == NULL)
+    {
+        return 1;
+    }
     SDL_QueryTexture(tmp_Surface[id], NULL, NULL, &r1.w, &r1.h);
     SDL_SetRenderTarget(g_Renderer, g_Texture);
     SDL_RenderCopy(g_Renderer, tmp_Surface[id], NULL, &r1);
@@ -890,17 +878,18 @@ int JY_LoadSur(int id, int x, int y)
     return 0;
 }
 
+//释放
 int JY_FreeSur(int id)
 {
-    //if (id < 0 || id > SURFACE_NUM - 1 || tmp_Surface[id] == NULL)
-    //{
-    //    return 1;
-    //}
-    //if (tmp_Surface[id] != NULL)
-    //{
-    //    SDL_DestroyTexture(tmp_Surface[id]);
-    //    tmp_Surface[id] = NULL;
-    //}
+    if (id < 0 || id > SURFACE_NUM - 1 || tmp_Surface[id] == NULL)
+    {
+        return 1;
+    }
+    if (tmp_Surface[id] != NULL)
+    {
+        SDL_DestroyTexture(tmp_Surface[id]);
+        tmp_Surface[id] = NULL;
+    }
     return 0;
 }
 

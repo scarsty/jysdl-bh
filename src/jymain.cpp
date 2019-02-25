@@ -41,7 +41,7 @@ int g_SMapAddX;
 int g_SMapAddY;
 int g_WMapAddX;
 int g_WMapAddY;
-
+int g_BJ = 0;
 int g_MAXCacheNum = 1000;               //最大缓存数量
 int g_LoadFullS = 1;                    //是否全部加载S文件
 int g_LoadMMapType = 0;                 //是否全部加载M文件
@@ -52,7 +52,7 @@ char JYMain_Lua[255];                   //lua主函数
 int g_MP3 = 0;                          //是否打开MP3
 char g_MidSF2[255];                     //音色库对应的文件
 float g_Zoom = 1;                       //图片放大
-
+char g_Softener[255];                     //音色库对应的文件
 #ifdef _WIN32
 char* JY_CurrentPath = "./";
 #else
@@ -62,8 +62,6 @@ char* JY_CurrentPath = "/sdcard/JYLDCR/";
 lua_State* pL_main = NULL;
 
 void* g_Tinypot;
-
-ParticleExample* particle = nullptr;
 
 //定义的lua接口函数名
 const struct luaL_Reg jylib[] =
@@ -187,6 +185,7 @@ void GetModes(int *width, int *height)
 int main(int argc, char* argv[])
 {
     //lua_State* pL_main;
+
     remove(DEBUG_FILE);
     remove(ERROR_FILE);    //设置stderr输出到文件
 
@@ -306,6 +305,7 @@ int Lua_Config(lua_State* pL, const char* filename)
     g_YScale = 9;
     g_EnableSound = getfield(pL, "EnableSound");
     IsDebug = getfield(pL, "Debug");
+	//g_Pic = getfield(pL, "Pic");
     g_MMapAddX = getfield(pL, "MMapAddX");
     g_MMapAddY = getfield(pL, "MMapAddY");
     g_SMapAddX = getfield(pL, "SMapAddX");
@@ -318,13 +318,10 @@ int Lua_Config(lua_State* pL, const char* filename)
     g_MAXCacheNum = getfield(pL, "MAXCacheNum");
     g_LoadFullS = getfield(pL, "LoadFullS");
     g_MP3 = getfield(pL, "MP3");
-
     g_Zoom = (float)(getfield(pL, "Zoom") / 100.0);
-
     getfieldstr(pL, "MidSF2", g_MidSF2);
-
     getfieldstr(pL, "JYMain_Lua", JYMain_Lua);
-
+	getfieldstr(pL, "Softener", g_Softener);
     return 0;
 }
 

@@ -3,4 +3,7 @@ UPedit/thing/
 vc6/.vs/
 vc6/Debug/
 vc6/game/
+JYForPPC/SDL/begin_code.h
 JYForPPC/SDL/
+*.lib
+*.htm

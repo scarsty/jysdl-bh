@@ -17,8 +17,6 @@ EXTERN_C_BEGIN
 #include "luafun.h"
 EXTERN_C_END
 
-#include "ParticleExample.h"
-
 // 公共部分
 #ifndef BOOL
 #define BOOL unsigned char
@@ -112,14 +110,12 @@ extern int g_PreLoadPicGrp;                  //是否预先加载贴图文件的grp
 extern int IsDebug;                          //是否打开跟踪文件
 extern char JYMain_Lua[255];                 //lua主函数
 extern int g_MP3;                            //是否打开MP3
+extern int g_BJ;                            //是否打开MP3
 extern char g_MidSF2[255];                   //音色库对应的文件
 extern float g_Zoom;                         //图片放大
-
 extern lua_State* pL_main;
-
+extern char g_Softener[255];                   //是否柔化
 extern void* g_Tinypot;
 
 extern char* JY_CurrentPath;
-
-extern ParticleExample* particle;
 

@@ -37,17 +37,18 @@ struct PicFileCache                             //贴图文件链表节点
     int width;                                  //指定宽度
     int height;                                 //指定高度
     int percent;                                //指定比例
-    std::vector<CacheNode*> pcache;                  //文件中所有的贴图对应的cache节点指针，为空则表示没有。
-    char path[512];
+    std::vector<CacheNode*> pcache;             //文件中所有的贴图对应的cache节点指针，为空则表示没有。
+    char path[512];                             //目录
     char suffix[12];                            //后缀名
+    int type = 0;                               //0-idx/grp, 1-png path with index.ka
+    std::vector<short> offset;                  //偏移值
 };
-
 #define PIC_FILE_NUM 100                        //缓存的贴图文件(idx/grp)个数
 
 int Init_Cache();
 int JY_PicInit(char* PalletteFilename);
 int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int width, int height);
-int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value,int color = 0, int width = -1, int height = -1);
+int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value,int color = 0, int width = -1, int height = -1, double angle = NULL, SDL_RendererFlip reversal = SDL_FLIP_NONE);
 int LoadPic(int fileid, int picid, struct CacheNode* cache);
 int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const char* suffix);
 int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value);
@@ -55,5 +56,5 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff);
 int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff);
 SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalong);
 int LoadPalette(char* filename);
-int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width = -1, int height = -1);
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width = -1, int height = -1, double angle = NULL , SDL_RendererFlip reversal = SDL_FLIP_NONE);
 

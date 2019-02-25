@@ -9,7 +9,7 @@ int ExitSDL(void);
 Uint32 ConvertColor(Uint32 color);
 int InitGame(void);
 int ExitGame(void);
-int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_Rect* dst_rect);
+int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_Rect* dst_rect,double angle, SDL_Point*center, SDL_RendererFlip filp);
 SDL_Texture* CreateRenderedTexture(SDL_Texture* ref);
 SDL_Texture* CreateRenderedTexture(int w, int h);
 int JY_LoadPicture(const char* str, int x, int y);

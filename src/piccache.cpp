@@ -184,7 +184,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         pic_file[id].width = width;
         pic_file[id].height = height;
     }
-
+    pic_file[id].type = 0;
     return 0;
 }
 
@@ -199,11 +199,17 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
 //  B3            1 全白
 //  value 按照flag定义，为alpha值，
 
-int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int color, int width, int height)
+int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal)
 {
     struct CacheNode* newcache, *tmpcache;
     int xnew, ynew;
     SDL_Surface* tmpsur;
+
+    if (pic_file[fileid].type == 1)
+    {
+        JY_LoadPNG(fileid, picid, x, y, flag, value);
+        return 0;
+    }
 
     picid = picid / 2;
 
@@ -269,10 +275,38 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
     }
     else
     {
-        xnew = x - newcache->xoff;
-        ynew = y - newcache->yoff;
+		if (width > 0 && height >0)  //太极猫调整：宽高自定义，贴图的位置调整
+		{
+			xnew = x - newcache->xoff*width / newcache->w;
+			ynew = y - newcache->yoff*height /newcache->h;
+		}
+		else if (width > 0 && height <= 0)  //太极猫调整：宽自定义，贴图的位置调整
+		{
+			xnew = x - newcache->xoff*width / newcache->w;
+			ynew = y - newcache->yoff*width / newcache->w;
+		}
+		else if (width <= 0 && height > 0)  //太极猫调整：比利自定义，贴图的位置调整
+		{
+			float bl = height/ 100.0;
+			width = newcache->w*bl;
+			height = newcache->h*bl;
+			xnew = x - newcache->xoff*bl;
+			ynew = y - newcache->yoff*bl;
+		}
+		else if (width == 0 && height == 0)    //太极猫调整：宽高都为0则根据zoom值改变贴图大小
+		{
+			width = newcache->w*g_Zoom;
+			height = newcache->h*g_Zoom;
+			xnew = x - newcache->xoff*g_Zoom;
+			ynew = y - newcache->yoff*g_Zoom;
+		}
+		else
+		{
+			xnew = x - newcache->xoff;
+			ynew = y - newcache->yoff;
+		}
     }
-    RenderTexture(newcache->t, xnew, ynew, flag, value, color, width, height);
+    RenderTexture(newcache->t, xnew, ynew, flag, value, color, width, height, rotate,reversal);
     return 0;
 }
 
@@ -347,7 +381,7 @@ int LoadPic(int fileid, int picid, struct CacheNode* cache)
                 JY_Error("LoadPic: cannot create SDL_Surface tmpsurf!\n");
             }
             cache->xoff = tmpsurf->w / 2;
-            cache->yoff = tmpsurf->h;
+            cache->yoff = tmpsurf->h / 2;
             cache->w = tmpsurf->w;
             cache->h = tmpsurf->h;
             cache->s = tmpsurf;
@@ -541,18 +575,69 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         //SafeFree(pic_file[fileid].pcache);
     }
 
-    pic_file[fileid].num = num;
-    sprintf(pic_file[fileid].path, "%s", path);
+    //sb500添加
+    pic_file[fileid].type = 1;
+    int ll = 0;
 
-    pic_file[fileid].pcache.resize(pic_file[fileid].num);
-    if (pic_file[fileid].pcache.size() == 0)
+    char index_name[1024];
+    sprintf(index_name, "%s/index.ka", path);
+    std::vector<short> offset;
+
+    if (FILE* f = fopen(index_name, "rb"))
     {
-        JY_Error("JY_LoadPNGPath: cannot malloc pcache memory!\n");
-        return 1;
+        JY_Debug("JY_LoadPNGPath: found index file!\n");
+        fseek(f, 0, SEEK_END);
+        ll = ftell(f);
+        fseek(f, 0, 0);
+        offset.resize(ll / 2);
+        fread(offset.data(), 2, ll / 2, f);
+        fclose(f);
     }
-    for (i = 0; i < pic_file[fileid].num; i++)
+
+    if (num < 0)
     {
-        pic_file[fileid].pcache[i] = NULL;
+        num = ll / 4;    //图片个数
+    }
+
+    //sb500修改
+    if (num > 0)
+    {
+        pic_file[fileid].num = num;
+        sprintf(pic_file[fileid].path, "%s", path);
+
+        pic_file[fileid].pcache.resize(pic_file[fileid].num);
+        if (pic_file[fileid].pcache.size() == 0)
+        {
+            JY_Error("JY_LoadPNGPath: cannot malloc pcache memory!\n");
+            return 1;
+        }
+        for (i = 0; i < pic_file[fileid].num; i++)
+        {
+            pic_file[fileid].pcache[i] = NULL;
+        }
+    }
+
+    if (ll == 0)
+    {
+        //没有index文件
+        pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
+        for (i = 0; i < pic_file[fileid].num; i++)
+        {
+            //没找到index文件则设置为一个不可能的数字
+            pic_file[fileid].offset[i] = 9999;
+            pic_file[fileid].offset[i + 1] = 9999;
+        }
+    }
+    else
+    {
+        //有index文件，则读取到的部分按照index设置偏移
+        pic_file[fileid].offset = offset;
+        pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
+        for (i = ll / 4; i < pic_file[fileid].num; i++)
+        {
+            pic_file[fileid].offset[i] = 9999;
+            pic_file[fileid].offset[i + 1] = 9999;
+        }
     }
 
     pic_file[fileid].percent = percent;
@@ -603,8 +688,19 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
                 return 1;
             }
 
-            newcache->xoff = tmpsur->w / 2;
-            newcache->yoff = tmpsur->h / 2;
+            //sb500
+            newcache->xoff = pic_file[fileid].offset[picid * 2];
+            newcache->yoff = pic_file[fileid].offset[picid * 2 + 1];
+
+            if (newcache->xoff == 9999)
+            {
+                newcache->xoff = tmpsur->w / 2;
+            }
+            if (newcache->yoff ==9999)
+            {
+                newcache->yoff = tmpsur->h / 2;
+            }
+            
             newcache->w = tmpsur->w;
             newcache->h = tmpsur->h;
             newcache->s = tmpsur;
@@ -698,7 +794,7 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
 // 把表面blit到背景或者前景表面
 // x,y 要加载到表面的左上角坐标
-int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height)
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal)
 {
     SDL_Surface* tmps;
     SDL_Rect rect, rect0;
@@ -736,7 +832,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
         SDL_SetTextureColorMod(lps, 255, 255, 255);
         SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
         SDL_SetTextureAlphaMod(lps, 255);
-        RenderToTexture(lps, NULL, g_Texture, &rect);
+        RenderToTexture(lps, NULL, g_Texture, &rect, rotate, NULL, reversal);
         //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
     }
     else    // 有alpha
@@ -749,14 +845,14 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
                 SDL_SetTextureColorMod(lps, 32, 32, 32);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
                 SDL_SetTextureAlphaMod(lps, (Uint8)value);
-                RenderToTexture(lps, NULL, g_Texture, &rect);
+                RenderToTexture(lps, NULL, g_Texture, &rect, rotate, NULL, reversal);
             }
             else if (flag & 0x8)
             {
                 SDL_SetTextureColorMod(lps, 255, 255, 255);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_NONE);
                 SDL_SetTextureAlphaMod(lps, 255);
-                RenderToTexture(lps, NULL, g_TextureTmp, &rect);
+                RenderToTexture(lps, NULL, g_TextureTmp, &rect, rotate, NULL, reversal);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_ADD);
                 SDL_SetRenderDrawColor(g_Renderer, 255, 255, 255, 255);
                 SDL_SetRenderDrawBlendMode(g_Renderer, SDL_BLENDMODE_ADD);
@@ -764,7 +860,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
                 SDL_SetTextureColorMod(g_TextureTmp, 255, 255, 255);
                 SDL_SetTextureBlendMode(g_TextureTmp, SDL_BLENDMODE_BLEND);
                 SDL_SetTextureAlphaMod(g_TextureTmp, (Uint8)value);
-                RenderToTexture(g_TextureTmp, &rect, g_Texture, &rect);
+                RenderToTexture(g_TextureTmp, &rect, g_Texture, &rect, rotate, NULL, reversal);
                 SDL_SetTextureAlphaMod(g_TextureTmp, 255);
             }
             else
@@ -776,7 +872,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
                 SDL_SetTextureColorMod(lps, 255, 255, 255);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_NONE);
                 SDL_SetTextureAlphaMod(lps, 255);
-                RenderToTexture(lps, NULL, g_TextureTmp, &rect);
+                RenderToTexture(lps, NULL, g_TextureTmp, &rect, rotate, NULL, reversal);
                 SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_ADD);
                 SDL_SetRenderDrawColor(g_Renderer, r, g, b, a);
                 SDL_SetRenderDrawBlendMode(g_Renderer, SDL_BLENDMODE_ADD);
@@ -784,7 +880,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
                 SDL_SetTextureColorMod(g_TextureTmp, 255, 255, 255);
                 SDL_SetTextureBlendMode(g_TextureTmp, SDL_BLENDMODE_BLEND);
                 SDL_SetTextureAlphaMod(g_TextureTmp, (Uint8)value);
-                RenderToTexture(g_TextureTmp, &rect, g_Texture, &rect);
+                RenderToTexture(g_TextureTmp, &rect, g_Texture, &rect, rotate, NULL, reversal);
                 SDL_SetTextureAlphaMod(g_TextureTmp, 255);
                 //SDL_SetTextureColorMod(lps, r, g, b);
                 //SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
@@ -797,7 +893,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
             SDL_SetTextureColorMod(lps, 255, 255, 255);
             SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
             SDL_SetTextureAlphaMod(lps, (Uint8)value);
-            RenderToTexture(lps, NULL, g_Texture, &rect);
+            RenderToTexture(lps, NULL, g_Texture, &rect,rotate, NULL, reversal);
             //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
         }
     }

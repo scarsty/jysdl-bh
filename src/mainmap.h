@@ -24,6 +24,7 @@ int JY_SetMMap(short x, short y, int flag, short v);
 
 int BuildingSort(short x, short y, short Mypic);
 // »æÖÆÖ÷µØÍ¼
+int JY_DrawMMap(int x, int y, int Mypic);
 int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_max, int y_max,
     const char* Dfilename, int d_num1, int d_num2);
 int JY_SaveSMap(const char* Sfilename, const char* Dfilename);
@@ -40,7 +41,7 @@ int JY_UnloadWarMap();
 int JY_GetWarMap(int x, int y, int level);
 int JY_SetWarMap(int x, int y, int level, int v);
 int JY_CleanWarMap(int level, int v);
-int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5, int ex, int ey);
+int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5, int ex, int ey, int pyx, int pyy);
 int LoadMMap_Sub(const char* filename, Sint16** p);
 int LoadMMap_Part(int read, int x, int y);
 int LoadMMap_Part_Sub(FILE* fp, Sint16** p);
