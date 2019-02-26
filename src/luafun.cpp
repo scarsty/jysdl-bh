@@ -2,9 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "jymain.h"
-#include <zip.h>
-#include "unzip.h"
-#include "minishared.h"
 #include "charset.h"
 #include "sdlfun.h"
 #include "piccache.h"
@@ -721,33 +718,14 @@ int Byte_loadfilefromzip(lua_State* pL)
     int start = (int)lua_tonumber(pL, 4);
     int length = (int)lua_tonumber(pL, 5);
 
-    unzFile zip;
-    unz_file_info zi = { 0 };
-    zip = unzOpen(filenamezip);
-    if (unzLocateFile(zip, filename, NULL) != UNZ_OK)
+    ZipFile zip;
+    std::string content;
+    zip.openFile(filenamezip);
+    if (zip.opened())
     {
-        return 0;
+        content = zip.readEntryName(filename);
     }
-    char s[100];
-    unzGetCurrentFileInfo(zip, &zi, s, 100, NULL, 0, NULL, 0);
-    unzOpenCurrentFile(zip);
-
-    const int size_buf = 8192;
-    void* buf = malloc(size_buf);
-    void* buf2 = malloc(zi.uncompressed_size);
-    uint32_t c = 0;
-    while (c < zi.uncompressed_size)
-    {
-        int len = zi.uncompressed_size - c;
-        if (len > size_buf) { len = size_buf; }
-        unzReadCurrentFile(zip, buf, size_buf);
-        memcpy((char*)buf2 + c, buf, len);
-        c += size_buf;
-    }
-    unzClose(zip);
-    memcpy(p, (char*)buf2 + start, length);
-    free(buf);
-    free(buf2);
+    memcpy(p, (char*)content.data() + start, length);
     return 0;
 }
 
@@ -775,72 +753,29 @@ int Byte_unzip(lua_State* pL)
     const char* filenamezip = lua_tostring(pL, 1);
     int n = lua_gettop(pL);
     int i;
-    unzFile zip;
-    zip = unzOpen(filenamezip);
+    std::vector<std::string> filenames;
     for (i = 2; i <= n; i++)
     {
         const char* filename = lua_tostring(pL, i);
-        unz_file_info zi = { 0 };
-        if (unzLocateFile(zip, filename, NULL) != UNZ_OK)
-        {
-            break;
-        }
-        char s[100];
-        unzGetCurrentFileInfo(zip, &zi, s, 100, NULL, 0, NULL, 0);
-        unzOpenCurrentFile(zip);
-
-        FILE* fp;
-        if ((fp = fopen(filename, "wb")) == NULL)
-        {
-            break;
-        }
-        const int size_buf = 8192;
-        void* buf = malloc(size_buf);
-        uint32_t c = 0;
-        while (c < zi.uncompressed_size)
-        {
-            int len = zi.uncompressed_size - c;
-            if (len > size_buf) { len = size_buf; }
-            unzReadCurrentFile(zip, buf, size_buf);
-            fwrite(buf, len, 1, fp);
-            c += size_buf;
-        }
-        fclose(fp);
-        free(buf);
+        filenames.push_back(filename);
     }
-    unzClose(zip);
+    ZipFile::unzip(filenamezip, filenames);
     return 0;
 }
 
 int Byte_zip(lua_State* pL)
 {
-    zip_fileinfo zi = { 0 };
+    //zip_fileinfo zi = { 0 };
     const char* filenamezip = lua_tostring(pL, 1);
     int n = lua_gettop(pL);
     int i;
-    zipFile zip = zipOpen(filenamezip, APPEND_STATUS_CREATE);
+    std::vector<std::string> filenames;
     for (i = 2; i <= n; i++)
     {
         const char* filename = lua_tostring(pL, i);
-        FILE* fp;
-        if ((fp = fopen(filename, "rb")) == NULL)
-        {
-            break;
-        }
-        fseek(fp, 0, SEEK_END);
-        int length = ftell(fp);
-        fseek(fp, 0, 0);
-        auto s = (char*)malloc(length + 1);
-        fread(s, length, 1, fp);
-        fclose(fp);
-        get_file_date(filenamezip, &zi.dos_date);
-        //zi.dos_date = time(NULL);
-        zipOpenNewFileInZip(zip, filename, &zi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-        zipWriteInFileInZip(zip, s, length);
-        zipCloseFileInZip(zip);
-        free(s);
+        filenames.push_back(filename);
     }
-    zipClose(zip, NULL);
+    ZipFile::zip(filenamezip, filenames);
     return 0;
 }
 

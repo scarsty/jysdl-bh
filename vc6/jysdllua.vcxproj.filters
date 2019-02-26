@@ -84,7 +84,6 @@
     <Library Include="..\SDL2\lib\SDL2main.lib" />
     <Library Include="..\tinypot\lib\TinyPot.lib" />
     <Library Include="..\Lua\lib\lua52.lib" />
-    <Library Include="..\minizip\lib\libminizip.lib" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="ff.ico">
