@@ -33,6 +33,12 @@
     <ClCompile Include="..\src\sdlfun.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\zip.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ZipFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\config.h">
@@ -59,6 +65,15 @@
     <ClInclude Include="..\src\sdlfun.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\miniz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\zip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ZipFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\Bass\lib\bass.lib" />
@@ -68,8 +83,8 @@
     <Library Include="..\SDL2\lib\SDL2_ttf.lib" />
     <Library Include="..\SDL2\lib\SDL2main.lib" />
     <Library Include="..\tinypot\lib\TinyPot.lib" />
-    <Library Include="..\minizip\lib\libminizip.lib" />
     <Library Include="..\Lua\lib\lua52.lib" />
+    <Library Include="..\minizip\lib\libminizip.lib" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="ff.ico">

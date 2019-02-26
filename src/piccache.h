@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include <stdio.h>
 #include <vector>
+#include "ZipFile.h"
 //PicCache.c
 
 // 定义使用的链表
@@ -42,6 +43,7 @@ struct PicFileCache                             //贴图文件链表节点
     char suffix[12];                            //后缀名
     int type = 0;                               //0-idx/grp, 1-png path with index.ka
     std::vector<short> offset;                  //偏移值
+    ZipFile zip_file;
 };
 #define PIC_FILE_NUM 100                        //缓存的贴图文件(idx/grp)个数
 

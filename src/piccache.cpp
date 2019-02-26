@@ -7,6 +7,8 @@
 #include "piccache.h"
 #include "jymain.h"
 #include "sdlfun.h"
+#include <string>
+#include <string.h>
 
 PicFileCache pic_file[PIC_FILE_NUM];
 //std::forward_list<CacheNode*> pic_cache;     //pic_cache链表
@@ -578,20 +580,33 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
     //sb500添加
     pic_file[fileid].type = 1;
     int ll = 0;
+    char zip_name[1024];
+    sprintf(zip_name, "%s.zip", path);
+    pic_file[fileid].zip_file.openFile(zip_name);
 
     char index_name[1024];
-    sprintf(index_name, "%s/index.ka", path);
     std::vector<short> offset;
 
-    if (FILE* f = fopen(index_name, "rb"))
+    if (pic_file[fileid].zip_file.opened())
     {
-        JY_Debug("JY_LoadPNGPath: found index file!\n");
-        fseek(f, 0, SEEK_END);
-        ll = ftell(f);
-        fseek(f, 0, 0);
+        std::string content = pic_file[fileid].zip_file.readEntryName("index.ka");
+        ll = content.size();
         offset.resize(ll / 2);
-        fread(offset.data(), 2, ll / 2, f);
-        fclose(f);
+        memcpy(offset.data(), content.data(), offset.size() * 2);
+    }
+    else
+    {
+        sprintf(index_name, "%s/index.ka", path);
+        if (FILE* f = fopen(index_name, "rb"))
+        {
+            JY_Debug("JY_LoadPNGPath: found index file!\n");
+            fseek(f, 0, SEEK_END);
+            ll = ftell(f);
+            fseek(f, 0, 0);
+            offset.resize(ll / 2);
+            fread(offset.data(), 2, ll / 2, f);
+            fclose(f);
+        }
     }
 
     if (num < 0)
@@ -664,9 +679,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         char str[512];
         SDL_RWops* fp_SDL;
         double zoom = (double)pic_file[fileid].percent / 100.0;
-
-        sprintf(str, "%s/%d.png", pic_file[fileid].path, picid);
-
+        std::string content;
         //生成cache数据
         newcache = new CacheNode();
         if (newcache == NULL)
@@ -678,7 +691,28 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
         newcache->id = picid;
         newcache->fileid = fileid;
 
-        fp_SDL = SDL_RWFromFile(str, "rb");
+        if (pic_file[fileid].zip_file.opened())
+        {
+            sprintf(str, "%d.png", picid);
+            content = pic_file[fileid].zip_file.readEntryName(str);
+            fp_SDL = SDL_RWFromMem((void*)content.data(), content.size());
+            if (fp_SDL == NULL)
+            {
+                sprintf(str, "%d_0.png", picid);
+                content = pic_file[fileid].zip_file.readEntryName(str);
+                fp_SDL = SDL_RWFromMem((void*)content.data(), content.size());
+            }
+        }
+        else
+        {
+            sprintf(str, "%s/%d.png", pic_file[fileid].path, picid);
+            fp_SDL = SDL_RWFromFile(str, "rb");
+            if (fp_SDL == NULL)
+            {
+                sprintf(str, "%s/%d_0.png", pic_file[fileid].path, picid);
+                fp_SDL = SDL_RWFromFile(str, "rb");
+            }
+        }
         if (IMG_isPNG(fp_SDL))
         {
             tmpsur = IMG_LoadPNG_RW(fp_SDL);

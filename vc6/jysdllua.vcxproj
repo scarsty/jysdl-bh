@@ -157,6 +157,8 @@
     <ClCompile Include="..\src\mainmap.cpp" />
     <ClCompile Include="..\src\piccache.cpp" />
     <ClCompile Include="..\src\sdlfun.cpp" />
+    <ClCompile Include="..\src\zip.c" />
+    <ClCompile Include="..\src\ZipFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\charset.h" />
@@ -164,8 +166,11 @@
     <ClInclude Include="..\src\jymain.h" />
     <ClInclude Include="..\src\luafun.h" />
     <ClInclude Include="..\src\mainmap.h" />
+    <ClInclude Include="..\src\miniz.h" />
     <ClInclude Include="..\src\piccache.h" />
     <ClInclude Include="..\src\sdlfun.h" />
+    <ClInclude Include="..\src\zip.h" />
+    <ClInclude Include="..\src\ZipFile.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
