@@ -22,6 +22,7 @@ void CacheNode::toTexture()
         if (t == NULL)
         {
             t = SDL_CreateTextureFromSurface(g_Renderer, s);
+            tt[0] = t;
             SDL_FreeSurface(s);
             s = NULL;
         }
@@ -690,6 +691,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 
         newcache->id = picid;
         newcache->fileid = fileid;
+        newcache->t_count = 1;
 
         if (pic_file[fileid].zip_file.opened())
         {
@@ -701,6 +703,20 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
                 sprintf(str, "%d_0.png", picid);
                 content = pic_file[fileid].zip_file.readEntryName(str);
                 fp_SDL = SDL_RWFromMem((void*)content.data(), content.size());
+                for (int i = 1; i < TEXTURE_NUM; i++)
+                {
+                    sprintf(str, "%d_%d.png", picid, i);
+                    std::string content1 = pic_file[fileid].zip_file.readEntryName(str);
+                    SDL_RWops* fp_SDL1 = SDL_RWFromMem((void*)content1.data(), content1.size());
+                    if (IMG_isPNG(fp_SDL1))
+                    {
+                        tmpsur = IMG_LoadPNG_RW(fp_SDL1);
+                        newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
+                        newcache->t_count = i;
+                        SDL_FreeSurface(tmpsur);
+                    }
+                    SDL_FreeRW(fp_SDL1);
+                }
             }
         }
         else
@@ -711,6 +727,21 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
             {
                 sprintf(str, "%s/%d_0.png", pic_file[fileid].path, picid);
                 fp_SDL = SDL_RWFromFile(str, "rb");
+                for (int i = 1; i < TEXTURE_NUM; i++)
+                {
+                    sprintf(str, "%s/%d_%d.png", pic_file[fileid].path, picid, i);
+                    /*newcache->tt[i] = IMG_LoadTexture(g_Renderer, str);
+                    if (newcache->tt[i]) { newcache->t_count = i; }*/
+                    SDL_RWops* fp_SDL1 = SDL_RWFromFile(str, "rb");
+                    if (IMG_isPNG(fp_SDL1))
+                    {
+                        tmpsur = IMG_LoadPNG_RW(fp_SDL1);
+                        newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
+                        newcache->t_count = i;
+                        SDL_FreeSurface(tmpsur);
+                    }
+                    SDL_FreeRW(fp_SDL1);
+                }
             }
         }
         if (IMG_isPNG(fp_SDL))
@@ -730,11 +761,11 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
             {
                 newcache->xoff = tmpsur->w / 2;
             }
-            if (newcache->yoff ==9999)
+            if (newcache->yoff == 9999)
             {
                 newcache->yoff = tmpsur->h / 2;
             }
-            
+
             newcache->w = tmpsur->w;
             newcache->h = tmpsur->h;
             newcache->s = tmpsur;
@@ -793,6 +824,10 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
     r.h = newcache->h;
 
     SDL_SetRenderTarget(g_Renderer, g_Texture);
+    if (g_DelayTimes % 2 == 0)
+    {
+        newcache->t = newcache->tt[g_DelayTimes / 2 % newcache->t_count];
+    }
     SDL_RenderCopy(g_Renderer, newcache->t, NULL, &r);
 
     return 0;

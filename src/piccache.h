@@ -6,20 +6,33 @@
 #include "ZipFile.h"
 //PicCache.c
 
+#define TEXTURE_NUM 10
+
 // 定义使用的链表
 struct CacheNode                         //贴图cache链表节点
 {
     CacheNode()
-    {}
+    {
+        for (int i = 0; i < TEXTURE_NUM; i++)
+        {
+            tt[i] = NULL;
+        }
+    }
     ~CacheNode()
     {
         if (s) { SDL_FreeSurface(s); }
-        if (t) { SDL_DestroyTexture(t); }
+        //if (t) { SDL_DestroyTexture(t); }
+        for (int i = 1; i < TEXTURE_NUM; i++)
+        {
+            if (tt[i]) { SDL_DestroyTexture(tt[i]); }
+        }
     }
     void toTexture();
 
     SDL_Surface* s = NULL;                      //此贴图对应的表面
-    SDL_Texture* t = NULL;
+    SDL_Texture* t = NULL;                      //此贴图对应的纹理
+    int t_count = 1;
+    SDL_Texture* tt[TEXTURE_NUM];
     int w = 0;                                  //贴图宽度
     int h = 0;                                  //贴图高度
     int xoff = 0;                               //贴图偏移

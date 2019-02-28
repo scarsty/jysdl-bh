@@ -119,3 +119,5 @@ extern void* g_Tinypot;
 
 extern char* JY_CurrentPath;
 
+extern int g_DelayTimes;
+

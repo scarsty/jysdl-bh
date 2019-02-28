@@ -53,6 +53,8 @@ int g_MP3 = 0;                          //是否打开MP3
 char g_MidSF2[255];                     //音色库对应的文件
 float g_Zoom = 1;                       //图片放大
 char g_Softener[255];                     //音色库对应的文件
+int g_DelayTimes;
+
 #ifdef _WIN32
 char* JY_CurrentPath = "./";
 #else

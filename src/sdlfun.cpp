@@ -353,6 +353,7 @@ int JY_ShowSurface(int flag)
 int JY_Delay(int x)
 {
     SDL_Delay(x);
+    g_DelayTimes++;
     return 0;
 }
 
