@@ -429,6 +429,10 @@ void ParticleSystem::setTexture(SDL_Texture* var)
 
 void ParticleSystem::draw()
 {
+    if (_texture == nullptr)
+    {
+        return;
+    }
     for (int i = 0; i < _particleCount; i++)
     {
         auto& p = particle_data_[i];

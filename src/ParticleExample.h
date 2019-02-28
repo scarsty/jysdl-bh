@@ -28,7 +28,7 @@ public:
     void setStyle(PatticleStyle style);
     SDL_Texture* getDefaultTexture()
     {
-        static SDL_Texture* t = IMG_LoadTexture(_renderer, "fire.png");
+        static SDL_Texture* t = IMG_LoadTexture(_renderer, "data/fire.png");
         //printf(SDL_GetError());
         return t;
     }

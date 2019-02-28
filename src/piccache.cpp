@@ -713,7 +713,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
                     {
                         tmpsur = IMG_LoadPNG_RW(fp_SDL1);
                         newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
-                        newcache->t_count = i;
+                        newcache->t_count = i + 1;
                         SDL_FreeSurface(tmpsur);
                     }
                     SDL_FreeRW(fp_SDL1);
@@ -738,7 +738,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
                     {
                         tmpsur = IMG_LoadPNG_RW(fp_SDL1);
                         newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
-                        newcache->t_count = i;
+                        newcache->t_count = i + 1;
                         SDL_FreeSurface(tmpsur);
                     }
                     SDL_FreeRW(fp_SDL1);
