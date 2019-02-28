@@ -217,6 +217,9 @@ int InitGame(void)
     }
     Init_Cache();
     JY_PicInit("");        // ³õÊ¼»¯ÌùÍ¼cache
+    g_Particle.setRenderer(g_Renderer);
+    g_Particle.setPosition(w / 2, 0);
+    g_Particle.getDefaultTexture();
     return 0;
 }
 

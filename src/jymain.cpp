@@ -64,6 +64,7 @@ char* JY_CurrentPath = "/sdcard/JYLDCR/";
 lua_State* pL_main = NULL;
 
 void* g_Tinypot;
+ParticleExample g_Particle;
 
 //定义的lua接口函数名
 const struct luaL_Reg jylib[] =
@@ -187,7 +188,7 @@ void GetModes(int *width, int *height)
 int main(int argc, char* argv[])
 {
     //lua_State* pL_main;
-
+    srand(time(0));
     remove(DEBUG_FILE);
     remove(ERROR_FILE);    //设置stderr输出到文件
 

@@ -484,6 +484,74 @@ int BuildingSort(short x, short y, short Mypic)
     return 0;
 }
 
+struct Point
+{
+public:
+    Point() {}
+    Point(int _x, int _y) : x(_x), y(_y) {}
+    ~Point() {}
+    int x = 0, y = 0;
+};
+
+class Cloud
+{
+public:
+    Cloud()
+    {
+        x_ = -1000;
+        y_ = -1000;
+        initRand();
+    }
+    virtual ~Cloud() {}
+
+    int x_, y_;
+    Point position_;
+    int speed_x_;
+    int speed_y_;
+    const int max_X_ = 17280;
+    const int max_Y_ = 8640;
+    const int num_style_ = 10;
+    int num_;
+
+    SDL_Color color_;
+    uint8_t alpha_;
+
+    void initRand(bool init_pos = true)
+    {
+        if (init_pos)
+        {
+            position_.x = rand() % (max_X_);
+            position_.y = rand() % (max_Y_);
+        }
+        speed_x_ = 1 + rand() % (5);
+        speed_y_ = 0;// rand() % (51) - 25;
+        num_ = rand() % (num_style_);
+        alpha_ = 64 + rand() % (192);
+        color_ = { (uint8_t)(rand() % (256)), (uint8_t)(rand() % (256)), (uint8_t)(rand() % (256)), 255 };
+    }
+    void setPositionOnScreen(int x, int y, int Center_X, int Center_Y)
+    {
+        x_ = position_.x - (-y * 18 + x * 18 + max_X_ / 2 - Center_X);
+        y_ = position_.y - (y * 9 + x * 9 + 9 - Center_Y);
+    }
+    void flow()
+    {
+        position_.x += speed_x_;
+        position_.y += speed_y_;
+        auto p = position_;
+        if (p.x < 0 || p.x > max_X_ || p.y < 0 || p.y > max_Y_)
+        {
+            initRand();
+        }
+        if (p.x < 0) { position_.x = max_X_; }
+        if (p.x > max_X_) { position_.x = 0; }
+        if (p.y < 0) { position_.y = max_Y_; }
+        if (p.y > max_Y_) { position_.y = 0; }
+    }
+};
+
+std::vector<Cloud> clouds;
+
 // »æÖÆÖ÷µØÍ¼
 int JY_DrawMMap(int x, int y, int Mypic)
 {
@@ -556,6 +624,38 @@ int JY_DrawMMap(int x, int y, int Mypic)
             JY_LoadPic(0, picnum, x1, y1, 0, 0);
         }
     }
+
+    if (clouds.empty())
+    {
+        clouds.resize(100);
+    }
+
+    int ic = 0;
+    for (auto& c : clouds)
+    {
+        c.flow();
+        c.setPositionOnScreen(x, y, g_ScreenW/2, g_ScreenH/2);
+        if (c.x_ > -200 && c.y_ > -200 && c.x_ < 1200 && c.y_ < 1200)
+        {
+            JY_LoadPic(PIC_FILE_NUM - 1, c.num_ * 2, c.x_, c.y_, 2, c.alpha_);
+            ic++;
+        }
+    }
+
+    if (ic > 0)
+    {
+        g_Particle.setStyle(ParticleExample::RAIN);
+    }
+    else
+    {
+        g_Particle.setStyle(ParticleExample::NONE);
+    }
+    if (x + y < 250)
+    {
+        g_Particle.setStyle(ParticleExample::SNOW);
+    }
+    g_Particle.setGravity({25, 100});
+    g_Particle.draw();
 
     SDL_Rect r;
     r.w = g_ScreenW / g_Zoom;

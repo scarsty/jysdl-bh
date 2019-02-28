@@ -81,6 +81,7 @@ int JY_PicInit(char* PalletteFilename)
         }
     }
     //CacheFailNum = 0;
+    JY_LoadPNGPath("./data/cloud", PIC_FILE_NUM - 1, -1, 100, "png");
     return 0;
 }
 

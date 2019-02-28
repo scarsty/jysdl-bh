@@ -155,6 +155,8 @@
     <ClCompile Include="..\src\jymain.cpp" />
     <ClCompile Include="..\src\luafun.cpp" />
     <ClCompile Include="..\src\mainmap.cpp" />
+    <ClCompile Include="..\src\ParticleExample.cpp" />
+    <ClCompile Include="..\src\ParticleSystem.cpp" />
     <ClCompile Include="..\src\piccache.cpp" />
     <ClCompile Include="..\src\sdlfun.cpp" />
     <ClCompile Include="..\src\zip.c" />
@@ -167,6 +169,8 @@
     <ClInclude Include="..\src\luafun.h" />
     <ClInclude Include="..\src\mainmap.h" />
     <ClInclude Include="..\src\miniz.h" />
+    <ClInclude Include="..\src\ParticleExample.h" />
+    <ClInclude Include="..\src\ParticleSystem.h" />
     <ClInclude Include="..\src\piccache.h" />
     <ClInclude Include="..\src\sdlfun.h" />
     <ClInclude Include="..\src\zip.h" />

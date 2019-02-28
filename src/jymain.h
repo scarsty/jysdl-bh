@@ -17,6 +17,8 @@ EXTERN_C_BEGIN
 #include "luafun.h"
 EXTERN_C_END
 
+#include "ParticleExample.h"
+
 // 公共部分
 #ifndef BOOL
 #define BOOL unsigned char
@@ -121,3 +123,4 @@ extern char* JY_CurrentPath;
 
 extern int g_DelayTimes;
 
+extern ParticleExample g_Particle;
