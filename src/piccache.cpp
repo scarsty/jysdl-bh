@@ -641,8 +641,8 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         for (i = 0; i < pic_file[fileid].num; i++)
         {
             //没找到index文件则设置为一个不可能的数字
-            pic_file[fileid].offset[i] = 9999;
-            pic_file[fileid].offset[i + 1] = 9999;
+            pic_file[fileid].offset[i * 2] = 9999;
+            pic_file[fileid].offset[i * 2 + 1] = 9999;
         }
     }
     else
@@ -652,8 +652,8 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
         for (i = ll / 4; i < pic_file[fileid].num; i++)
         {
-            pic_file[fileid].offset[i] = 9999;
-            pic_file[fileid].offset[i + 1] = 9999;
+            pic_file[fileid].offset[i * 2] = 9999;
+            pic_file[fileid].offset[i * 2 + 1] = 9999;
         }
     }
 
@@ -675,7 +675,6 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
     {
         return 1;
     }
-
     if (pic_file[fileid].pcache[picid] == NULL)     //当前贴图没有加载
     {
         char str[512];
