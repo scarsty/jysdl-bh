@@ -22,7 +22,7 @@ struct CacheNode                         //ÌùÍ¼cacheÁ´±í½Úµã
     {
         if (s) { SDL_FreeSurface(s); }
         //if (t) { SDL_DestroyTexture(t); }
-        for (int i = 1; i < TEXTURE_NUM; i++)
+        for (int i = 0; i < TEXTURE_NUM; i++)
         {
             if (tt[i]) { SDL_DestroyTexture(tt[i]); }
         }
