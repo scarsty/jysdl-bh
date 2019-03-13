@@ -600,12 +600,12 @@ int JY_DrawMMap(int x, int y, int Mypic)
                 picnum = JY_GetMMap(x + i1, y + j1, 0);
                 if (picnum > 0)
                 {
-                    JY_LoadPic(0, picnum, x1, y1, 0, 0);
+                    JY_LoadPic(93, picnum, x1, y1, 0, 0);
                 }
                 picnum = JY_GetMMap(x + i1, y + j1, 1);
                 if (picnum > 0)
                 {
-                    JY_LoadPic(0, picnum, x1, y1, 0, 0);
+                    JY_LoadPic(93, picnum, x1, y1, 0, 0);
                 }
 
             }
@@ -621,7 +621,7 @@ int JY_DrawMMap(int x, int y, int Mypic)
         picnum = Build[i].num;
         if (picnum > 0)
         {
-            JY_LoadPic(0, picnum, x1, y1, 0, 0);
+            JY_LoadPic(93, picnum, x1, y1, 0, 0);
         }
     }
 
@@ -637,7 +637,7 @@ int JY_DrawMMap(int x, int y, int Mypic)
         c.setPositionOnScreen(x, y, g_ScreenW/2, g_ScreenH/2);
         if (c.x_ > -200 && c.y_ > -200 && c.x_ < 1200 && c.y_ < 1200)
         {
-            JY_LoadPic(PIC_FILE_NUM - 1, c.num_ * 2, c.x_, c.y_, 2, c.alpha_);
+            JY_LoadPic(97, c.num_ * 2, c.x_, c.y_, 2, c.alpha_);
             ic++;
         }
     }
@@ -1026,7 +1026,7 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
                 int d0 = JY_GetS(sceneid, xx, yy, 0);
                 if (d0 > 0)
                 {
-                    JY_LoadPic(0, d0, x1, y1, 0, 0);             //地面
+                    JY_LoadPic(94, d0, x1, y1, 0, 0);             //地面
                 }
             }
         }
@@ -1055,24 +1055,24 @@ int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic)
 
                 if (d1 > 0)
                 {
-                    JY_LoadPic(0, d1, x1, y1 - d4, 0, 0);           //建筑
+                    JY_LoadPic(94, d1, x1, y1 - d4, 0, 0);           //建筑
                 }
                 if (d2 > 0)
                 {
-                    JY_LoadPic(0, d2, x1, y1 - d5, 0, 0);        //空中
+                    JY_LoadPic(94, d2, x1, y1 - d5, 0, 0);        //空中
                 }
                 if (d3 >= 0)             // 事件
                 {
                     int picnum = JY_GetD(sceneid, d3, 7);
                     if (picnum > 0)
                     {
-                        JY_LoadPic(0, picnum, x1, y1 - d4, 0, 0);
+                        JY_LoadPic(94, picnum, x1, y1 - d4, 0, 0);
                     }
                 }
 
                 if ((i1 == -xoff) && (j1 == -yoff))    //主角
                 {
-                    JY_LoadPic(0, Mypic * 2, x1, y1 - d4, 0, 0);
+                    JY_LoadPic(94, Mypic * 2, x1, y1 - d4, 0, 0);
                 }
             }
         }
@@ -1102,7 +1102,7 @@ int JY_LoadWarMap(const char* WarIDXfilename, const char* WarGRPfilename, int ma
 {
     FILE* fp;
     int p;
-
+    num = 20;
     War_XMax = x_max;
     War_YMax = y_max;
     War_Num = num;
@@ -1160,7 +1160,7 @@ int JY_UnloadWarMap()
 int JY_GetWarMap(int x, int y, int level)
 {
     int s;
-    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 11)
+    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 12)
     {
        // JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
         return 0;
@@ -1175,7 +1175,7 @@ int JY_SetWarMap(int x, int y, int level, int v)
 {
     int s;
 
-    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 11)
+    if (x < 0 || x >= War_XMax || y < 0 || y >= War_YMax || level < 0 || level >= 12)
     {
        // JY_Error("GetWarMap error: data out of range! x=%d,y=%d,level=%d\n", x, y, level);
         return 0;
@@ -1440,6 +1440,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 				{
 					int pic = JY_GetWarMap(xx, yy, 5);  // 人贴图
 					int jj = JY_GetWarMap(xx, yy, 4);
+					int pid = 101 + JY_GetWarMap(xx, yy, 10);
 					if (pic >= 0)
 					{
 						switch (flag)
@@ -1448,16 +1449,16 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 						case 1:
 						case 2:
 						case 5: //人物常规显示
-							JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 							break;
 						case 3:
 							if (JY_GetWarMap(xx, yy, 4) > 1)   //命中
 							{
-								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 4 + 2, 255);
+								JY_LoadPic(pid, pic, x1, y1 - d4, 4 + 2, 255);
 							}  //变黑
 							else
 							{
-								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 							}
 
 							break;
@@ -1466,7 +1467,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 							{
 								if (v2 == 0)
 								{
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+									JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 								}
 								else
 								{
@@ -1477,26 +1478,26 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 							{
 								if (JY_GetWarMap(xx, yy, 4) > 10 && JY_GetWarMap(xx, yy, 4) <= 20)       //合击动画
 								{
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (jj - 10) * 2, y1 - d4 + (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (jj - 10) * 2, y1 - d4 - (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (jj - 10) * 2, y1 - d4 + (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (jj - 10) * 2, y1 - d4 - (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(pid, pic, x1 + (jj - 10) * 2, y1 - d4 + (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(pid, pic, x1 + (jj - 10) * 2, y1 - d4 - (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(pid, pic, x1 - (jj - 10) * 2, y1 - d4 + (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
+									JY_LoadPic(pid, pic, x1 - (jj - 10) * 2, y1 - d4 - (jj - 10) * 2, 10, 250 - (jj - 10) * 25);
 								}
 								else if (JY_GetWarMap(xx, yy, 4) >= 21 && JY_GetWarMap(xx, yy, 4) <= 30)       //合击动画
 								{
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (30 - jj) * 2, y1 - d4 + (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 + (30 - jj) * 2, y1 - d4 - (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (30 - jj) * 2, y1 - d4 + (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1 - (30 - jj) * 2, y1 - d4 - (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(pid, pic, x1 + (30 - jj) * 2, y1 - d4 + (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(pid, pic, x1 + (30 - jj) * 2, y1 - d4 - (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(pid, pic, x1 - (30 - jj) * 2, y1 - d4 + (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
+									JY_LoadPic(pid, pic, x1 - (30 - jj) * 2, y1 - d4 - (30 - jj) * 2, 10, 0 + (jj - 20) * 25);
 								}
 								else
 								{
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+									JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 								}
 							}
 							else
 							{
-								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 							}
 							break;
 						case 6:
@@ -1504,7 +1505,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 							{
 								if (v2 == 0)
 								{
-									JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+									JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 								}
 								else
 								{
@@ -1517,15 +1518,15 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 							}
 							else if (pic < 1000)        //合击动画
 							{
-								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 							}
 							else
 							{
-								JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+								JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 							}
 							break;
 						case 7:
-							JY_LoadPic(4 + JY_GetWarMap(xx, yy, 2), pic, x1, y1 - d4, 0, 0);
+							JY_LoadPic(pid, pic, x1, y1 - d4, 0, 0);
 							break;
 						}
 					}
@@ -1564,7 +1565,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 				}
 				if (flag == 7 && v5 >= 0)     //武功效果
 				{
-					int eff = JY_GetWarMap(xx, yy, 10) - 2;
+					int eff = JY_GetWarMap(xx, yy, 11) - 2;
 					if (eff >= 0)
 					{
 						JY_LoadPic(v5, eff, x1, y1 - d4, 2, 192);

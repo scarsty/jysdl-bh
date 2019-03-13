@@ -58,7 +58,7 @@ struct PicFileCache                             //贴图文件链表节点
     std::vector<short> offset;                  //偏移值
     ZipFile zip_file;
 };
-#define PIC_FILE_NUM 100                        //缓存的贴图文件(idx/grp)个数
+#define PIC_FILE_NUM 10000                        //缓存的贴图文件(idx/grp)个数
 
 int Init_Cache();
 int JY_PicInit(char* PalletteFilename);
