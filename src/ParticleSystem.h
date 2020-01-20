@@ -4,6 +4,7 @@
 
 #include "SDL.h"
 #include <vector>
+#include <string>
 
 struct Pointf
 {

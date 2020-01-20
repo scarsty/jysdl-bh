@@ -81,28 +81,32 @@ int JY_PicInit(char* PalletteFilename)
         }
     }
     //CacheFailNum = 0;
-	JY_PicLoadFile("./data/wmap.idx", "./data/wmap.grp", 0, NULL, NULL);	//--特效贴图
-	JY_LoadPNGPath("./data/head", 1, 2000, g_ScreenW / 936 * 100, "png");
-	JY_PicLoadFile("./data/thing.idx", "./data/thing.grp", 2, NULL, NULL);
-	JY_PicLoadFile("./data/Eft.idx", "./data/Eft.grp", 3, NULL, NULL);	//--特效贴图
-	JY_LoadPNGPath("./data/body", 90, 2000, g_ScreenW / 936 * 100, "png");
-	JY_LoadPNGPath("./data/xt", 91,2000, g_ScreenW / 936 * 100, "png");
-	JY_PicLoadFile("./data/bj.idx", "./data/bj.grp", 92, NULL, NULL);
-	JY_LoadPNGPath("./data/mmap", 93, -1, 100, "png");
-	JY_LoadPNGPath("./data/smap", 94, -1, 100, "png");
-	JY_LoadPNGPath("./data/portrait", 95, 2000, g_ScreenW / 936 * 100, "png");
-	JY_LoadPNGPath("./data/ui", 96, 2000, g_ScreenW / 936 * 100, "png");
-    JY_LoadPNGPath("./data/cloud", 97, -1, 100, "png");
-	JY_LoadPNGPath("./data/icons", 98, 2000, g_ScreenW / 936 * 100, "png");
-	JY_LoadPNGPath("./data/head", 99, 2000, 26.923076923, "png");
+    
+	//JY_PicLoadFile("./data/wmap.idx", "./data/wmap.grp", 0, NULL, NULL);	//--特效贴图
+	//JY_LoadPNGPath("./data/head", 1, 2000, g_ScreenW / 936 * 100, "png");
+	//JY_PicLoadFile("./data/thing.idx", "./data/thing.grp", 2, NULL, NULL);
+    //JY_LoadPNGPath("./data/thing", 2, -1, 100, "png");
+	//JY_PicLoadFile("./data/Eft.idx", "./data/Eft.grp", 3, NULL, NULL);	//--特效贴图
+	//JY_LoadPNGPath("./data/body", 90, 2000, g_ScreenW / 936 * 100, "png");
+	//JY_LoadPNGPath("./data/xt", 91,2000, g_ScreenW / 936 * 100, "png");
+	//JY_PicLoadFile("./data/bj.idx", "./data/bj.grp", 92, NULL, NULL);
+	//JY_LoadPNGPath("./data/mmap", 93, -1, 100, "png");
+	//JY_LoadPNGPath("./data/smap", 94, -1, 100, "png");
+    JY_PicLoadFile("./data/smap.idx", "./data/smap.grp", 94, 0,0);
+	//JY_LoadPNGPath("./data/portrait", 95, 2000, g_ScreenW / 936 * 100, "png");
+	//JY_LoadPNGPath("./data/ui", 96, 2000, g_ScreenW / 936 * 100, "png");
+    //JY_LoadPNGPath("./data/cloud", 97, -1, 100, "png");
+	//JY_LoadPNGPath("./data/icons", 98, 2000, g_ScreenW / 936 * 100, "png");
+	//JY_LoadPNGPath("./data/head", 99, 2000, 26.923076923, "png");
 	for (i = 101; i < 1000; i++)
 	{
 		char figidx[512];
 		char figgrp[512];
-		sprintf(figidx, "./data/fight/fight%03d.idx", i - 101);
-		sprintf(figgrp, "./data/fight/fight%03d.grp", i - 101);
-		JY_PicLoadFile(figidx, figgrp, i, NULL, NULL);
+		//sprintf(figidx, "./data/fight/fdx%04d", i - 101);
+		//sprintf(figgrp, "./data/fight/fmp%04d", i - 101);
+		//JY_PicLoadFile(figidx, figgrp, i, NULL, NULL);
 	}
+    
     return 0;
 }
 
@@ -224,7 +228,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
 //  B3            1 全白
 //  value 按照flag定义，为alpha值，
 
-int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal)
+int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal, int percent)
 {
     struct CacheNode* newcache, *tmpcache;
     int xnew, ynew;
@@ -232,7 +236,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
 
     if (pic_file[fileid].type == 1)
     {
-        JY_LoadPNG(fileid, picid, x, y, flag, value);
+        JY_LoadPNG(fileid, picid, x, y, flag, value, 100);
         return 0;
     }
 
@@ -331,7 +335,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
 			ynew = y - newcache->yoff;
 		}
     }
-    RenderTexture(newcache->t, xnew, ynew, flag, value, color, width, height, rotate,reversal);
+    RenderTexture(newcache->t, xnew, ynew, flag, value, color, width, height, rotate, reversal, percent);
     return 0;
 }
 
@@ -685,7 +689,7 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
     return 0;
 }
 
-int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
+int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int percent)
 {
     struct CacheNode* newcache, *tmpcache;
     SDL_Surface* tmpsur;
@@ -842,8 +846,8 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
     }
 
     //SDL_BlitSurface(newcache->s, NULL, g_Surface, &r);
-    r.w = newcache->w;
-    r.h = newcache->h;
+    r.w = newcache->w * percent / 100.0;
+    r.h = newcache->h * percent / 100.0;
 
     SDL_SetRenderTarget(g_Renderer, g_Texture);
     if (g_DelayTimes % 2 == 0)
@@ -857,7 +861,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value)
 
 int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 {
-    int r = JY_LoadPNG(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0);   //加载贴图到看不见的位置
+    int r = JY_LoadPNG(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0, 100);   //加载贴图到看不见的位置
 
     *w = 0;
     *h = 0;
@@ -885,7 +889,7 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
 // 把表面blit到背景或者前景表面
 // x,y 要加载到表面的左上角坐标
-int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal)
+int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal, int percent)
 {
     SDL_Surface* tmps;
     SDL_Rect rect, rect0;
@@ -898,6 +902,9 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
     rect.x = x;
     rect.y = y;
     SDL_QueryTexture(lps, NULL, NULL, &rect.w, &rect.h);
+
+    rect.w *= percent / 100.0;
+    rect.h *= percent / 100.0;
 
     if (width > 0 && height > 0)
     {

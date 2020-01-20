@@ -253,6 +253,7 @@ int HAPI_LoadPic(lua_State* pL)
 	double rotate = NULL;
 	int fz = 0;
 	SDL_RendererFlip reversal = SDL_FLIP_NONE;
+    int percent = 100;
     if (lua_isnoneornil(pL, 5) == 0)
     {
         flag = (int)lua_tonumber(pL, 5);
@@ -295,7 +296,12 @@ int HAPI_LoadPic(lua_State* pL)
 	{
 		 reversal = SDL_FLIP_VERTICAL;
 	}
-    JY_LoadPic(fileid, picid, x, y, flag, value, color, width, height, rotate, reversal);
+    //反转
+    if (lua_isnoneornil(pL, 12) == 0)
+    {
+        percent = (int)lua_tonumber(pL, 12);
+    }
+    JY_LoadPic(fileid, picid, x, y, flag, value, color, width, height, rotate, reversal, percent);
 
     return 0;
 }
@@ -620,6 +626,7 @@ int HAPI_LoadPNG(lua_State* pL)             //按图片读取PNG
     int y = (int)lua_tonumber(pL, 4);
     int flag = 0;
     int value = 0;
+    int percent = 100;
 
     if (n > 4)
     {
@@ -629,8 +636,12 @@ int HAPI_LoadPNG(lua_State* pL)             //按图片读取PNG
     {
         value = (int)lua_tonumber(pL, 6);
     }
+    if (n > 6)
+    {
+        percent = (int)lua_tonumber(pL, 7);
+    }
 
-    JY_LoadPNG(fileid, picid, x, y, flag, value);
+    JY_LoadPNG(fileid, picid, x, y, flag, value, percent);
 
     return 0;
 }

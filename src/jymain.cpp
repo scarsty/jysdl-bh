@@ -195,6 +195,17 @@ int main(int argc, char* argv[])
     pL_main = luaL_newstate();
     luaL_openlibs(pL_main);
 
+    //注册lua函数
+    lua_newtable(pL_main);
+    luaL_setfuncs(pL_main, jylib, 0);
+    lua_pushvalue(pL_main, -1);
+    lua_setglobal(pL_main, "lib");
+
+    lua_newtable(pL_main);
+    luaL_setfuncs(pL_main, bytelib, 1);
+    lua_pushvalue(pL_main, -1);
+    lua_setglobal(pL_main, "Byte");
+
     JY_Debug("Lua_Config();");
     Lua_Config(pL_main, _(CONFIG_FILE));        //读取lua配置文件，设置参数
 
@@ -233,17 +244,6 @@ int Lua_Main(lua_State* pL_main)
 
     //初始化lua
 
-    //注册lua函数
-    lua_newtable(pL_main);
-    luaL_setfuncs(pL_main, jylib, 0);
-    lua_pushvalue(pL_main, -1);
-    lua_setglobal(pL_main, "lib");
-
-    lua_newtable(pL_main);
-    luaL_setfuncs(pL_main, bytelib, 1);
-    lua_pushvalue(pL_main, -1);
-    lua_setglobal(pL_main, "Byte");
-
     //加载lua文件
     result = luaL_loadfile(pL_main, JYMain_Lua);
     switch (result)
@@ -264,6 +264,12 @@ int Lua_Main(lua_State* pL_main)
     //调用lua的主函数JY_Main
     lua_getglobal(pL_main, "JY_Main");
     result = lua_pcall(pL_main, 0, 0, 0);
+
+    if (result)
+    {
+        JY_Error(lua_tostring(pL_main, -1));
+        lua_pop(pL_main, 1);
+    }
 
     return 0;
 }
@@ -290,6 +296,12 @@ int Lua_Config(lua_State* pL, const char* filename)
     }
 
     result = lua_pcall(pL, 0, LUA_MULTRET, 0);
+
+    if (result)
+    {
+        JY_Error(lua_tostring(pL, -1));
+        lua_pop(pL, 1);
+    }
 
     lua_getglobal(pL, "CONFIG");            //读取config定义的值
     if (getfield(pL, "Width") != 0)
@@ -387,7 +399,7 @@ int JY_Debug(const char* fmt, ...)
 int JY_Error(const char* fmt, ...)
 {
     //无酒不欢：不再输出error信息
-#ifdef _DEBUG
+//#ifdef _DEBUG
     time_t t;
     FILE* fp;
     struct tm* newtime;
@@ -398,12 +410,12 @@ int JY_Error(const char* fmt, ...)
     va_start(argptr, fmt);
     vsnprintf(string, sizeof(string), fmt, argptr);
     va_end(argptr);
-    //fp=fopen(ERROR_FILE,"a+t");
+    fp=fopen(ERROR_FILE,"a+t");
     time(&t);
     newtime = localtime(&t);
-    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-    //fflush(fp);
-#endif
+    fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
+    fflush(fp);
+//#endif
     return 0;
 }
 
