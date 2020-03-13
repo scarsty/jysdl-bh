@@ -1441,6 +1441,7 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 					int pic = JY_GetWarMap(xx, yy, 5);  // ÈËÌùÍ¼
 					int jj = JY_GetWarMap(xx, yy, 4);
 					int pid = 101 + JY_GetWarMap(xx, yy, 10);
+                    //pid = 0;
 					if (pic >= 0)
 					{
 						switch (flag)

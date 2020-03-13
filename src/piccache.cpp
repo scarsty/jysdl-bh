@@ -50,7 +50,7 @@ int Init_Cache()
 
 int JY_PicInit(char* PalletteFilename)
 {
-    struct list_head* pos, *p;
+    struct list_head* pos, * p;
     int i;
 
     LoadPalette(PalletteFilename);   //载入调色板
@@ -81,32 +81,32 @@ int JY_PicInit(char* PalletteFilename)
         }
     }
     //CacheFailNum = 0;
-    
-	//JY_PicLoadFile("./data/wmap.idx", "./data/wmap.grp", 0, NULL, NULL);	//--特效贴图
-	//JY_LoadPNGPath("./data/head", 1, 2000, g_ScreenW / 936 * 100, "png");
-	//JY_PicLoadFile("./data/thing.idx", "./data/thing.grp", 2, NULL, NULL);
-    //JY_LoadPNGPath("./data/thing", 2, -1, 100, "png");
-	//JY_PicLoadFile("./data/Eft.idx", "./data/Eft.grp", 3, NULL, NULL);	//--特效贴图
-	//JY_LoadPNGPath("./data/body", 90, 2000, g_ScreenW / 936 * 100, "png");
-	//JY_LoadPNGPath("./data/xt", 91,2000, g_ScreenW / 936 * 100, "png");
-	//JY_PicLoadFile("./data/bj.idx", "./data/bj.grp", 92, NULL, NULL);
-	//JY_LoadPNGPath("./data/mmap", 93, -1, 100, "png");
-	//JY_LoadPNGPath("./data/smap", 94, -1, 100, "png");
-    JY_PicLoadFile("./data/smap.idx", "./data/smap.grp", 94, 0,0);
-	//JY_LoadPNGPath("./data/portrait", 95, 2000, g_ScreenW / 936 * 100, "png");
-	//JY_LoadPNGPath("./data/ui", 96, 2000, g_ScreenW / 936 * 100, "png");
-    //JY_LoadPNGPath("./data/cloud", 97, -1, 100, "png");
-	//JY_LoadPNGPath("./data/icons", 98, 2000, g_ScreenW / 936 * 100, "png");
-	//JY_LoadPNGPath("./data/head", 99, 2000, 26.923076923, "png");
-	for (i = 101; i < 1000; i++)
-	{
-		char figidx[512];
-		char figgrp[512];
-		//sprintf(figidx, "./data/fight/fdx%04d", i - 101);
-		//sprintf(figgrp, "./data/fight/fmp%04d", i - 101);
-		//JY_PicLoadFile(figidx, figgrp, i, NULL, NULL);
-	}
-    
+
+    JY_PicLoadFile("./data/wmap.idx", "./data/wmap.grp", 0, NULL, NULL);	//--特效贴图
+    JY_LoadPNGPath("./data/head", 1, 2000, g_ScreenW / 936 * 100, "png");
+    JY_PicLoadFile("./data/thing.idx", "./data/thing.grp", 2, NULL, NULL);
+    JY_LoadPNGPath("./data/thing", 2, -1, 100, "png");
+    JY_PicLoadFile("./data/Eft.idx", "./data/Eft.grp", 3, NULL, NULL);	//--特效贴图
+    JY_LoadPNGPath("./data/body", 90, 2000, g_ScreenW / 936 * 100, "png");
+    JY_LoadPNGPath("./data/xt", 91, 2000, g_ScreenW / 936 * 100, "png");
+    JY_PicLoadFile("./data/bj.idx", "./data/bj.grp", 92, NULL, NULL);
+    JY_LoadPNGPath("./data/mmap", 93, -1, 100, "png");
+    JY_LoadPNGPath("./data/smap", 94, -1, 100, "png");
+    JY_PicLoadFile("./data/smap.idx", "./data/smap.grp", 94, 0, 0);
+    JY_LoadPNGPath("./data/portrait", 95, 2000, g_ScreenW / 936 * 100, "png");
+    JY_LoadPNGPath("./data/ui", 96, 2000, g_ScreenW / 936 * 100, "png");
+    JY_LoadPNGPath("./data/cloud", 97, -1, 100, "png");
+    JY_LoadPNGPath("./data/icons", 98, 2000, g_ScreenW / 936 * 100, "png");
+    JY_LoadPNGPath("./data/head", 99, 2000, 26.923076923, "png");
+    for (i = 101; i < 1000; i++)
+    {
+        char figidx[512];
+        char figgrp[512];
+        sprintf(figidx, "./data/fight/fight%03d.idx", i - 101);
+        sprintf(figgrp, "./data/fight/fight%03d.grp", i - 101);
+        JY_PicLoadFile(figidx, figgrp, i, NULL, NULL);
+    }
+
     return 0;
 }
 
@@ -236,7 +236,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
 
     if (pic_file[fileid].type == 1)
     {
-        JY_LoadPNG(fileid, picid, x, y, flag, value, 100);
+        JY_LoadPNG(fileid, picid, x, y, flag, value, percent);
         return 0;
     }
 

@@ -31,7 +31,7 @@ Uint16 big5_unicode[128][256];
 
 #define MAX_CACHE_CHAR (10000)
 int char_count = 0;
-std::map<int, SDL_Texture*> chars_cache;
+std::map<std::string, std::map<int, SDL_Texture*>> chars_cache;
 SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
 //初始化
@@ -63,10 +63,10 @@ int ExitFont()
             { SDL_DestroyTexture(chars_cache[i][j]); }
         }
     }*/
-    for (auto& c : chars_cache)
-    {
-        SDL_DestroyTexture(c.second);
-    }
+    //for (auto& c : chars_cache)
+    //{
+        //SDL_DestroyTexture(c.second);
+    //}
 
     for (int i = 0; i < FONTNUM; i++)    //释放字体数据
     {
@@ -226,15 +226,15 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         }
         if (*p <= 128) { s = size / 2; }
         SDL_Texture* tex = NULL;
-        if (chars_cache.count(*p + size * 65536))
-        { tex = chars_cache[*p + size * 65536]; }
+        if (chars_cache[fontname].count(*p + size * 65536))
+        { tex = chars_cache[fontname][*p + size * 65536]; }
         if (tex == NULL)
         {
             Uint16 tmp[2] = { 0, 0 };
             tmp[0] = *p;
             SDL_Surface* sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
             tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
-            chars_cache[*p + size * 65536] = tex;
+            chars_cache[fontname][*p + size * 65536] = tex;
             SDL_FreeSurface(sur);
             char_count++;
 #ifdef _DEBUG
