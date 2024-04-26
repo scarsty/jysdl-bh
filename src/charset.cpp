@@ -12,6 +12,9 @@
 #include "jymain.h"
 #include <map>
 
+#include "PotConv.h"
+#include "OpenCCConverter.h"
+
 // 显示TTF 字符串
 // 为快速显示，程序将保存已经打开的相应字号的字体结构。这样做可以加快程序速度
 // 为简化代码，没有用链表，而是采用数组来保存打开的字体。
@@ -134,7 +137,7 @@ TTF_Font* GetFont(const char* filename, int size)
 // color 颜色
 // size 字体大小，字形为宋体。
 // fontname 字体名
-// charset 字符集 0 GBK 1 big5
+// charset 字符集 0 GBK 1 big5 3 utf-8
 // OScharset 0 简体显示 1 繁体显示
 int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* fontname,
     int charset, int OScharset)
@@ -144,7 +147,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     int w, h;
     SDL_Rect rect1, rect2, rect_dest;
     SDL_Rect rect;
-    char tmp1[256], tmp2[256];
+    //char tmp1[256], tmp2[256];
     TTF_Font* myfont;
     SDL_Surface* tempSurface;
 
@@ -176,35 +179,54 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     white.b = 255;
     white.a = 255;
 
-
+    std::string tmp;
     if (charset == 0 && OScharset == 0)  //GBK -->unicode简体
     {
-        JY_CharSet(str, tmp2, 3);
+        tmp = PotConv::conv(str, "cp936", "utf-16le");
+        //JY_CharSet(str, tmp2, 3);
     }
     else if (charset == 0 && OScharset == 1)  //GBK -->unicode繁体
     {
-        JY_CharSet(str, tmp1, 1);
-        JY_CharSet(tmp1, tmp2, 2);
+        tmp = PotConv::conv(str, "cp936", "utf-8");
+        tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
+        tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
+        //JY_CharSet(str, tmp1, 1);
+        //JY_CharSet(tmp1, tmp2, 2);
     }
     else if (charset == 1 && OScharset == 0)   //big5-->unicode简体
     {
-        JY_CharSet(str, tmp1, 0);
-        JY_CharSet(tmp1, tmp2, 3);
+        tmp = PotConv::conv(str, "cp950", "utf-16le");
+        //JY_CharSet(tmp1, tmp2, 3);
     }
-    else if (charset == 1 && OScharset == 1)    ////big5-->unicode繁体
+    else if (charset == 1 && OScharset == 1)    //big5-->unicode繁体
     {
-        JY_CharSet(str, tmp2, 2);
+        tmp = PotConv::conv(str, "cp936", "utf-8");
+        tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
+        tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
+        //JY_CharSet(str, tmp2, 2);
+    }
+    else if (charset == 3 && OScharset == 0)   //big5-->unicode简体
+    {
+        tmp = PotConv::conv(str, "utf-8", "utf-16le");
+        //JY_CharSet(tmp1, tmp2, 3);
+    }
+    else if (charset == 3 && OScharset == 1)    //big5-->unicode繁体
+    {
+        tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
+        tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
+        //JY_CharSet(str, tmp2, 2);
     }
     else
     {
-        strcpy(tmp2, str);
+        //strcpy(tmp2, str);
+        tmp = str;
     }
 
     SDL_RenderGetClipRect(g_Renderer, &rect);
     if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
     if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
 
-    TTF_SizeUNICODE(myfont, (Uint16*)tmp2, &w, &h);
+    TTF_SizeUNICODE(myfont, (Uint16*)tmp.c_str(), &w, &h);
 
     if ((x >= rect.x + rect.w) || (x + w + 1) <= rect.x ||
         (y >= rect.y + rect.h) || (y + h + 1) <= rect.y)        // 超出裁剪范围则不显示
@@ -214,7 +236,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 
     //fontSurface=TTF_RenderUNICODE_Solid(myfont, (Uint16*)tmp2, c);  //生成表面
 
-    Uint16* p = (Uint16*)tmp2;
+    Uint16* p = (Uint16*)tmp.c_str();
     rect1.x = x;
     rect1.y = y;
     int pi = 0;
