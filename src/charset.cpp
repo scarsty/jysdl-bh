@@ -180,6 +180,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     white.a = 255;
 
     std::string tmp;
+    charset=3;
     if (charset == 0 && OScharset == 0)  //GBK -->unicode¼òÌå
     {
         tmp = PotConv::conv(str, "cp936", "utf-16le");
@@ -212,7 +213,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     }
     else if (charset == 3 && OScharset == 1)    //big5-->unicode·±Ìå
     {
-        tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
+        tmp = OpenCCConverter::getInstance()->UTF8s2t(str);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp2, 2);
     }
@@ -221,7 +222,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         //strcpy(tmp2, str);
         tmp = str;
     }
-
+    tmp.resize(tmp.size() + 2);
     SDL_RenderGetClipRect(g_Renderer, &rect);
     if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
     if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
