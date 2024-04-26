@@ -642,19 +642,19 @@ int JY_DrawMMap(int x, int y, int Mypic)
         }
     }
 
-    if (ic > 0)
-    {
-        g_Particle.setStyle(ParticleExample::RAIN);
-    }
-    else
-    {
-        g_Particle.setStyle(ParticleExample::NONE);
-    }
-    if (x + y < 250)
-    {
-        g_Particle.setStyle(ParticleExample::SNOW);
-    }
-    g_Particle.setGravity({25, 100});
+    //if (ic > 0)
+    //{
+    //    g_Particle.setStyle(ParticleExample::RAIN);
+    //}
+    //else
+    //{
+    //    g_Particle.setStyle(ParticleExample::NONE);
+    //}
+    //if (x + y < 250)
+    //{
+    //    g_Particle.setStyle(ParticleExample::SNOW);
+    //}
+    //g_Particle.setGravity({25, 100});
     g_Particle.draw();
 
     SDL_Rect r;

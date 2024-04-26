@@ -43,6 +43,7 @@ int HAPI_GetS(lua_State* pL);
 int HAPI_SetS(lua_State* pL);
 int HAPI_GetD(lua_State* pL);
 int HAPI_SetD(lua_State* pL);
+int HAPI_SetSound(lua_State* pL);
 int HAPI_DrawSMap(lua_State* pL);
 int HAPI_LoadWarMap(lua_State* pL);
 int HAPI_GetWarMap(lua_State* pL);
@@ -59,6 +60,8 @@ int HAPI_ScreenHeight(lua_State* pL);               //屏幕高度
 int HAPI_LoadPNGPath(lua_State* pL);                //读取PNG图片路径
 int HAPI_LoadPNG(lua_State* pL);                    //按图片读取PNG
 int HAPI_GetPNGXY(lua_State* pL);                   //获取图片的大小和偏移
+
+int HAPI_SetWeather(lua_State* pL);
 
 // 二进制数组函数
 

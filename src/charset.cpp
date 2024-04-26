@@ -109,7 +109,9 @@ TTF_Font* GetFont(const char* filename, int size)
         }
         Font[currentFont].size = size;
         if (Font[currentFont].font)           //直接关闭当前字体。
-        { TTF_CloseFont(Font[currentFont].font); }
+        {
+			TTF_CloseFont(Font[currentFont].font); 
+		}
 
         Font[currentFont].font = myfont;
 

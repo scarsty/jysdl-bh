@@ -197,6 +197,19 @@ int HAPI_PlayMPEG(lua_State* pL)
     return 0;
 }
 
+int HAPI_SetSound(lua_State* pL)
+{
+
+	int id = (int)lua_tonumber(pL, 1);
+	int flag = (int)lua_tonumber(pL, 2);
+
+
+	JY_SetSound(id, flag);
+
+	return 0;
+
+}
+
 int HAPI_PicInit(lua_State* pL)
 {
     char* filename;
@@ -660,6 +673,26 @@ int HAPI_GetPNGXY(lua_State* pL)
     lua_pushnumber(pL, yoff);
 
     return 4;
+}
+
+int HAPI_SetWeather(lua_State* pL)
+{
+    int id = (int)lua_tonumber(pL, 1);
+
+    if (id == 1)
+    {
+        g_Particle.setStyle(ParticleExample::RAIN);
+    }
+    else if (id == 2)
+    {
+        g_Particle.setStyle(ParticleExample::SNOW);
+    }
+    else
+    {
+        g_Particle.setStyle(ParticleExample::NONE);
+    }
+    g_Particle.setGravity({ 25, 100 });
+    return 0;
 }
 
 // byteÊý×éluaº¯Êý

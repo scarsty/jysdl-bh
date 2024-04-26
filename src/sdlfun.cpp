@@ -193,7 +193,7 @@ int InitGame(void)
     //putenv ("SDL_VIDEO_WINDOW_POS");
     //putenv ("SDL_VIDEO_CENTERED=1");
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, g_Softener);
-    g_Window = SDL_CreateWindow("Jin Shu QunXia", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
+    g_Window = SDL_CreateWindow(u8"金书群侠传", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     g_Texture = CreateRenderedTexture(g_ScreenW, g_ScreenH);
@@ -786,6 +786,20 @@ int JY_PlayMPEG(char* filename, int esckey)
     return 0;
 }
 
+//取s的值
+int JY_SetSound(int id, int flag)
+{
+	if (flag == 1)
+	{
+		g_SoundVolume = id;                  // 声音开关 0 关闭 1 打开
+	}
+	else if (flag == 2)
+	{
+		g_MusicVolume = id;
+		BASS_ChannelSetAttribute(currentMusic, BASS_ATTRIB_VOL, (float)(g_MusicVolume / 100.0));
+	}
+	return 0;
+}
 
 // 全屏切换
 int JY_FullScreen()
@@ -918,3 +932,4 @@ SDL_Rect RotateReverseRect(const SDL_Rect* rect)
     r.h = rect->w;
     return r;
 }
+

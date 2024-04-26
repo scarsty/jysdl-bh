@@ -35,6 +35,7 @@ int JY_GetS(int id, int x, int y, int level);
 int JY_SetS(int id, int x, int y, int level, int v);
 int JY_GetD(int Sceneid, int id, int i);
 int JY_SetD(int Sceneid, int id, int i, int v);
+int JY_SetSound(int id, int flag);
 int JY_DrawSMap(int sceneid, int x, int y, int xoff, int yoff, int Mypic);
 int JY_LoadWarMap(const char* WarIDXfilename, const char* WarGRPfilename, int mapid, int num, int x_max, int y_max);
 int JY_UnloadWarMap();
