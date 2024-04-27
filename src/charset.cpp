@@ -180,7 +180,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     white.a = 255;
 
     std::string tmp;
-    charset=3;
+    //charset=3;
     if (charset == 0 && OScharset == 0)  //GBK -->unicode¼òÌå
     {
         tmp = PotConv::conv(str, "cp936", "utf-16le");
