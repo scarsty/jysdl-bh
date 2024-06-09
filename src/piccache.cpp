@@ -48,7 +48,7 @@ int Init_Cache()
 // PalletteFilename 为256调色板文件。第一次调用时载入
 //                  为空字符串则表示重新清空贴图cache信息。在主地图/场景/战斗切换时调用
 
-int JY_PicInit(char* PalletteFilename)
+int JY_PicInit(const char* PalletteFilename)
 {
     struct list_head* pos, * p;
     int i;
@@ -556,7 +556,7 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
 
 // 读取调色板
 // 文件名为空则直接返回
-int LoadPalette(char* filename)
+int LoadPalette(const char* filename)
 {
     FILE* fp;
     char color[3];

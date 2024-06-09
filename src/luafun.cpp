@@ -193,7 +193,9 @@ int HAPI_PlayMPEG(lua_State* pL)
 {
     const char* filename = lua_tostring(pL, 1);
     //int key = (int)lua_tonumber(pL, 2);
+#ifndef _DEBUG
     JY_PlayMPEG((char*)filename, 0);
+#endif
     return 0;
 }
 
@@ -219,7 +221,7 @@ int HAPI_PicInit(lua_State* pL)
     }
     else
     {
-        filename = "\0";
+        filename = (char*)"\0";
     }
 
     JY_PicInit(filename);

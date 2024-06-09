@@ -8,3 +8,8 @@ JYForPPC/SDL/
 *.lib
 *.htm
 vc6/game1/
+vc6/game2/
+work/
+.vs/
+jysdllua/x64/
+x64/

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SDL.h"
+#include "SDL2/SDL.h"
 #include <stdio.h>
 #include <vector>
 #include "ZipFile.h"
@@ -61,7 +61,7 @@ struct PicFileCache                             //贴图文件链表节点
 #define PIC_FILE_NUM 10000                        //缓存的贴图文件(idx/grp)个数
 
 int Init_Cache();
-int JY_PicInit(char* PalletteFilename);
+int JY_PicInit(const char* PalletteFilename);
 int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int width, int height);
 int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value,int color = 0, int width = -1, int height = -1, double angle = NULL, SDL_RendererFlip reversal = SDL_FLIP_NONE, int percent = 100);
 int LoadPic(int fileid, int picid, struct CacheNode* cache);
@@ -70,6 +70,6 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
 int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff);
 int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff);
 SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalong);
-int LoadPalette(char* filename);
+int LoadPalette(const char* filename);
 int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width = -1, int height = -1, double angle = NULL , SDL_RendererFlip reversal = SDL_FLIP_NONE, int percent = 100);
 

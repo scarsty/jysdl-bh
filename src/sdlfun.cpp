@@ -4,7 +4,6 @@
 
 #include "jymain.h"
 #include "PotDll.h"
-#include "SDL_syswm.h"
 #include "charset.h"
 #include "sdlfun.h"
 #include "mainmap.h"
@@ -193,7 +192,7 @@ int InitGame(void)
     //putenv ("SDL_VIDEO_WINDOW_POS");
     //putenv ("SDL_VIDEO_CENTERED=1");
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, g_Softener);
-    g_Window = SDL_CreateWindow(u8"金书群侠传", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
+    g_Window = SDL_CreateWindow((const char*)u8"金书群侠传", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowIcon(g_Window, IMG_Load("ff.ico"));
     g_Renderer = SDL_CreateRenderer(g_Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     g_Texture = CreateRenderedTexture(g_ScreenW, g_ScreenH);
