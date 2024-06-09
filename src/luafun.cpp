@@ -214,14 +214,14 @@ int HAPI_SetSound(lua_State* pL)
 
 int HAPI_PicInit(lua_State* pL)
 {
-    char* filename;
+    const char* filename;
     if (lua_isnoneornil(pL, 1) == 0)
     {
-        filename = (char*)lua_tostring(pL, 1);
+        filename = lua_tostring(pL, 1);
     }
     else
     {
-        filename = (char*)"\0";
+        filename = "\0";
     }
 
     JY_PicInit(filename);
