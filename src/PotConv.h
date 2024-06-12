@@ -2,10 +2,12 @@
 
 #include "iconv.h"
 
-#include <algorithm>
-#include <cstring>
-#include <map>
-#include <string>
+//#include <algorithm>
+//#include <cstring>
+//#include <map>
+//#include <string>
+
+import std.compat;
 
 class PotConv
 {
