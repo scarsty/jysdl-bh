@@ -1,32 +1,27 @@
+ï»¿
+// è¾“å‡ºæ±‰å­—å’Œå­—ç¬¦é›†è½¬æ¢
 
-// Êä³öºº×ÖºÍ×Ö·û¼¯×ª»»
+//ä¸ºä¿è¯å¹³å°å…¼å®¹æ€§ï¼Œè‡ªå·±ç”Ÿæˆäº†ä¸€ä¸ªgbkç®€ä½“/ç¹ä½“/big5/unicodeçš„ç è¡¨æ–‡ä»¶
+//é€šè¿‡æ­¤æ–‡ä»¶ï¼Œå³å¯è¿›è¡Œå„ç§æ ¼å¼çš„è½¬æ¢
+//ç§»é™¤ï¼Œæ”¹ç”¨iconv
 
-
-//Îª±£Ö¤Æ½Ì¨¼æÈİĞÔ£¬×Ô¼ºÉú³ÉÁËÒ»¸ögbk¼òÌå/·±Ìå/big5/unicodeµÄÂë±íÎÄ¼ş
-//Í¨¹ı´ËÎÄ¼ş£¬¼´¿É½øĞĞ¸÷ÖÖ¸ñÊ½µÄ×ª»»
-
-#include <stdlib.h>
 #include "charset.h"
-#include "sdlfun.h"
-#include <stdio.h>
-#include "jymain.h"
-#include <map>
-
-#include "PotConv.h"
 #include "OpenCCConverter.h"
+#include "PotConv.h"
+#include "jymain.h"
 
-// ÏÔÊ¾TTF ×Ö·û´®
-// Îª¿ìËÙÏÔÊ¾£¬³ÌĞò½«±£´æÒÑ¾­´ò¿ªµÄÏàÓ¦×ÖºÅµÄ×ÖÌå½á¹¹¡£ÕâÑù×ö¿ÉÒÔ¼Ó¿ì³ÌĞòËÙ¶È
-// Îª¼ò»¯´úÂë£¬Ã»ÓĞÓÃÁ´±í£¬¶øÊÇ²ÉÓÃÊı×éÀ´±£´æ´ò¿ªµÄ×ÖÌå¡£
-// ÓÃÏÈ½øÏÈ³öµÄ·½·¨£¬Ñ­»·¹Ø±ÕÒÑ¾­´ò¿ªµÄ×ÖÌå¡£
-// ¿¼ÂÇµ½Ò»°ã´ò¿ªµÄ×ÖÌå²»¶à£¬±ÈÈç640*480Ä£Ê½Êµ¼ÊÉÏÖ»ÓÃÁË16*24*32ÈıÖÖ×ÖÌå¡£
-// ÉèÖÃÊı×éÎª10ÒÑ¾­×ã¹»¡£
+// æ˜¾ç¤ºTTF å­—ç¬¦ä¸²
+// ä¸ºå¿«é€Ÿæ˜¾ç¤ºï¼Œç¨‹åºå°†ä¿å­˜å·²ç»æ‰“å¼€çš„ç›¸åº”å­—å·çš„å­—ä½“ç»“æ„ã€‚è¿™æ ·åšå¯ä»¥åŠ å¿«ç¨‹åºé€Ÿåº¦
+// ä¸ºç®€åŒ–ä»£ç ï¼Œæ²¡æœ‰ç”¨é“¾è¡¨ï¼Œè€Œæ˜¯é‡‡ç”¨æ•°ç»„æ¥ä¿å­˜æ‰“å¼€çš„å­—ä½“ã€‚
+// ç”¨å…ˆè¿›å…ˆå‡ºçš„æ–¹æ³•ï¼Œå¾ªç¯å…³é—­å·²ç»æ‰“å¼€çš„å­—ä½“ã€‚
+// è€ƒè™‘åˆ°ä¸€èˆ¬æ‰“å¼€çš„å­—ä½“ä¸å¤šï¼Œæ¯”å¦‚640*480æ¨¡å¼å®é™…ä¸Šåªç”¨äº†16*24*32ä¸‰ç§å­—ä½“ã€‚
+// è®¾ç½®æ•°ç»„ä¸º10å·²ç»è¶³å¤Ÿã€‚
 
-UseFont Font[FONTNUM];         //±£´æÒÑ´ò¿ªµÄ×ÖÌå
+UseFont Font[FONTNUM];    //ä¿å­˜å·²æ‰“å¼€çš„å­—ä½“
 
 int currentFont = 0;
 
-//×Ö·û¼¯×ª»»Êı×é
+//å­—ç¬¦é›†è½¬æ¢æ•°ç»„
 Uint16 gbk_unicode[128][256];
 Uint16 gbk_big5[128][256];
 Uint16 big5_gbk[128][256];
@@ -37,14 +32,14 @@ int char_count = 0;
 std::map<std::string, std::map<int, SDL_Texture*>> chars_cache;
 SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
-//³õÊ¼»¯
+//åˆå§‹åŒ–
 int InitFont()
 {
     int i;
 
-    TTF_Init();  // ³õÊ¼»¯sdl_ttf
+    TTF_Init();    // åˆå§‹åŒ–sdl_ttf
 
-    for (i = 0; i < FONTNUM; i++)     //×ÖÌåÊı¾İ³õÖµ
+    for (i = 0; i < FONTNUM; i++)    //å­—ä½“æ•°æ®åˆå€¼
     {
         Font[i].size = 0;
         Font[i].name = NULL;
@@ -54,7 +49,7 @@ int InitFont()
     return 0;
 }
 
-//ÊÍ·Å×ÖÌå½á¹¹
+//é‡Šæ”¾å­—ä½“ç»“æ„
 int ExitFont()
 {
     JY_Debug("%d chars cached.", char_count);
@@ -68,10 +63,10 @@ int ExitFont()
     }*/
     //for (auto& c : chars_cache)
     //{
-        //SDL_DestroyTexture(c.second);
+    //SDL_DestroyTexture(c.second);
     //}
 
-    for (int i = 0; i < FONTNUM; i++)    //ÊÍ·Å×ÖÌåÊı¾İ
+    for (int i = 0; i < FONTNUM; i++)    //é‡Šæ”¾å­—ä½“æ•°æ®
     {
         if (Font[i].font)
         {
@@ -85,15 +80,14 @@ int ExitFont()
     return 0;
 }
 
-
-// ¸ù¾İ×ÖÌåÎÄ¼şÃûºÍ×ÖºÅ´ò¿ª×ÖÌå
-// size Îª°´ÏñËØ´óĞ¡µÄ×ÖºÅ
+// æ ¹æ®å­—ä½“æ–‡ä»¶åå’Œå­—å·æ‰“å¼€å­—ä½“
+// size ä¸ºæŒ‰åƒç´ å¤§å°çš„å­—å·
 TTF_Font* GetFont(const char* filename, int size)
 {
     int i;
     TTF_Font* myfont = NULL;
 
-    for (i = 0; i < FONTNUM; i++)     //  ÅĞ¶Ï×ÖÌåÊÇ·ñÒÑ´ò¿ª
+    for (i = 0; i < FONTNUM; i++)    //  åˆ¤æ–­å­—ä½“æ˜¯å¦å·²æ‰“å¼€
     {
         if ((Font[i].size == size) && (Font[i].name) && (strcmp(filename, Font[i].name) == 0))
         {
@@ -102,19 +96,19 @@ TTF_Font* GetFont(const char* filename, int size)
         }
     }
 
-    if (myfont == NULL)      //Ã»ÓĞ´ò¿ª
+    if (myfont == NULL)    //æ²¡æœ‰æ‰“å¼€
     {
-        myfont = TTF_OpenFont(filename, size);           //´ò¿ªĞÂ×ÖÌå
+        myfont = TTF_OpenFont(filename, size);    //æ‰“å¼€æ–°å­—ä½“
         if (myfont == NULL)
         {
             JY_Error("GetFont error: can not open font file %s\n", filename);
             return NULL;
         }
         Font[currentFont].size = size;
-        if (Font[currentFont].font)           //Ö±½Ó¹Ø±Õµ±Ç°×ÖÌå¡£
+        if (Font[currentFont].font)    //ç›´æ¥å…³é—­å½“å‰å­—ä½“ã€‚
         {
-			TTF_CloseFont(Font[currentFont].font); 
-		}
+            TTF_CloseFont(Font[currentFont].font);
+        }
 
         Font[currentFont].font = myfont;
 
@@ -122,28 +116,29 @@ TTF_Font* GetFont(const char* filename, int size)
         Font[currentFont].name = (char*)malloc(strlen(filename) + 1);
         strcpy(Font[currentFont].name, filename);
 
-        currentFont++;           // Ôö¼Ó¶ÓÁĞÈë¿Ú¼ÆÊı
+        currentFont++;    // å¢åŠ é˜Ÿåˆ—å…¥å£è®¡æ•°
         if (currentFont == FONTNUM)
-        { currentFont = 0; }
+        {
+            currentFont = 0;
+        }
     }
 
     return myfont;
-
 }
 
-// Ğ´×Ö·û´®
-// x,y ×ø±ê
-// str ×Ö·û´®
-// color ÑÕÉ«
-// size ×ÖÌå´óĞ¡£¬×ÖĞÎÎªËÎÌå¡£
-// fontname ×ÖÌåÃû
-// charset ×Ö·û¼¯ 0 GBK 1 big5 3 utf-8
-// OScharset 0 ¼òÌåÏÔÊ¾ 1 ·±ÌåÏÔÊ¾
+// å†™å­—ç¬¦ä¸²
+// x,y åæ ‡
+// str å­—ç¬¦ä¸²
+// color é¢œè‰²
+// size å­—ä½“å¤§å°ï¼Œå­—å½¢ä¸ºå®‹ä½“ã€‚
+// fontname å­—ä½“å
+// charset å­—ç¬¦é›† 0 GBK 1 big5 3 utf-8
+// OScharset 0 ç®€ä½“æ˜¾ç¤º 1 ç¹ä½“æ˜¾ç¤º
 int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* fontname,
     int charset, int OScharset)
 {
     SDL_Color c, c2, white;
-    SDL_Surface* fontSurface = NULL, *fontSurface1 = NULL;
+    SDL_Surface *fontSurface = NULL, *fontSurface1 = NULL;
     int w, h;
     SDL_Rect rect1, rect2, rect_dest;
     SDL_Rect rect;
@@ -151,10 +146,11 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     TTF_Font* myfont;
     SDL_Surface* tempSurface;
 
-    //Ã»ÓĞÄÚÈİ²»ÏÔÊ¾
+    //æ²¡æœ‰å†…å®¹ä¸æ˜¾ç¤º
     if (strlen(str) == 0)
-    { return 0; }
-
+    {
+        return 0;
+    }
 
     if (strlen(str) > 127)
     {
@@ -164,7 +160,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 
     myfont = GetFont(fontname, size);
     if (myfont == NULL)
-    { return 1; }
+    {
+        return 1;
+    }
 
     c.r = (Uint8)((color & RMASK) >> 16);
     c.g = (Uint8)((color & GMASK) >> 8);
@@ -181,12 +179,12 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 
     std::string tmp;
     //charset=3;
-    if (charset == 0 && OScharset == 0)  //GBK -->unicode¼òÌå
+    if (charset == 0 && OScharset == 0)    //GBK -->unicodeç®€ä½“
     {
         tmp = PotConv::conv(str, "cp936", "utf-16le");
         //JY_CharSet(str, tmp2, 3);
     }
-    else if (charset == 0 && OScharset == 1)  //GBK -->unicode·±Ìå
+    else if (charset == 0 && OScharset == 1)    //GBK -->unicodeç¹ä½“
     {
         tmp = PotConv::conv(str, "cp936", "utf-8");
         tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
@@ -194,24 +192,24 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         //JY_CharSet(str, tmp1, 1);
         //JY_CharSet(tmp1, tmp2, 2);
     }
-    else if (charset == 1 && OScharset == 0)   //big5-->unicode¼òÌå
+    else if (charset == 1 && OScharset == 0)    //big5-->unicodeç®€ä½“
     {
         tmp = PotConv::conv(str, "cp950", "utf-16le");
         //JY_CharSet(tmp1, tmp2, 3);
     }
-    else if (charset == 1 && OScharset == 1)    //big5-->unicode·±Ìå
+    else if (charset == 1 && OScharset == 1)    //big5-->unicodeç¹ä½“
     {
         tmp = PotConv::conv(str, "cp936", "utf-8");
         tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp2, 2);
     }
-    else if (charset == 3 && OScharset == 0)   //big5-->unicode¼òÌå
+    else if (charset == 3 && OScharset == 0)    //big5-->unicodeç®€ä½“
     {
         tmp = PotConv::conv(str, "utf-8", "utf-16le");
         //JY_CharSet(tmp1, tmp2, 3);
     }
-    else if (charset == 3 && OScharset == 1)    //big5-->unicode·±Ìå
+    else if (charset == 3 && OScharset == 1)    //big5-->unicodeç¹ä½“
     {
         tmp = OpenCCConverter::getInstance()->UTF8s2t(str);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
@@ -229,13 +227,12 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 
     TTF_SizeUNICODE(myfont, (Uint16*)tmp.c_str(), &w, &h);
 
-    if ((x >= rect.x + rect.w) || (x + w + 1) <= rect.x ||
-        (y >= rect.y + rect.h) || (y + h + 1) <= rect.y)        // ³¬³ö²Ã¼ô·¶Î§Ôò²»ÏÔÊ¾
+    if ((x >= rect.x + rect.w) || (x + w + 1) <= rect.x || (y >= rect.y + rect.h) || (y + h + 1) <= rect.y)    // è¶…å‡ºè£å‰ªèŒƒå›´åˆ™ä¸æ˜¾ç¤º
     {
         return 1;
     }
 
-    //fontSurface=TTF_RenderUNICODE_Solid(myfont, (Uint16*)tmp2, c);  //Éú³É±íÃæ
+    //fontSurface=TTF_RenderUNICODE_Solid(myfont, (Uint16*)tmp2, c);  //ç”Ÿæˆè¡¨é¢
 
     Uint16* p = (Uint16*)tmp.c_str();
     rect1.x = x;
@@ -252,7 +249,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         if (*p <= 128) { s = size / 2; }
         SDL_Texture* tex = NULL;
         if (chars_cache[fontname].count(*p + size * 65536))
-        { tex = chars_cache[fontname][*p + size * 65536]; }
+        {
+            tex = chars_cache[fontname][*p + size * 65536];
+        }
         if (tex == NULL)
         {
             Uint16 tmp[2] = { 0, 0 };
@@ -285,23 +284,23 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             SDL_SetTextureColorMod(tex, c2.r, c2.g, c2.b);
             SDL_SetTextureAlphaMod(tex, 128);
 
-			if ((c.r == 0x00000000) && (c.g == 0x00000000) && (c.b == 0x00000000))
-			{
-			}
-			else
-			{
-            rect2.x = rect1.x + 1;
-            rect2.y = rect1.y + 1;
-			SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
-            //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
-            rect2.x = rect1.x + 1;
-            rect2.y = rect1.y;
-            SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
-            //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
-            rect2.x = rect1.x;
-            rect2.y = rect1.y + 1;
-            SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
-			}
+            if ((c.r == 0x00000000) && (c.g == 0x00000000) && (c.b == 0x00000000))
+            {
+            }
+            else
+            {
+                rect2.x = rect1.x + 1;
+                rect2.y = rect1.y + 1;
+                SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+                //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
+                rect2.x = rect1.x + 1;
+                rect2.y = rect1.y;
+                SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+                //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
+                rect2.x = rect1.x;
+                rect2.y = rect1.y + 1;
+                SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+            }
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             SDL_SetTextureColorMod(tex, c.r, c.g, c.b);
             SDL_SetTextureAlphaMod(tex, 255);
@@ -321,7 +320,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     //SDL_SetSurfaceAlphaMod(fontSurface1, 128);
 
     if (fontSurface == NULL)
-    { return 1; }
+    {
+        return 1;
+    }
 
     rect1.x = (Sint16)x;
     rect1.y = (Sint16)y;
@@ -336,22 +337,22 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         rect_dest.x = rect2.x + 1;
         rect_dest.y = rect2.y;
         //SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
         rect_dest.x = rect2.x;
         rect_dest.y = rect2.y + 1;
         //SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
         rect_dest.x = rect2.x + 1;
         rect_dest.y = rect2.y + 1;
         //SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
         rect_dest.x = rect2.x;
         rect_dest.y = rect2.y;
         //SDL_SetPaletteColors(fontSurface->format->palette, &c, 1, 1);
-        SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ
+        SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢
         SDL_FreeSurface(fontSurface1);
     }
     else if (g_Rotate == 1)
@@ -364,47 +365,45 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         rect_dest.x = rect2.x + 1;
         rect_dest.y = rect2.y;
         SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
         rect_dest.x = rect2.x - 1;
         rect_dest.y = rect2.y;
         SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
         rect_dest.x = rect2.x;
         rect_dest.y = rect2.y + 1;
         SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
         rect_dest.x = rect2.x;
         rect_dest.y = rect2.y - 1;
         SDL_SetPaletteColors(fontSurface1->format->palette, &c2, 1, 1);
-        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ--ÒõÓ°É«
+        SDL_BlitSurface(fontSurface1, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢--é˜´å½±è‰²
 
 
         rect_dest.x = rect2.x;
         rect_dest.y = rect2.y;
         SDL_SetPaletteColors(fontSurface->format->palette, &c, 1, 1);
-        SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //±íÃæĞ´µ½ÓÎÏ·±íÃæ
+        SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //è¡¨é¢å†™åˆ°æ¸¸æˆè¡¨é¢
 
     }*/
 
-    //SDL_FreeSurface(fontSurface);   //ÊÍ·Å±íÃæ
+    //SDL_FreeSurface(fontSurface);   //é‡Šæ”¾è¡¨é¢
     return 0;
 }
 
-
-
-// ºº×Ö×Ö·û¼¯×ª»»
+// æ±‰å­—å­—ç¬¦é›†è½¬æ¢
 // flag = 0   Big5 --> GBK
 //      = 1   GBK  --> Big5
 //      = 2   Big5 --> Unicode
 //      = 3   GBK  --> Unicode
-// ×¢ÒâÒª±£Ö¤destÓĞ×ã¹»µÄ¿Õ¼ä£¬Ò»°ã½¨ÒéÈ¡src³¤¶ÈµÄÁ½±¶+2£¬±£Ö¤È«Ó¢ÎÄ×Ö·ûÒ²ÄÜ×ª»¯Îªunicode
-int  JY_CharSet(const char* src, char* dest, int flag)
+// æ³¨æ„è¦ä¿è¯destæœ‰è¶³å¤Ÿçš„ç©ºé—´ï¼Œä¸€èˆ¬å»ºè®®å–srcé•¿åº¦çš„ä¸¤å€+2ï¼Œä¿è¯å…¨è‹±æ–‡å­—ç¬¦ä¹Ÿèƒ½è½¬åŒ–ä¸ºunicode
+int JY_CharSet(const char* src, char* dest, int flag)
 {
 
-    Uint8* psrc, *pdest;
+    Uint8 *psrc, *pdest;
     Uint8 b0, b1;
     int d0;
     Uint16 tmpchar;
@@ -415,29 +414,29 @@ int  JY_CharSet(const char* src, char* dest, int flag)
     for (;;)
     {
         b0 = *psrc;
-        if (b0 == 0)         //×Ö·û´®½áÊø
+        if (b0 == 0)    //å­—ç¬¦ä¸²ç»“æŸ
         {
             if ((flag == 0) || (flag == 1))
             {
                 *pdest = 0;
                 break;
             }
-            else      //unicode½áÊø±êÖ¾ 0x0000?
+            else    //unicodeç»“æŸæ ‡å¿— 0x0000?
             {
                 *pdest = 0;
                 *(pdest + 1) = 0;
                 break;
             }
         }
-        if (b0 < 128)        //Ó¢ÎÄ×Ö·û
+        if (b0 < 128)    //è‹±æ–‡å­—ç¬¦
         {
-            if ((flag == 0) || (flag == 1))    //²»×ª»»
+            if ((flag == 0) || (flag == 1))    //ä¸è½¬æ¢
             {
                 *pdest = b0;
                 pdest++;
                 psrc++;
             }
-            else                  //unicode ºóÃæ¼Ó¸ö0
+            else    //unicode åé¢åŠ ä¸ª0
             {
                 *pdest = b0;
                 pdest++;
@@ -446,10 +445,10 @@ int  JY_CharSet(const char* src, char* dest, int flag)
                 psrc++;
             }
         }
-        else                //ÖĞÎÄ×Ö·û
+        else    //ä¸­æ–‡å­—ç¬¦
         {
             b1 = *(psrc + 1);
-            if (b1 == 0)       // ·ÇÕı³£½áÊø
+            if (b1 == 0)    // éæ­£å¸¸ç»“æŸ
             {
                 *pdest = '?';
                 *(pdest + 1) = 0;
@@ -460,16 +459,16 @@ int  JY_CharSet(const char* src, char* dest, int flag)
                 d0 = b0 + b1 * 256;
                 switch (flag)
                 {
-                case 0:   //Big5 --> GBK
+                case 0:    //Big5 --> GBK
                     tmpchar = big5_gbk[b0 - 128][b1];
                     break;
-                case 1:   //GBK  --> Big5
+                case 1:    //GBK  --> Big5
                     tmpchar = gbk_big5[b0 - 128][b1];
                     break;
-                case 2:   //Big5 --> Unicode
+                case 2:    //Big5 --> Unicode
                     tmpchar = big5_unicode[b0 - 128][b1];
                     break;
-                case 3:   //GBK  --> Unicode
+                case 3:    //GBK  --> Unicode
                     tmpchar = gbk_unicode[b0 - 128][b1];
                     break;
                 default:
@@ -495,9 +494,8 @@ int  JY_CharSet(const char* src, char* dest, int flag)
     return 0;
 }
 
-
-//¼ÓÔØÂë±íÎÄ¼ş
-//Âë±íÎÄ¼şË³Ğò£º °´GBKÅÅÁĞ£¬unicode£¬big5¡£È»ºó°´big5ÅÅÁĞ£¬unicodeºÍgbk¡£
+//åŠ è½½ç è¡¨æ–‡ä»¶
+//ç è¡¨æ–‡ä»¶é¡ºåºï¼š æŒ‰GBKæ’åˆ—ï¼Œunicodeï¼Œbig5ã€‚ç„¶åæŒ‰big5æ’åˆ—ï¼Œunicodeå’Œgbkã€‚
 int LoadMB(const char* mbfile)
 {
     FILE* fp;
@@ -555,6 +553,3 @@ int LoadMB(const char* mbfile)
 
     return 0;
 }
-
-
-

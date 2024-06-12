@@ -1,7 +1,7 @@
-
-// Ö÷³ÌĞò
-// ±¾³ÌĞòÎªÓÎÓ¾µÄÓã±àĞ´¡£
-// °æÈ¨ËùÎŞ£¬Äú¿ÉÒÔÒÔÈÎºÎ·½Ê½Ê¹ÓÃ´úÂë
+ï»¿
+// ä¸»ç¨‹åº
+// æœ¬ç¨‹åºä¸ºæ¸¸æ³³çš„é±¼ç¼–å†™ã€‚
+// ç‰ˆæƒæ‰€æ— ï¼Œæ‚¨å¯ä»¥ä»¥ä»»ä½•æ–¹å¼ä½¿ç”¨ä»£ç 
 
 #include <stdio.h>
 #include <time.h>
@@ -11,29 +11,29 @@
 #include "mainmap.h"
 #include "sdlfun.h"
 
-// È«³Ì±äÁ¿
+// å…¨ç¨‹å˜é‡
 SDL_Window* g_Window = NULL;
 SDL_Renderer* g_Renderer = NULL;
 SDL_Texture* g_Texture = NULL;
 SDL_Texture* g_TextureShow = NULL;
 SDL_Texture* g_TextureTmp = NULL;
 
-SDL_Surface* g_Surface = NULL;        // ÓÎÏ·Ê¹ÓÃµÄÊÓÆµ±íÃæ
-Uint32 g_MaskColor32 = 0xff706020;    // Í¸Ã÷É«
+SDL_Surface* g_Surface = NULL;        // æ¸¸æˆä½¿ç”¨çš„è§†é¢‘è¡¨é¢
+Uint32 g_MaskColor32 = 0xff706020;    // é€æ˜è‰²
 
-int g_Rotate = 0;       //ÆÁÄ»ÊÇ·ñĞı×ª
-int g_ScreenW = 800;    // ÆÁÄ»¿í¸ß
+int g_Rotate = 0;       //å±å¹•æ˜¯å¦æ—‹è½¬
+int g_ScreenW = 800;    // å±å¹•å®½é«˜
 int g_ScreenH = 600;
-int g_ScreenBpp = 16;    // ÆÁÄ»É«Éî
+int g_ScreenBpp = 16;    // å±å¹•è‰²æ·±
 int g_FullScreen = 0;
-int g_EnableSound = 1;     // ÉùÒô¿ª¹Ø 0 ¹Ø±Õ 1 ´ò¿ª
-int g_MusicVolume = 32;    // ÒôÀÖÉùÒô´óĞ¡
-int g_SoundVolume = 32;    // ÒôĞ§ÉùÒô´óĞ¡
+int g_EnableSound = 1;     // å£°éŸ³å¼€å…³ 0 å…³é—­ 1 æ‰“å¼€
+int g_MusicVolume = 32;    // éŸ³ä¹å£°éŸ³å¤§å°
+int g_SoundVolume = 32;    // éŸ³æ•ˆå£°éŸ³å¤§å°
 
-int g_XScale = 18;    //ÌùÍ¼x,y·½ÏòÒ»°ë´óĞ¡
+int g_XScale = 18;    //è´´å›¾x,yæ–¹å‘ä¸€åŠå¤§å°
 int g_YScale = 9;
 
-//¸÷¸öµØÍ¼»æÖÆÊ±xy·½ÏòĞèÒª¶à»æÖÆµÄÓàÁ¿¡£±£Ö¤¿ÉÒÔÈ«²¿ÏÔÊ¾
+//å„ä¸ªåœ°å›¾ç»˜åˆ¶æ—¶xyæ–¹å‘éœ€è¦å¤šç»˜åˆ¶çš„ä½™é‡ã€‚ä¿è¯å¯ä»¥å…¨éƒ¨æ˜¾ç¤º
 int g_MMapAddX;
 int g_MMapAddY;
 int g_SMapAddX;
@@ -41,17 +41,17 @@ int g_SMapAddY;
 int g_WMapAddX;
 int g_WMapAddY;
 int g_BJ = 0;
-int g_MAXCacheNum = 1000;    //×î´ó»º´æÊıÁ¿
-int g_LoadFullS = 1;         //ÊÇ·ñÈ«²¿¼ÓÔØSÎÄ¼ş
-int g_LoadMMapType = 0;      //ÊÇ·ñÈ«²¿¼ÓÔØMÎÄ¼ş
+int g_MAXCacheNum = 1000;    //æœ€å¤§ç¼“å­˜æ•°é‡
+int g_LoadFullS = 1;         //æ˜¯å¦å…¨éƒ¨åŠ è½½Sæ–‡ä»¶
+int g_LoadMMapType = 0;      //æ˜¯å¦å…¨éƒ¨åŠ è½½Mæ–‡ä»¶
 int g_LoadMMapScope = 0;
-int g_PreLoadPicGrp = 1;    //ÊÇ·ñÔ¤ÏÈ¼ÓÔØÌùÍ¼ÎÄ¼şµÄgrp
-int IsDebug = 0;            //ÊÇ·ñ´ò¿ª¸ú×ÙÎÄ¼ş
-char JYMain_Lua[255];       //luaÖ÷º¯Êı
-int g_MP3 = 0;              //ÊÇ·ñ´ò¿ªMP3
-char g_MidSF2[255];         //ÒôÉ«¿â¶ÔÓ¦µÄÎÄ¼ş
-float g_Zoom = 1;           //Í¼Æ¬·Å´ó
-char g_Softener[255];       //ÒôÉ«¿â¶ÔÓ¦µÄÎÄ¼ş
+int g_PreLoadPicGrp = 1;    //æ˜¯å¦é¢„å…ˆåŠ è½½è´´å›¾æ–‡ä»¶çš„grp
+int IsDebug = 0;            //æ˜¯å¦æ‰“å¼€è·Ÿè¸ªæ–‡ä»¶
+char JYMain_Lua[255];       //luaä¸»å‡½æ•°
+int g_MP3 = 0;              //æ˜¯å¦æ‰“å¼€MP3
+char g_MidSF2[255];         //éŸ³è‰²åº“å¯¹åº”çš„æ–‡ä»¶
+float g_Zoom = 1;           //å›¾ç‰‡æ”¾å¤§
+char g_Softener[255];       //éŸ³è‰²åº“å¯¹åº”çš„æ–‡ä»¶
 int g_DelayTimes;
 
 #ifdef _WIN32
@@ -65,7 +65,7 @@ lua_State* pL_main = NULL;
 void* g_Tinypot;
 ParticleExample g_Particle;
 
-//¶¨ÒåµÄlua½Ó¿Úº¯ÊıÃû
+//å®šä¹‰çš„luaæ¥å£å‡½æ•°å
 const struct luaL_Reg jylib[] = {
     { "Debug", HAPI_Debug },
 
@@ -167,12 +167,12 @@ void GetModes(int* width, int* height)
         return;
     }
 
-    //¿í
+    //å®½
     memset(buf, 0, 10);
     fgets(buf, 10, fp);
     *width = atoi(buf);
 
-    //¸ß
+    //é«˜
     memset(buf, 0, 10);
     fgets(buf, 10, fp);
     *height = atoi(buf);
@@ -182,18 +182,18 @@ void GetModes(int* width, int* height)
     fclose(fp);
 }
 
-// Ö÷³ÌĞò
+// ä¸»ç¨‹åº
 int main(int argc, char* argv[])
 {
     //lua_State* pL_main;
     srand(time(0));
     remove(DEBUG_FILE);
-    remove(ERROR_FILE);    //ÉèÖÃstderrÊä³öµ½ÎÄ¼ş
+    remove(ERROR_FILE);    //è®¾ç½®stderrè¾“å‡ºåˆ°æ–‡ä»¶
 
     pL_main = luaL_newstate();
     luaL_openlibs(pL_main);
 
-    //×¢²áluaº¯Êı
+    //æ³¨å†Œluaå‡½æ•°
     lua_newtable(pL_main);
     luaL_setfuncs(pL_main, jylib, 0);
     lua_pushvalue(pL_main, -1);
@@ -205,42 +205,39 @@ int main(int argc, char* argv[])
     lua_setglobal(pL_main, "Byte");
 
     JY_Debug("Lua_Config();");
-    Lua_Config(pL_main, _(CONFIG_FILE));    //¶ÁÈ¡luaÅäÖÃÎÄ¼ş£¬ÉèÖÃ²ÎÊı
+    Lua_Config(pL_main, _(CONFIG_FILE));    //è¯»å–luaé…ç½®æ–‡ä»¶ï¼Œè®¾ç½®å‚æ•°
 
     JY_Debug("InitSDL();");
-    InitSDL();    //³õÊ¼»¯SDL
+    InitSDL();    //åˆå§‹åŒ–SDL
 
     JY_Debug("InitGame();");
-    InitGame();    //³õÊ¼»¯ÓÎÏ·Êı¾İ
-
-    JY_Debug("LoadMB();");
-    LoadMB(_(HZMB_FILE));    //¼ÓÔØºº×Ö×Ö·û¼¯×ª»»Âë±í
+    InitGame();    //åˆå§‹åŒ–æ¸¸æˆæ•°æ®
 
     JY_Debug("Lua_Main();");
-    Lua_Main(pL_main);    //µ÷ÓÃLuaÖ÷º¯Êı£¬¿ªÊ¼ÓÎÏ·
+    Lua_Main(pL_main);    //è°ƒç”¨Luaä¸»å‡½æ•°ï¼Œå¼€å§‹æ¸¸æˆ
 
     JY_Debug("ExitGame();");
-    ExitGame();    //ÊÍ·ÅÓÎÏ·Êı¾İ
+    ExitGame();    //é‡Šæ”¾æ¸¸æˆæ•°æ®
 
     JY_Debug("ExitSDL();");
-    ExitSDL();    //ÍË³öSDL
+    ExitSDL();    //é€€å‡ºSDL
 
     JY_Debug("main() end;");
 
-    //¹Ø±Õlua
+    //å…³é—­lua
     lua_close(pL_main);
 
     return 0;
 }
 
-//LuaÖ÷º¯Êı
+//Luaä¸»å‡½æ•°
 int Lua_Main(lua_State* pL_main)
 {
     int result = 0;
 
-    //³õÊ¼»¯lua
+    //åˆå§‹åŒ–lua
 
-    //¼ÓÔØluaÎÄ¼ş
+    //åŠ è½½luaæ–‡ä»¶
     result = luaL_loadfile(pL_main, JYMain_Lua);
     switch (result)
     {
@@ -257,7 +254,7 @@ int Lua_Main(lua_State* pL_main)
 
     result = lua_pcall(pL_main, 0, LUA_MULTRET, 0);
 
-    //µ÷ÓÃluaµÄÖ÷º¯ÊıJY_Main
+    //è°ƒç”¨luaçš„ä¸»å‡½æ•°JY_Main
     lua_getglobal(pL_main, "JY_Main");
     result = lua_pcall(pL_main, 0, 0, 0);
 
@@ -270,12 +267,12 @@ int Lua_Main(lua_State* pL_main)
     return 0;
 }
 
-//Lua¶ÁÈ¡ÅäÖÃĞÅÏ¢
+//Luaè¯»å–é…ç½®ä¿¡æ¯
 int Lua_Config(lua_State* pL, const char* filename)
 {
     int result = 0;
 
-    //¼ÓÔØluaÅäÖÃÎÄ¼ş
+    //åŠ è½½luaé…ç½®æ–‡ä»¶
     result = luaL_loadfile(pL, filename);
     switch (result)
     {
@@ -298,7 +295,7 @@ int Lua_Config(lua_State* pL, const char* filename)
         lua_pop(pL, 1);
     }
 
-    lua_getglobal(pL, "CONFIG");    //¶ÁÈ¡config¶¨ÒåµÄÖµ
+    lua_getglobal(pL, "CONFIG");    //è¯»å–configå®šä¹‰çš„å€¼
     if (getfield(pL, "Width") != 0)
     {
         g_ScreenW = getfield(pL, "Width");
@@ -335,7 +332,7 @@ int Lua_Config(lua_State* pL, const char* filename)
     return 0;
 }
 
-//¶ÁÈ¡lua±íÖĞµÄÕûĞÍ
+//è¯»å–luaè¡¨ä¸­çš„æ•´å‹
 int getfield(lua_State* pL, const char* key)
 {
     int result;
@@ -345,7 +342,7 @@ int getfield(lua_State* pL, const char* key)
     return result;
 }
 
-//¶ÁÈ¡lua±íÖĞµÄ×Ö·û´®
+//è¯»å–luaè¡¨ä¸­çš„å­—ç¬¦ä¸²
 int getfieldstr(lua_State* pL, const char* key, char* str)
 {
     const char* tmp;
@@ -356,10 +353,10 @@ int getfieldstr(lua_State* pL, const char* key, char* str)
     return 0;
 }
 
-//ÒÔÏÂÎª¼¸¸öÍ¨ÓÃº¯Êı
+//ä»¥ä¸‹ä¸ºå‡ ä¸ªé€šç”¨å‡½æ•°
 
-// µ÷ÊÔº¯Êı
-// Êä³öµ½debug.txtÖĞ
+// è°ƒè¯•å‡½æ•°
+// è¾“å‡ºåˆ°debug.txtä¸­
 int JY_Debug(const char* fmt, ...)
 {
     time_t t;
@@ -392,11 +389,11 @@ int JY_Debug(const char* fmt, ...)
     return 0;
 }
 
-// µ÷ÊÔº¯Êı
-// Êä³öµ½error.txtÖĞ
+// è°ƒè¯•å‡½æ•°
+// è¾“å‡ºåˆ°error.txtä¸­
 int JY_Error(const char* fmt, ...)
 {
-    //ÎŞ¾Æ²»»¶£º²»ÔÙÊä³öerrorĞÅÏ¢
+    //æ— é…’ä¸æ¬¢ï¼šä¸å†è¾“å‡ºerrorä¿¡æ¯
 #ifdef _DEBUG
     time_t t;
     FILE* fp;
@@ -421,7 +418,7 @@ int JY_Error(const char* fmt, ...)
     return 0;
 }
 
-// ÏŞÖÆx´óĞ¡
+// é™åˆ¶xå¤§å°
 int limitX(int x, int xmin, int xmax)
 {
     if (x > xmax)
@@ -435,17 +432,17 @@ int limitX(int x, int xmin, int xmax)
     return x;
 }
 
-// ·µ»ØÎÄ¼ş³¤¶È£¬ÈôÎª0£¬ÔòÎÄ¼ş¿ÉÄÜ²»´æÔÚ
+// è¿”å›æ–‡ä»¶é•¿åº¦ï¼Œè‹¥ä¸º0ï¼Œåˆ™æ–‡ä»¶å¯èƒ½ä¸å­˜åœ¨
 int FileLength(const char* filename)
 {
     FILE* f;
     int ll;
     if ((f = fopen(filename, "rb")) == NULL)
     {
-        return 0;    // ÎÄ¼ş²»´æÔÚ£¬·µ»Ø
+        return 0;    // æ–‡ä»¶ä¸å­˜åœ¨ï¼Œè¿”å›
     }
     fseek(f, 0, SEEK_END);
-    ll = ftell(f);    //ÕâÀïµÃµ½µÄlen¾ÍÊÇÎÄ¼şµÄ³¤¶ÈÁË
+    ll = ftell(f);    //è¿™é‡Œå¾—åˆ°çš„lenå°±æ˜¯æ–‡ä»¶çš„é•¿åº¦äº†
     fclose(f);
     return ll;
 }

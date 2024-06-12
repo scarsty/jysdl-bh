@@ -1,4 +1,4 @@
-// Í·ÎÄ¼ş
+ï»¿// å¤´æ–‡ä»¶
 #pragma once
 
 #include "config.h"
@@ -21,7 +21,8 @@ extern "C"
 
 #include "ParticleExample.h"
 
-// ¹«¹²²¿·Ö
+
+// å…¬å…±éƒ¨åˆ†
 #ifndef BOOL
 #define BOOL unsigned char
 #endif
@@ -34,7 +35,7 @@ extern "C"
 
 #define swap16(x) (((x & 0x00ffU) << 8) | ((x & 0xff00U) >> 8))
 
-//°²È«freeÖ¸ÕëµÄºê
+//å®‰å…¨freeæŒ‡é’ˆçš„å®
 #define SafeFree(p) \
     do { \
         if (p) \
@@ -44,7 +45,7 @@ extern "C"
         } \
     } while (0)
 
-//È«³Ì±äÁ¿
+//å…¨ç¨‹å˜é‡
 
 #define _(f) va("%s%s", JY_CurrentPath, f)
 
@@ -63,16 +64,16 @@ int getfield(lua_State* pL, const char* key);
 
 int getfieldstr(lua_State* pL, const char* key, char* str);
 
-// Êä³öĞÅÏ¢µ½ÎÄ¼şdebug.txtÖĞ
+// è¾“å‡ºä¿¡æ¯åˆ°æ–‡ä»¶debug.txtä¸­
 int JY_Debug(const char* fmt, ...);
 
-// Êä³öĞÅÏ¢µ½ÎÄ¼şerror.txtÖĞ
+// è¾“å‡ºä¿¡æ¯åˆ°æ–‡ä»¶error.txtä¸­
 int JY_Error(const char* fmt, ...);
 
-//ÏŞÖÆ xÔÚ xmin-xmaxÖ®¼ä
+//é™åˆ¶ xåœ¨ xmin-xmaxä¹‹é—´
 int limitX(int x, int xmin, int xmax);
 
-//È¡ÎÄ¼ş³¤¶È
+//å–æ–‡ä»¶é•¿åº¦
 int FileLength(const char* filename);
 
 char* va(const char* format, ...);
@@ -91,22 +92,22 @@ extern SDL_Texture* g_Texture;
 extern SDL_Texture* g_TextureShow;
 extern SDL_Texture* g_TextureTmp;
 
-extern SDL_Surface* g_Surface;    // ÓÎÏ·Ê¹ÓÃµÄÊÓÆµ±íÃæ
-extern Uint32 g_MaskColor32;      // Í¸Ã÷É«
+extern SDL_Surface* g_Surface;    // æ¸¸æˆä½¿ç”¨çš„è§†é¢‘è¡¨é¢
+extern Uint32 g_MaskColor32;      // é€æ˜è‰²
 
-extern int g_Rotate;     //ÆÁÄ»ÊÇ·ñĞı×ª
-extern int g_ScreenW;    // ÆÁÄ»¿í¸ß
+extern int g_Rotate;     //å±å¹•æ˜¯å¦æ—‹è½¬
+extern int g_ScreenW;    // å±å¹•å®½é«˜
 extern int g_ScreenH;
-extern int g_ScreenBpp;    // ÆÁÄ»É«Éî
+extern int g_ScreenBpp;    // å±å¹•è‰²æ·±
 extern int g_FullScreen;
-extern int g_EnableSound;    // ÉùÒô¿ª¹Ø 0 ¹Ø±Õ 1 ´ò¿ª
-extern int g_MusicVolume;    // ÒôÀÖÉùÒô´óĞ¡
-extern int g_SoundVolume;    // ÒôĞ§ÉùÒô´óĞ¡
+extern int g_EnableSound;    // å£°éŸ³å¼€å…³ 0 å…³é—­ 1 æ‰“å¼€
+extern int g_MusicVolume;    // éŸ³ä¹å£°éŸ³å¤§å°
+extern int g_SoundVolume;    // éŸ³æ•ˆå£°éŸ³å¤§å°
 
-extern int g_XScale;    //ÌùÍ¼x,y·½ÏòÒ»°ë´óĞ¡
+extern int g_XScale;    //è´´å›¾x,yæ–¹å‘ä¸€åŠå¤§å°
 extern int g_YScale;
 
-//¸÷¸öµØÍ¼»æÖÆÊ±xy·½ÏòĞèÒª¶à»æÖÆµÄÓàÁ¿¡£±£Ö¤¿ÉÒÔÈ«²¿ÏÔÊ¾
+//å„ä¸ªåœ°å›¾ç»˜åˆ¶æ—¶xyæ–¹å‘éœ€è¦å¤šç»˜åˆ¶çš„ä½™é‡ã€‚ä¿è¯å¯ä»¥å…¨éƒ¨æ˜¾ç¤º
 extern int g_MMapAddX;
 extern int g_MMapAddY;
 extern int g_SMapAddX;
@@ -114,19 +115,19 @@ extern int g_SMapAddY;
 extern int g_WMapAddX;
 extern int g_WMapAddY;
 
-extern int g_MAXCacheNum;     //×î´ó»º´æÊıÁ¿
-extern int g_LoadFullS;       //ÊÇ·ñÈ«²¿¼ÓÔØSÎÄ¼ş
-extern int g_LoadMMapType;    //ÊÇ·ñÈ«²¿¼ÓÔØMÎÄ¼ş
+extern int g_MAXCacheNum;     //æœ€å¤§ç¼“å­˜æ•°é‡
+extern int g_LoadFullS;       //æ˜¯å¦å…¨éƒ¨åŠ è½½Sæ–‡ä»¶
+extern int g_LoadMMapType;    //æ˜¯å¦å…¨éƒ¨åŠ è½½Mæ–‡ä»¶
 extern int g_LoadMMapScope;
-extern int g_PreLoadPicGrp;     //ÊÇ·ñÔ¤ÏÈ¼ÓÔØÌùÍ¼ÎÄ¼şµÄgrp
-extern int IsDebug;             //ÊÇ·ñ´ò¿ª¸ú×ÙÎÄ¼ş
-extern char JYMain_Lua[255];    //luaÖ÷º¯Êı
-extern int g_MP3;               //ÊÇ·ñ´ò¿ªMP3
-extern int g_BJ;                //ÊÇ·ñ´ò¿ªMP3
-extern char g_MidSF2[255];      //ÒôÉ«¿â¶ÔÓ¦µÄÎÄ¼ş
-extern float g_Zoom;            //Í¼Æ¬·Å´ó
+extern int g_PreLoadPicGrp;     //æ˜¯å¦é¢„å…ˆåŠ è½½è´´å›¾æ–‡ä»¶çš„grp
+extern int IsDebug;             //æ˜¯å¦æ‰“å¼€è·Ÿè¸ªæ–‡ä»¶
+extern char JYMain_Lua[255];    //luaä¸»å‡½æ•°
+extern int g_MP3;               //æ˜¯å¦æ‰“å¼€MP3
+extern int g_BJ;                //æ˜¯å¦æ‰“å¼€MP3
+extern char g_MidSF2[255];      //éŸ³è‰²åº“å¯¹åº”çš„æ–‡ä»¶
+extern float g_Zoom;            //å›¾ç‰‡æ”¾å¤§
 extern lua_State* pL_main;
-extern char g_Softener[255];    //ÊÇ·ñÈá»¯
+extern char g_Softener[255];    //æ˜¯å¦æŸ”åŒ–
 extern void* g_Tinypot;
 
 extern const char* JY_CurrentPath;

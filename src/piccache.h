@@ -1,15 +1,13 @@
-#pragma once
+ï»¿#pragma once
 
 #include "SDL2/SDL.h"
-#include <stdio.h>
-#include <vector>
 #include "ZipFile.h"
 //PicCache.c
 
 #define TEXTURE_NUM 10
 
-// ¶¨ÒåÊ¹ÓÃµÄÁ´±í
-struct CacheNode                         //ÌùÍ¼cacheÁ´±í½Úµã
+// å®šä¹‰ä½¿ç”¨çš„é“¾è¡¨
+struct CacheNode                         //è´´å›¾cacheé“¾è¡¨èŠ‚ç‚¹
 {
     CacheNode()
     {
@@ -29,36 +27,36 @@ struct CacheNode                         //ÌùÍ¼cacheÁ´±í½Úµã
     }
     void toTexture();
 
-    SDL_Surface* s = NULL;                      //´ËÌùÍ¼¶ÔÓ¦µÄ±íÃæ
-    SDL_Texture* t = NULL;                      //´ËÌùÍ¼¶ÔÓ¦µÄÎÆÀí
+    SDL_Surface* s = NULL;                      //æ­¤è´´å›¾å¯¹åº”çš„è¡¨é¢
+    SDL_Texture* t = NULL;                      //æ­¤è´´å›¾å¯¹åº”çš„çº¹ç†
     int t_count = 1;
     SDL_Texture* tt[TEXTURE_NUM];
-    int w = 0;                                  //ÌùÍ¼¿í¶È
-    int h = 0;                                  //ÌùÍ¼¸ß¶È
-    int xoff = 0;                               //ÌùÍ¼Æ«ÒÆ
+    int w = 0;                                  //è´´å›¾å®½åº¦
+    int h = 0;                                  //è´´å›¾é«˜åº¦
+    int xoff = 0;                               //è´´å›¾åç§»
     int yoff = 0;
-    int id;                                     //ÌùÍ¼±àºÅ
-    int fileid;                                 //ÌùÍ¼ÎÄ¼ş±àºÅ
+    int id;                                     //è´´å›¾ç¼–å·
+    int fileid;                                 //è´´å›¾æ–‡ä»¶ç¼–å·
 };
 
-struct PicFileCache                             //ÌùÍ¼ÎÄ¼şÁ´±í½Úµã
+struct PicFileCache                             //è´´å›¾æ–‡ä»¶é“¾è¡¨èŠ‚ç‚¹
 {
-    int num = 0;                                //ÎÄ¼şÌùÍ¼¸öÊı
-    int* idx = NULL;                            //idxµÄÄÚÈİ
-    int filelength = 0;                         //grpÎÄ¼ş³¤¶È
-    FILE* fp = NULL;                            //grpÎÄ¼ş¾ä±ú
-    unsigned char* grp = NULL;                  //grpµÄÄÚÈİ
-    int width;                                  //Ö¸¶¨¿í¶È
-    int height;                                 //Ö¸¶¨¸ß¶È
-    int percent;                                //Ö¸¶¨±ÈÀı
-    std::vector<CacheNode*> pcache;             //ÎÄ¼şÖĞËùÓĞµÄÌùÍ¼¶ÔÓ¦µÄcache½ÚµãÖ¸Õë£¬Îª¿ÕÔò±íÊ¾Ã»ÓĞ¡£
-    char path[512];                             //Ä¿Â¼
-    char suffix[12];                            //ºó×ºÃû
+    int num = 0;                                //æ–‡ä»¶è´´å›¾ä¸ªæ•°
+    int* idx = NULL;                            //idxçš„å†…å®¹
+    int filelength = 0;                         //grpæ–‡ä»¶é•¿åº¦
+    FILE* fp = NULL;                            //grpæ–‡ä»¶å¥æŸ„
+    unsigned char* grp = NULL;                  //grpçš„å†…å®¹
+    int width;                                  //æŒ‡å®šå®½åº¦
+    int height;                                 //æŒ‡å®šé«˜åº¦
+    int percent;                                //æŒ‡å®šæ¯”ä¾‹
+    std::vector<CacheNode*> pcache;             //æ–‡ä»¶ä¸­æ‰€æœ‰çš„è´´å›¾å¯¹åº”çš„cacheèŠ‚ç‚¹æŒ‡é’ˆï¼Œä¸ºç©ºåˆ™è¡¨ç¤ºæ²¡æœ‰ã€‚
+    char path[512];                             //ç›®å½•
+    char suffix[12];                            //åç¼€å
     int type = 0;                               //0-idx/grp, 1-png path with index.ka
-    std::vector<short> offset;                  //Æ«ÒÆÖµ
+    std::vector<short> offset;                  //åç§»å€¼
     ZipFile zip_file;
 };
-#define PIC_FILE_NUM 10000                        //»º´æµÄÌùÍ¼ÎÄ¼ş(idx/grp)¸öÊı
+#define PIC_FILE_NUM 10000                        //ç¼“å­˜çš„è´´å›¾æ–‡ä»¶(idx/grp)ä¸ªæ•°
 
 int Init_Cache();
 int JY_PicInit(const char* PalletteFilename);

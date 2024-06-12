@@ -1,5 +1,5 @@
-
-// luaÖĞµ÷ÓÃµÄC API½Ó¿Ú
+ï»¿
+// luaä¸­è°ƒç”¨çš„C APIæ¥å£
 
 #ifndef __LUAFUN_H
 #define __LUAFUN_H
@@ -50,22 +50,22 @@ int HAPI_GetWarMap(lua_State* pL);
 int HAPI_SetWarMap(lua_State* pL);
 int HAPI_CleanWarMap(lua_State* pL);
 int HAPI_DrawWarMap(lua_State* pL);
-int HAPI_SaveSur(lua_State* pL);                    //±£´æÆÁÄ»µ½ÁÙÊ±±íÃæ
-int HAPI_LoadSur(lua_State* pL);                    //¼ÓÔØÁÙÊ±±íÃæµ½ÆÁÄ»
-int HAPI_FreeSur(lua_State* pL);                    //ÊÍ·Å
+int HAPI_SaveSur(lua_State* pL);                    //ä¿å­˜å±å¹•åˆ°ä¸´æ—¶è¡¨é¢
+int HAPI_LoadSur(lua_State* pL);                    //åŠ è½½ä¸´æ—¶è¡¨é¢åˆ°å±å¹•
+int HAPI_FreeSur(lua_State* pL);                    //é‡Šæ”¾
 
-int HAPI_ScreenWidth(lua_State* pL);                //ÆÁÄ»¿í¶È
-int HAPI_ScreenHeight(lua_State* pL);               //ÆÁÄ»¸ß¶È
+int HAPI_ScreenWidth(lua_State* pL);                //å±å¹•å®½åº¦
+int HAPI_ScreenHeight(lua_State* pL);               //å±å¹•é«˜åº¦
 
-int HAPI_LoadPNGPath(lua_State* pL);                //¶ÁÈ¡PNGÍ¼Æ¬Â·¾¶
-int HAPI_LoadPNG(lua_State* pL);                    //°´Í¼Æ¬¶ÁÈ¡PNG
-int HAPI_GetPNGXY(lua_State* pL);                   //»ñÈ¡Í¼Æ¬µÄ´óĞ¡ºÍÆ«ÒÆ
+int HAPI_LoadPNGPath(lua_State* pL);                //è¯»å–PNGå›¾ç‰‡è·¯å¾„
+int HAPI_LoadPNG(lua_State* pL);                    //æŒ‰å›¾ç‰‡è¯»å–PNG
+int HAPI_GetPNGXY(lua_State* pL);                   //è·å–å›¾ç‰‡çš„å¤§å°å’Œåç§»
 
 int HAPI_SetWeather(lua_State* pL);
 
-// ¶ş½øÖÆÊı×éº¯Êı
+// äºŒè¿›åˆ¶æ•°ç»„å‡½æ•°
 
-/*  lua µ÷ÓÃĞÎÊ½£º(×¢Òâ£¬Î»ÖÃ¶¼ÊÇ´Ó0¿ªÊ¼
+/*  lua è°ƒç”¨å½¢å¼ï¼š(æ³¨æ„ï¼Œä½ç½®éƒ½æ˜¯ä»0å¼€å§‹
      handle=Byte_create(size);
      Byte_release(h);
      Byte_loadfile(h,filename,start,end);

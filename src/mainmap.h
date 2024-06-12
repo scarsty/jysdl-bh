@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "SDL2/SDL.h"
 #include "config.h"
@@ -23,7 +23,7 @@ int JY_GetMMap(int x, int y, int flag);
 int JY_SetMMap(short x, short y, int flag, short v);
 
 int BuildingSort(short x, short y, short Mypic);
-// »æÖÆÖ÷µØÍ¼
+// ç»˜åˆ¶ä¸»åœ°å›¾
 int JY_DrawMMap(int x, int y, int Mypic);
 int JY_LoadSMap(const char* Sfilename, const char* tmpfilename, int num, int x_max, int y_max,
     const char* Dfilename, int d_num1, int d_num2);

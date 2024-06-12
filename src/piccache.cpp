@@ -1,18 +1,15 @@
+ï»¿
+// è¯»å–idx/grpçš„è´´å›¾æ–‡ä»¶ã€‚
+// ä¸ºæé«˜é€Ÿåº¦ï¼Œé‡‡ç”¨ç¼“å­˜æ–¹å¼è¯»å–ã€‚æŠŠidx/grpè¯»å…¥å†…å­˜ï¼Œç„¶åå®šä¹‰è‹¥å¹²ä¸ªç¼“å­˜è¡¨é¢
+// ç»å¸¸è®¿é—®çš„picæ”¾åœ¨ç¼“å­˜è¡¨é¢ä¸­
 
-// ¶ÁÈ¡idx/grpµÄÌùÍ¼ÎÄ¼ş¡£
-// ÎªÌá¸ßËÙ¶È£¬²ÉÓÃ»º´æ·½Ê½¶ÁÈ¡¡£°Ñidx/grp¶ÁÈëÄÚ´æ£¬È»ºó¶¨ÒåÈô¸É¸ö»º´æ±íÃæ
-// ¾­³£·ÃÎÊµÄpic·ÅÔÚ»º´æ±íÃæÖĞ
-
-#include <stdlib.h>
 #include "piccache.h"
 #include "jymain.h"
 #include "sdlfun.h"
-#include <string>
-#include <string.h>
 
 PicFileCache pic_file[PIC_FILE_NUM];
-//std::forward_list<CacheNode*> pic_cache;     //pic_cacheÁ´±í
-Uint32 m_color32[256];               // 256µ÷É«°å
+//std::forward_list<CacheNode*> pic_cache;     //pic_cacheé“¾è¡¨
+Uint32 m_color32[256];               // 256è°ƒè‰²æ¿
 //int CacheFailNum = 0;
 
 void CacheNode::toTexture()
@@ -29,7 +26,7 @@ void CacheNode::toTexture()
     }
 }
 
-// ³õÊ¼»¯CacheÊı¾İ¡£ÓÎÏ·¿ªÊ¼Ê±µ÷ÓÃ
+// åˆå§‹åŒ–Cacheæ•°æ®ã€‚æ¸¸æˆå¼€å§‹æ—¶è°ƒç”¨
 int Init_Cache()
 {
     int i;
@@ -44,18 +41,18 @@ int Init_Cache()
     return 0;
 }
 
-// ³õÊ¼»¯ÌùÍ¼cacheĞÅÏ¢
-// PalletteFilename Îª256µ÷É«°åÎÄ¼ş¡£µÚÒ»´Îµ÷ÓÃÊ±ÔØÈë
-//                  Îª¿Õ×Ö·û´®Ôò±íÊ¾ÖØĞÂÇå¿ÕÌùÍ¼cacheĞÅÏ¢¡£ÔÚÖ÷µØÍ¼/³¡¾°/Õ½¶·ÇĞ»»Ê±µ÷ÓÃ
+// åˆå§‹åŒ–è´´å›¾cacheä¿¡æ¯
+// PalletteFilename ä¸º256è°ƒè‰²æ¿æ–‡ä»¶ã€‚ç¬¬ä¸€æ¬¡è°ƒç”¨æ—¶è½½å…¥
+//                  ä¸ºç©ºå­—ç¬¦ä¸²åˆ™è¡¨ç¤ºé‡æ–°æ¸…ç©ºè´´å›¾cacheä¿¡æ¯ã€‚åœ¨ä¸»åœ°å›¾/åœºæ™¯/æˆ˜æ–—åˆ‡æ¢æ—¶è°ƒç”¨
 
 int JY_PicInit(const char* PalletteFilename)
 {
     struct list_head* pos, * p;
     int i;
 
-    LoadPalette(PalletteFilename);   //ÔØÈëµ÷É«°å
+    LoadPalette(PalletteFilename);   //è½½å…¥è°ƒè‰²æ¿
 
-    //Èç¹ûÁ´±í²»Îª¿Õ£¬É¾³ıÈ«²¿Á´±í
+    //å¦‚æœé“¾è¡¨ä¸ä¸ºç©ºï¼Œåˆ é™¤å…¨éƒ¨é“¾è¡¨
     //for (auto& c : pic_cache)
     //{
     //    delete c;
@@ -82,11 +79,11 @@ int JY_PicInit(const char* PalletteFilename)
     }
     //CacheFailNum = 0;
 
-    JY_PicLoadFile("./data/wmap.idx", "./data/wmap.grp", 0, NULL, NULL);	//--ÌØĞ§ÌùÍ¼
+    JY_PicLoadFile("./data/wmap.idx", "./data/wmap.grp", 0, NULL, NULL);	//--ç‰¹æ•ˆè´´å›¾
     JY_LoadPNGPath("./data/head", 1, 20000, g_ScreenW / 936 * 100, "png");
     //JY_PicLoadFile("./data/thing.idx", "./data/thing.grp", 2, NULL, NULL);
     JY_LoadPNGPath("./data/thing", 2, -1, 100, "png");
-    JY_PicLoadFile("./data/Eft.idx", "./data/Eft.grp", 3, NULL, NULL);	//--ÌØĞ§ÌùÍ¼
+    JY_PicLoadFile("./data/Eft.idx", "./data/Eft.grp", 3, NULL, NULL);	//--ç‰¹æ•ˆè´´å›¾
     JY_LoadPNGPath("./data/body", 90, 20000, g_ScreenW / 936 * 100, "png");
     JY_LoadPNGPath("./data/xt", 91, 20000, g_ScreenW / 936 * 100, "png");
     JY_PicLoadFile("./data/bj.idx", "./data/bj.grp", 92, NULL, NULL);
@@ -110,8 +107,8 @@ int JY_PicInit(const char* PalletteFilename)
     return 0;
 }
 
-// ¼ÓÔØÎÄ¼şĞÅÏ¢
-// filename ÎÄ¼şÃû
+// åŠ è½½æ–‡ä»¶ä¿¡æ¯
+// filename æ–‡ä»¶å
 // id  0 - PIC_FILE_NUM-1
 int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int width, int height)
 {
@@ -119,18 +116,18 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
     struct CacheNode* tmpcache;
     FILE* fp;
 
-    if (id < 0 || id >= PIC_FILE_NUM)    // id³¬³ö·¶Î§
+    if (id < 0 || id >= PIC_FILE_NUM)    // idè¶…å‡ºèŒƒå›´
     {
         return 1;
     }
 
-    if (pic_file[id].pcache.size())          //ÊÍ·Åµ±Ç°ÎÄ¼şÕ¼ÓÃµÄ¿Õ¼ä£¬²¢ÇåÀícache
+    if (pic_file[id].pcache.size())          //é‡Šæ”¾å½“å‰æ–‡ä»¶å ç”¨çš„ç©ºé—´ï¼Œå¹¶æ¸…ç†cache
     {
         int i;
-        for (i = 0; i < pic_file[id].num; i++)     //Ñ­»·È«²¿ÌùÍ¼£¬
+        for (i = 0; i < pic_file[id].num; i++)     //å¾ªç¯å…¨éƒ¨è´´å›¾ï¼Œ
         {
             tmpcache = pic_file[id].pcache[i];
-            if (tmpcache)         // ¸ÃÌùÍ¼ÓĞ»º´æÔòÉ¾³ı
+            if (tmpcache)         // è¯¥è´´å›¾æœ‰ç¼“å­˜åˆ™åˆ é™¤
             {
                 delete tmpcache;
             }
@@ -145,16 +142,16 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         pic_file[id].fp = NULL;
     }
 
-    // ¶ÁÈ¡idxÎÄ¼ş
+    // è¯»å–idxæ–‡ä»¶
 
-    pic_file[id].num = FileLength(idxfilename) / 4;    //idx ÌùÍ¼¸öÊı
+    pic_file[id].num = FileLength(idxfilename) / 4;    //idx è´´å›¾ä¸ªæ•°
     pic_file[id].idx = (int*)malloc((pic_file[id].num + 1) * 4);
     if (pic_file[id].idx == NULL)
     {
         JY_Error("JY_PicLoadFile: cannot malloc idx memory!\n");
         return 1;
     }
-    //¶ÁÈ¡ÌùÍ¼idxÎÄ¼ş
+    //è¯»å–è´´å›¾idxæ–‡ä»¶
     if ((fp = fopen(idxfilename, "rb")) == NULL)
     {
         JY_Error("JY_PicLoadFile: idx file not open ---%s", idxfilename);
@@ -166,16 +163,16 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
 
     pic_file[id].idx[0] = 0;
 
-    //¶ÁÈ¡grpÎÄ¼ş
+    //è¯»å–grpæ–‡ä»¶
     pic_file[id].filelength = FileLength(grpfilename);
 
-    //¶ÁÈ¡ÌùÍ¼grpÎÄ¼ş
+    //è¯»å–è´´å›¾grpæ–‡ä»¶
     if ((fp = fopen(grpfilename, "rb")) == NULL)
     {
         JY_Error("JY_PicLoadFile: grp file not open ---%s", grpfilename);
         return 1;
     }
-    if (g_PreLoadPicGrp == 1)     //grpÎÄ¼ş¶ÁÈëÄÚ´æ
+    if (g_PreLoadPicGrp == 1)     //grpæ–‡ä»¶è¯»å…¥å†…å­˜
     {
         pic_file[id].grp = (unsigned char*)malloc(pic_file[id].filelength);
         if (pic_file[id].grp == NULL)
@@ -217,16 +214,16 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
     return 0;
 }
 
-// ¼ÓÔØ²¢ÏÔÊ¾ÌùÍ¼
-// fileid        ÌùÍ¼ÎÄ¼şid
-// picid     ÌùÍ¼±àºÅ
-// x,y       ÏÔÊ¾Î»ÖÃ
-//  flag ²»Í¬bit´ú±í²»Í¬º¬Òå£¬È±Ê¡¾ùÎª0
-//  B0    0 ¿¼ÂÇÆ«ÒÆxoff£¬yoff¡£=1 ²»¿¼ÂÇÆ«ÒÆÁ¿
-//  B1    0     , 1 Óë±³¾°alpla »ìºÏÏÔÊ¾, value ÎªalphaÖµ(0-256), 0±íÊ¾Í¸Ã÷
-//  B2            1 È«ºÚ
-//  B3            1 È«°×
-//  value °´ÕÕflag¶¨Òå£¬ÎªalphaÖµ£¬
+// åŠ è½½å¹¶æ˜¾ç¤ºè´´å›¾
+// fileid        è´´å›¾æ–‡ä»¶id
+// picid     è´´å›¾ç¼–å·
+// x,y       æ˜¾ç¤ºä½ç½®
+//  flag ä¸åŒbitä»£è¡¨ä¸åŒå«ä¹‰ï¼Œç¼ºçœå‡ä¸º0
+//  B0    0 è€ƒè™‘åç§»xoffï¼Œyoffã€‚=1 ä¸è€ƒè™‘åç§»é‡
+//  B1    0     , 1 ä¸èƒŒæ™¯alpla æ··åˆæ˜¾ç¤º, value ä¸ºalphaå€¼(0-256), 0è¡¨ç¤ºé€æ˜
+//  B2            1 å…¨é»‘
+//  B3            1 å…¨ç™½
+//  value æŒ‰ç…§flagå®šä¹‰ï¼Œä¸ºalphaå€¼ï¼Œ
 
 int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal, int percent)
 {
@@ -242,14 +239,14 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
 
     picid = picid / 2;
 
-    if (fileid < 0 || fileid >= PIC_FILE_NUM || picid < 0 || picid >= pic_file[fileid].num)    // ²ÎÊı´íÎó
+    if (fileid < 0 || fileid >= PIC_FILE_NUM || picid < 0 || picid >= pic_file[fileid].num)    // å‚æ•°é”™è¯¯
     {
         return 1;
     }
 
-    if (pic_file[fileid].pcache[picid] == NULL)     //µ±Ç°ÌùÍ¼Ã»ÓĞ¼ÓÔØ
+    if (pic_file[fileid].pcache[picid] == NULL)     //å½“å‰è´´å›¾æ²¡æœ‰åŠ è½½
     {
-        //Éú³ÉcacheÊı¾İ
+        //ç”Ÿæˆcacheæ•°æ®
         newcache = new CacheNode();
         if (newcache == NULL)
         {
@@ -260,7 +257,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
         newcache->id = picid;
         newcache->fileid = fileid;
         LoadPic(fileid, picid, newcache);
-        ////Ö¸¶¨¿í¶ÈºÍ¸ß¶È
+        ////æŒ‡å®šå®½åº¦å’Œé«˜åº¦
         //if (newcache->s != NULL && pic_file[fileid].width > 0 && pic_file[fileid].height > 0
         //    && pic_file[fileid].width != newcache->s->w && pic_file[fileid].height != newcache->s->h)
         //{
@@ -282,7 +279,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
 
         //    newcache->xoff = (int)(zoomx * newcache->xoff);
         //    newcache->yoff = (int)(zoomy * newcache->yoff);
-        //    //SDL_SetColorKey(newcache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //Í¸Ã÷É«
+        //    //SDL_SetColorKey(newcache->s, SDL_TRUE, ConvertColor(g_MaskColor32));  //é€æ˜è‰²
         //    SDL_FreeSurface(tmpsur);
         //}
         pic_file[fileid].pcache[picid] = newcache;
@@ -292,7 +289,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
         newcache = pic_file[fileid].pcache[picid];
     }
 
-    if (newcache->t == NULL)     //ÌùÍ¼Îª¿Õ£¬Ö±½ÓÍË³ö
+    if (newcache->t == NULL)     //è´´å›¾ä¸ºç©ºï¼Œç›´æ¥é€€å‡º
     {
         return 1;
     }
@@ -304,17 +301,17 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
     }
     else
     {
-		if (width > 0 && height >0)  //Ì«¼«Ã¨µ÷Õû£º¿í¸ß×Ô¶¨Òå£¬ÌùÍ¼µÄÎ»ÖÃµ÷Õû
+		if (width > 0 && height >0)  //å¤ªæçŒ«è°ƒæ•´ï¼šå®½é«˜è‡ªå®šä¹‰ï¼Œè´´å›¾çš„ä½ç½®è°ƒæ•´
 		{
 			xnew = x - newcache->xoff*width / newcache->w;
 			ynew = y - newcache->yoff*height /newcache->h;
 		}
-		else if (width > 0 && height <= 0)  //Ì«¼«Ã¨µ÷Õû£º¿í×Ô¶¨Òå£¬ÌùÍ¼µÄÎ»ÖÃµ÷Õû
+		else if (width > 0 && height <= 0)  //å¤ªæçŒ«è°ƒæ•´ï¼šå®½è‡ªå®šä¹‰ï¼Œè´´å›¾çš„ä½ç½®è°ƒæ•´
 		{
 			xnew = x - newcache->xoff*width / newcache->w;
 			ynew = y - newcache->yoff*width / newcache->w;
 		}
-		else if (width <= 0 && height > 0)  //Ì«¼«Ã¨µ÷Õû£º±ÈÀû×Ô¶¨Òå£¬ÌùÍ¼µÄÎ»ÖÃµ÷Õû
+		else if (width <= 0 && height > 0)  //å¤ªæçŒ«è°ƒæ•´ï¼šæ¯”åˆ©è‡ªå®šä¹‰ï¼Œè´´å›¾çš„ä½ç½®è°ƒæ•´
 		{
 			float bl = height/ 100.0;
 			width = newcache->w*bl;
@@ -322,7 +319,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
 			xnew = x - newcache->xoff*bl;
 			ynew = y - newcache->yoff*bl;
 		}
-		else if (width == 0 && height == 0)    //Ì«¼«Ã¨µ÷Õû£º¿í¸ß¶¼Îª0Ôò¸ù¾İzoomÖµ¸Ä±äÌùÍ¼´óĞ¡
+		else if (width == 0 && height == 0)    //å¤ªæçŒ«è°ƒæ•´ï¼šå®½é«˜éƒ½ä¸º0åˆ™æ ¹æ®zoomå€¼æ”¹å˜è´´å›¾å¤§å°
 		{
 			width = newcache->w*g_Zoom;
 			height = newcache->h*g_Zoom;
@@ -339,7 +336,7 @@ int JY_LoadPic(int fileid, int picid, int x, int y, int flag, int value, int col
     return 0;
 }
 
-// ¼ÓÔØÌùÍ¼µ½±íÃæ
+// åŠ è½½è´´å›¾åˆ°è¡¨é¢
 int LoadPic(int fileid, int picid, struct CacheNode* cache)
 {
 
@@ -358,7 +355,7 @@ int LoadPic(int fileid, int picid, struct CacheNode* cache)
     id1 = pic_file[fileid].idx[picid];
     id2 = pic_file[fileid].idx[picid + 1];
 
-    // ´¦ÀíÒ»Ğ©ÌØÊâÇé¿ö£¬°´ÕÕĞŞ¸ÄÆ÷ÖĞµÄ´úÂë
+    // å¤„ç†ä¸€äº›ç‰¹æ®Šæƒ…å†µï¼ŒæŒ‰ç…§ä¿®æ”¹å™¨ä¸­çš„ä»£ç 
     if (id1 < 0)
     {
         datalong = 0;
@@ -373,13 +370,13 @@ int LoadPic(int fileid, int picid, struct CacheNode* cache)
 
     if (datalong > 0)
     {
-        //¶ÁÈ¡ÌùÍ¼grpÎÄ¼ş£¬µÃµ½Ô­Ê¼Êı¾İ
-        if (g_PreLoadPicGrp == 1)           //ÓĞÔ¤¶Á£¬´ÓÄÚ´æÖĞ¶ÁÊı¾İ
+        //è¯»å–è´´å›¾grpæ–‡ä»¶ï¼Œå¾—åˆ°åŸå§‹æ•°æ®
+        if (g_PreLoadPicGrp == 1)           //æœ‰é¢„è¯»ï¼Œä»å†…å­˜ä¸­è¯»æ•°æ®
         {
             data = pic_file[fileid].grp + id1;
             p = NULL;
         }
-        else         //Ã»ÓĞÔ¤¶Á£¬´ÓÎÄ¼şÖĞ¶ÁÈ¡
+        else         //æ²¡æœ‰é¢„è¯»ï¼Œä»æ–‡ä»¶ä¸­è¯»å–
         {
             fseek(pic_file[fileid].fp, id1, SEEK_SET);
             data = (unsigned char*)malloc(datalong);
@@ -403,7 +400,7 @@ int LoadPic(int fileid, int picid, struct CacheNode* cache)
             //SDL_FreeSurface(cache->s);
             cache->s = NULL;
         }
-        else        //¶ÁÈ¡png¸ñÊ½
+        else        //è¯»å–pngæ ¼å¼
         {
             tmpsurf = IMG_LoadPNG_RW(fp_SDL);
             if (tmpsurf == NULL)
@@ -435,11 +432,11 @@ int LoadPic(int fileid, int picid, struct CacheNode* cache)
 }
 
 
-//µÃµ½ÌùÍ¼´óĞ¡
+//å¾—åˆ°è´´å›¾å¤§å°
 int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 {
     struct CacheNode* newcache;
-    int r = JY_LoadPic(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0);   //¼ÓÔØÌùÍ¼µ½¿´²»¼ûµÄÎ»ÖÃ
+    int r = JY_LoadPic(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0);   //åŠ è½½è´´å›¾åˆ°çœ‹ä¸è§çš„ä½ç½®
 
     *w = 0;
     *h = 0;
@@ -453,7 +450,7 @@ int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
     newcache = pic_file[fileid].pcache[picid / 2];
 
-    if (newcache->t)        // ÒÑÓĞ£¬ÔòÖ±½ÓÏÔÊ¾
+    if (newcache->t)        // å·²æœ‰ï¼Œåˆ™ç›´æ¥æ˜¾ç¤º
     {
         *w = newcache->w;
         *h = newcache->h;
@@ -464,7 +461,7 @@ int JY_GetPicXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
     return 0;
 }
 
-//°´ÕÕÔ­À´ÓÎÏ·µÄRLE¸ñÊ½´´½¨±íÃæ
+//æŒ‰ç…§åŸæ¥æ¸¸æˆçš„RLEæ ¼å¼åˆ›å»ºè¡¨é¢
 SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalong)
 {
     int p = 0;
@@ -492,22 +489,22 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
     for (i = 0; i < h; i++)
     {
         yoffset = i * w;
-        row = data[p];            // iĞĞÊı¾İ¸öÊı
+        row = data[p];            // iè¡Œæ•°æ®ä¸ªæ•°
         start = p;
         p++;
         if (row > 0)
         {
-            x = 0;                // iĞĞÄ¿Ç°ÁĞ
+            x = 0;                // iè¡Œç›®å‰åˆ—
             for (;;)
             {
-                x = x + data[p];    // iĞĞ¿Õ°×µã¸öÊı£¬Ìø¸öÍ¸Ã÷µã
-                if (x >= w)        // iĞĞ¿í¶Èµ½Í·£¬½áÊø
+                x = x + data[p];    // iè¡Œç©ºç™½ç‚¹ä¸ªæ•°ï¼Œè·³ä¸ªé€æ˜ç‚¹
+                if (x >= w)        // iè¡Œå®½åº¦åˆ°å¤´ï¼Œç»“æŸ
                 {
                     break;
                 }
 
                 p++;
-                solidnum = data[p];  // ²»Í¸Ã÷µã¸öÊı
+                solidnum = data[p];  // ä¸é€æ˜ç‚¹ä¸ªæ•°
                 p++;
                 for (j = 0; j < solidnum; j++)
                 {
@@ -525,11 +522,11 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
                 if (x >= w)
                 {
                     break;
-                }     // iĞĞ¿í¶Èµ½Í·£¬½áÊø
+                }     // iè¡Œå®½åº¦åˆ°å¤´ï¼Œç»“æŸ
                 if (p - start >= row)
                 {
                     break;
-                }    // iĞĞÃ»ÓĞÊı¾İ£¬½áÊø
+                }    // iè¡Œæ²¡æœ‰æ•°æ®ï¼Œç»“æŸ
             }
             if (p + 1 >= datalong)
             {
@@ -537,7 +534,7 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
             }
         }
     }
-    ps1 = SDL_CreateRGBSurfaceFrom(data32, w, h, 32, w * 4, RMASK, GMASK, BMASK, AMASK);  //´´½¨32Î»±íÃæ
+    ps1 = SDL_CreateRGBSurfaceFrom(data32, w, h, 32, w * 4, RMASK, GMASK, BMASK, AMASK);  //åˆ›å»º32ä½è¡¨é¢
     if (ps1 == NULL)
     {
         JY_Error("CreatePicSurface32: cannot create SDL_Surface ps1!\n");
@@ -554,8 +551,8 @@ SDL_Texture* CreateTextureFromRLE(unsigned char* data, int w, int h, int datalon
     return tex;
 }
 
-// ¶ÁÈ¡µ÷É«°å
-// ÎÄ¼şÃûÎª¿ÕÔòÖ±½Ó·µ»Ø
+// è¯»å–è°ƒè‰²æ¿
+// æ–‡ä»¶åä¸ºç©ºåˆ™ç›´æ¥è¿”å›
 int LoadPalette(const char* filename)
 {
     FILE* fp;
@@ -586,18 +583,18 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
 {
     int i;
     struct CacheNode* tmpcache;
-    if (fileid < 0 || fileid >= PIC_FILE_NUM)    // id³¬³ö·¶Î§
+    if (fileid < 0 || fileid >= PIC_FILE_NUM)    // idè¶…å‡ºèŒƒå›´
     {
         return 1;
     }
 
-    if (pic_file[fileid].pcache.size())          //ÊÍ·Åµ±Ç°ÎÄ¼şÕ¼ÓÃµÄ¿Õ¼ä£¬²¢ÇåÀícache
+    if (pic_file[fileid].pcache.size())          //é‡Šæ”¾å½“å‰æ–‡ä»¶å ç”¨çš„ç©ºé—´ï¼Œå¹¶æ¸…ç†cache
     {
         int i;
-        for (i = 0; i < pic_file[fileid].num; i++)     //Ñ­»·È«²¿ÌùÍ¼£¬
+        for (i = 0; i < pic_file[fileid].num; i++)     //å¾ªç¯å…¨éƒ¨è´´å›¾ï¼Œ
         {
             tmpcache = pic_file[fileid].pcache[i];
-            if (tmpcache)         // ¸ÃÌùÍ¼ÓĞ»º´æÔòÉ¾³ı
+            if (tmpcache)         // è¯¥è´´å›¾æœ‰ç¼“å­˜åˆ™åˆ é™¤
             {
                 delete tmpcache;
             }
@@ -605,7 +602,7 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         //SafeFree(pic_file[fileid].pcache);
     }
 
-    //sb500Ìí¼Ó
+    //sb500æ·»åŠ 
     pic_file[fileid].type = 1;
     int ll = 0;
     char zip_name[1024];
@@ -639,10 +636,10 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
 
     if (num < 0)
     {
-        num = ll / 4;    //Í¼Æ¬¸öÊı
+        num = ll / 4;    //å›¾ç‰‡ä¸ªæ•°
     }
 
-    //sb500ĞŞ¸Ä
+    //sb500ä¿®æ”¹
     if (num > 0)
     {
         pic_file[fileid].num = num;
@@ -662,18 +659,18 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
 
     if (ll == 0)
     {
-        //Ã»ÓĞindexÎÄ¼ş
+        //æ²¡æœ‰indexæ–‡ä»¶
         pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
         for (i = 0; i < pic_file[fileid].num; i++)
         {
-            //Ã»ÕÒµ½indexÎÄ¼şÔòÉèÖÃÎªÒ»¸ö²»¿ÉÄÜµÄÊı×Ö
+            //æ²¡æ‰¾åˆ°indexæ–‡ä»¶åˆ™è®¾ç½®ä¸ºä¸€ä¸ªä¸å¯èƒ½çš„æ•°å­—
             pic_file[fileid].offset[i * 2] = 9999;
             pic_file[fileid].offset[i * 2 + 1] = 9999;
         }
     }
     else
     {
-        //ÓĞindexÎÄ¼ş£¬Ôò¶ÁÈ¡µ½µÄ²¿·Ö°´ÕÕindexÉèÖÃÆ«ÒÆ
+        //æœ‰indexæ–‡ä»¶ï¼Œåˆ™è¯»å–åˆ°çš„éƒ¨åˆ†æŒ‰ç…§indexè®¾ç½®åç§»
         pic_file[fileid].offset = offset;
         pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
         for (i = ll / 4; i < pic_file[fileid].num; i++)
@@ -697,17 +694,17 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
 
     picid = picid / 2;
 
-    if (fileid < 0 || fileid >= PIC_FILE_NUM || picid < 0 || picid >= pic_file[fileid].num)    // ²ÎÊı´íÎó
+    if (fileid < 0 || fileid >= PIC_FILE_NUM || picid < 0 || picid >= pic_file[fileid].num)    // å‚æ•°é”™è¯¯
     {
         return 1;
     }
-    if (pic_file[fileid].pcache[picid] == NULL)     //µ±Ç°ÌùÍ¼Ã»ÓĞ¼ÓÔØ
+    if (pic_file[fileid].pcache[picid] == NULL)     //å½“å‰è´´å›¾æ²¡æœ‰åŠ è½½
     {
         char str[512];
         SDL_RWops* fp_SDL;
         double zoom = (double)pic_file[fileid].percent / 100.0;
         std::string content;
-        //Éú³ÉcacheÊı¾İ
+        //ç”Ÿæˆcacheæ•°æ®
         newcache = new CacheNode();
         if (newcache == NULL)
         {
@@ -810,7 +807,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
 
         SDL_FreeRW(fp_SDL);
 
-        //Ö¸¶¨±ÈÀı
+        //æŒ‡å®šæ¯”ä¾‹
         if (pic_file[fileid].percent > 0 && pic_file[fileid].percent != 100 && zoom != 0 && zoom != 1)
         {
             newcache->w = (int)(zoom * newcache->w);
@@ -819,17 +816,17 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
             //newcache->s = zoomSurface(tmpsur, zoom, zoom, SMOOTHING_ON);
             newcache->xoff = (int)(zoom * newcache->xoff);
             newcache->yoff = (int)(zoom * newcache->yoff);
-            //SDL_SetColorKey(newcache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //Í¸Ã÷É«
+            //SDL_SetColorKey(newcache->s,SDL_SRCCOLORKEY|SDL_RLEACCEL ,ConvertColor(g_MaskColor32));  //é€æ˜è‰²
             //SDL_FreeSurface(tmpsur);
         }
         pic_file[fileid].pcache[picid] = newcache;
     }
-    else     //ÒÑ¼ÓÔØÌùÍ¼
+    else     //å·²åŠ è½½è´´å›¾
     {
         newcache = pic_file[fileid].pcache[picid];
     }
 
-    if (newcache->t == NULL)     //ÌùÍ¼Îª¿Õ£¬Ö±½ÓÍË³ö
+    if (newcache->t == NULL)     //è´´å›¾ä¸ºç©ºï¼Œç›´æ¥é€€å‡º
     {
         return 1;
     }
@@ -861,7 +858,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
 
 int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 {
-    int r = JY_LoadPNG(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0, 100);   //¼ÓÔØÌùÍ¼µ½¿´²»¼ûµÄÎ»ÖÃ
+    int r = JY_LoadPNG(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0, 100);   //åŠ è½½è´´å›¾åˆ°çœ‹ä¸è§çš„ä½ç½®
 
     *w = 0;
     *h = 0;
@@ -875,7 +872,7 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
     auto newcache = pic_file[fileid].pcache[picid / 2];
 
-    if (newcache->t)        // ÒÑÓĞ£¬ÔòÖ±½ÓÏÔÊ¾
+    if (newcache->t)        // å·²æœ‰ï¼Œåˆ™ç›´æ¥æ˜¾ç¤º
     {
         *w = newcache->w;
         *h = newcache->h;
@@ -887,8 +884,8 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 }
 
 
-// °Ñ±íÃæblitµ½±³¾°»òÕßÇ°¾°±íÃæ
-// x,y Òª¼ÓÔØµ½±íÃæµÄ×óÉÏ½Ç×ø±ê
+// æŠŠè¡¨é¢blitåˆ°èƒŒæ™¯æˆ–è€…å‰æ™¯è¡¨é¢
+// x,y è¦åŠ è½½åˆ°è¡¨é¢çš„å·¦ä¸Šè§’åæ ‡
 int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal, int percent)
 {
     SDL_Surface* tmps;
@@ -925,7 +922,7 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
         return 1;
     }
 
-    if ((flag & 0x2) == 0)          // Ã»ÓĞalpha
+    if ((flag & 0x2) == 0)          // æ²¡æœ‰alpha
     {
         SDL_SetTextureColorMod(lps, 255, 255, 255);
         SDL_SetTextureBlendMode(lps, SDL_BLENDMODE_BLEND);
@@ -933,11 +930,11 @@ int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color
         RenderToTexture(lps, NULL, g_Texture, &rect, rotate, NULL, reversal);
         //SDL_BlitSurface(lps, NULL, g_Surface, &rect);
     }
-    else    // ÓĞalpha
+    else    // æœ‰alpha
     {
-        if ((flag & 0x4) || (flag & 0x8) || (flag & 0x10))     // 4-ºÚ, 8-°×, 16-ÑÕÉ«
+        if ((flag & 0x4) || (flag & 0x8) || (flag & 0x10))     // 4-é»‘, 8-ç™½, 16-é¢œè‰²
         {
-            // 4-ºÚ, 8-°×, 16-ÑÕÉ«
+            // 4-é»‘, 8-ç™½, 16-é¢œè‰²
             if (flag & 0x4)
             {
                 SDL_SetTextureColorMod(lps, 32, 32, 32);

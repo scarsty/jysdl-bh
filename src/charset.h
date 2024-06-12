@@ -1,46 +1,46 @@
-#pragma once
+ï»¿#pragma once
 
 #include "SDL2/SDL_ttf.h"
 
 //CharSet.c
 
-typedef struct UseFont_Type {      // ¶¨Òåµ±Ç°Ê¹ÓÃµÄ×ÖÌå½á¹¹
-    int size;                      //×ÖºÅ£¬µ¥Î»ÏñËØ
-    char *name;                    //×ÖÌåÎÄ¼şÃû
-    TTF_Font *font;                //´ò¿ªµÄ×ÖÌå
+typedef struct UseFont_Type {      // å®šä¹‰å½“å‰ä½¿ç”¨çš„å­—ä½“ç»“æ„
+    int size;                      //å­—å·ï¼Œå•ä½åƒç´ 
+    char *name;                    //å­—ä½“æ–‡ä»¶å
+    TTF_Font *font;                //æ‰“å¼€çš„å­—ä½“
 }UseFont;
 
-#define FONTNUM 10                 //¶¨ÒåÍ¬Ê±´ò¿ªµÄ×ÖÌå¸öÊı
+#define FONTNUM 10                 //å®šä¹‰åŒæ—¶æ‰“å¼€çš„å­—ä½“ä¸ªæ•°
 
-//³õÊ¼»¯×ÖÌå
+//åˆå§‹åŒ–å­—ä½“
 int InitFont();
 
-//ÊÍ·Å×ÖÌå½á¹¹
+//é‡Šæ”¾å­—ä½“ç»“æ„
 int ExitFont();
 
-// ¸ù¾İ×ÖÌåÎÄ¼şÃûºÍ×ÖºÅ´ò¿ª×ÖÌå
-// size Îª°´ÏñËØ´óĞ¡µÄ×ÖºÅ
+// æ ¹æ®å­—ä½“æ–‡ä»¶åå’Œå­—å·æ‰“å¼€å­—ä½“
+// size ä¸ºæŒ‰åƒç´ å¤§å°çš„å­—å·
 TTF_Font *GetFont(const char *filename, int size);
 
-// Ğ´×Ö·û´®
-// x,y ×ø±ê
-// str ×Ö·û´®
-// color ÑÕÉ«
-// size ×ÖÌå´óĞ¡£¬×ÖĞÎÎªËÎÌå¡£ 
-// fontname ×ÖÌåÃû
-// charset ×Ö·û¼¯ 0 GBK 1 big5
-// OScharset ÎŞÓÃ
+// å†™å­—ç¬¦ä¸²
+// x,y åæ ‡
+// str å­—ç¬¦ä¸²
+// color é¢œè‰²
+// size å­—ä½“å¤§å°ï¼Œå­—å½¢ä¸ºå®‹ä½“ã€‚ 
+// fontname å­—ä½“å
+// charset å­—ç¬¦é›† 0 GBK 1 big5
+// OScharset æ— ç”¨
 int JY_DrawStr(int x, int y, const char *str, int color, int size, const char *fontname,
     int charset, int OScharset);
 
-//¼ÓÔØÂë±í×ª»»ÎÄ¼ş
+//åŠ è½½ç è¡¨è½¬æ¢æ–‡ä»¶
 int LoadMB(const char* mbfile);
 
 
-// ºº×Ö×Ö·û¼¯×ª»»
+// æ±‰å­—å­—ç¬¦é›†è½¬æ¢
 // flag = 0   Big5 --> GBK     
 //      = 1   GBK  --> Big5    
 //      = 2   Big5 --> Unicode
 //      = 3   GBK  --> Unicode
-// ×¢ÒâÒª±£Ö¤destÓĞ×ã¹»µÄ¿Õ¼ä£¬Ò»°ã½¨ÒéÈ¡src³¤¶ÈµÄÁ½±¶+1£¬±£Ö¤È«Ó¢ÎÄ×Ö·ûÒ²ÄÜ×ª»¯Îªunicode
+// æ³¨æ„è¦ä¿è¯destæœ‰è¶³å¤Ÿçš„ç©ºé—´ï¼Œä¸€èˆ¬å»ºè®®å–srcé•¿åº¦çš„ä¸¤å€+1ï¼Œä¿è¯å…¨è‹±æ–‡å­—ç¬¦ä¹Ÿèƒ½è½¬åŒ–ä¸ºunicode
 int  JY_CharSet(const char *src, char *dest, int flag);

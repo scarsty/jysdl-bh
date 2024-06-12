@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "jymain.h"
@@ -8,7 +8,7 @@
 #include "mainmap.h"
 #include "ZipFile.h"
 
-//ÒÔÏÂÎªËùÓĞ°ü×°µÄlua½Ó¿Úº¯Êı£¬¶ÔÓ¦ÓÚÃ¿¸öÊµ¼ÊµÄº¯Êı
+//ä»¥ä¸‹ä¸ºæ‰€æœ‰åŒ…è£…çš„luaæ¥å£å‡½æ•°ï¼Œå¯¹åº”äºæ¯ä¸ªå®é™…çš„å‡½æ•°
 
 int HAPI_DrawStr(lua_State* pL)
 {
@@ -231,12 +231,12 @@ int HAPI_PicInit(lua_State* pL)
 
 int HAPI_PicLoadFile(lua_State* pL)
 {
-    int n = lua_gettop(pL);         //µÃµ½²ÎÊıµÄ³¤¶È
+    int n = lua_gettop(pL);         //å¾—åˆ°å‚æ•°çš„é•¿åº¦
     const char* idx = lua_tostring(pL, 1);
     const char* grp = lua_tostring(pL, 2);
     int id = (int)lua_tonumber(pL, 3);
 
-    //À¶ÑÌÇå£º´«Èë¿í¶ÈºÍ¸ß¶È
+    //è“çƒŸæ¸…ï¼šä¼ å…¥å®½åº¦å’Œé«˜åº¦
     int width = 0;
     int height = 0;
     if (n > 3)
@@ -293,12 +293,12 @@ int HAPI_LoadPic(lua_State* pL)
     {
         height = (int)lua_tonumber(pL, 9);
     }
-	//Ğı×ª
+	//æ—‹è½¬
 	if (lua_isnoneornil(pL, 10) == 0)
 	{
 		rotate = (double)lua_tonumber(pL, 10);
 	}
-	//·´×ª
+	//åè½¬
 	if (lua_isnoneornil(pL, 11) == 0)
 	{
 		fz = (int)lua_tonumber(pL, 11);
@@ -311,7 +311,7 @@ int HAPI_LoadPic(lua_State* pL)
 	{
 		 reversal = SDL_FLIP_VERTICAL;
 	}
-    //·´×ª
+    //åè½¬
     if (lua_isnoneornil(pL, 12) == 0)
     {
         percent = (int)lua_tonumber(pL, 12);
@@ -532,7 +532,7 @@ int HAPI_CleanWarMap(lua_State* pL)
 
 int HAPI_DrawWarMap(lua_State* pL)
 {
-    int n = lua_gettop(pL);         //µÃµ½²ÎÊıµÄ³¤¶È
+    int n = lua_gettop(pL);         //å¾—åˆ°å‚æ•°çš„é•¿åº¦
     int flag = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
     int y = (int)lua_tonumber(pL, 3);
@@ -570,7 +570,7 @@ int HAPI_DrawWarMap(lua_State* pL)
 	return 0;
 }
 
-int HAPI_SaveSur(lua_State* pL)         //±£´æÆÁÄ»µ½ÁÙÊ±±íÃæ
+int HAPI_SaveSur(lua_State* pL)         //ä¿å­˜å±å¹•åˆ°ä¸´æ—¶è¡¨é¢
 {
     int x = (int)lua_tonumber(pL, 1);
     int y = (int)lua_tonumber(pL, 2);
@@ -581,7 +581,7 @@ int HAPI_SaveSur(lua_State* pL)         //±£´æÆÁÄ»µ½ÁÙÊ±±íÃæ
     return 1;
 }
 
-int HAPI_LoadSur(lua_State* pL)             //¼ÓÔØÁÙÊ±±íÃæµ½ÆÁÄ»
+int HAPI_LoadSur(lua_State* pL)             //åŠ è½½ä¸´æ—¶è¡¨é¢åˆ°å±å¹•
 {
     int id = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
@@ -590,28 +590,28 @@ int HAPI_LoadSur(lua_State* pL)             //¼ÓÔØÁÙÊ±±íÃæµ½ÆÁÄ»
     return 0;
 }
 
-int HAPI_FreeSur(lua_State* pL)                 //ÊÍ·Å
+int HAPI_FreeSur(lua_State* pL)                 //é‡Šæ”¾
 {
     int id = (int)lua_tonumber(pL, 1);
     JY_FreeSur(id);
     return 0;
 }
 
-int HAPI_ScreenWidth(lua_State* pL)             //ÆÁÄ»¿í¶È
+int HAPI_ScreenWidth(lua_State* pL)             //å±å¹•å®½åº¦
 {
     lua_pushnumber(pL, g_ScreenW);
     return 1;
 }
 
-int HAPI_ScreenHeight(lua_State* pL)            //ÆÁÄ»¸ß¶È
+int HAPI_ScreenHeight(lua_State* pL)            //å±å¹•é«˜åº¦
 {
     lua_pushnumber(pL, g_ScreenH);
     return 1;
 }
 
-int HAPI_LoadPNGPath(lua_State* pL)             //°´Í¼Æ¬¶ÁÈ¡PNG
+int HAPI_LoadPNGPath(lua_State* pL)             //æŒ‰å›¾ç‰‡è¯»å–PNG
 {
-    int n = lua_gettop(pL);         //µÃµ½²ÎÊıµÄ³¤¶È
+    int n = lua_gettop(pL);         //å¾—åˆ°å‚æ•°çš„é•¿åº¦
     const char* path = lua_tostring(pL, 1);
     int fileid = (int)lua_tonumber(pL, 2);
     int num = (int)lua_tonumber(pL, 3);
@@ -632,9 +632,9 @@ int HAPI_LoadPNGPath(lua_State* pL)             //°´Í¼Æ¬¶ÁÈ¡PNG
 
     return 0;
 }
-int HAPI_LoadPNG(lua_State* pL)             //°´Í¼Æ¬¶ÁÈ¡PNG
+int HAPI_LoadPNG(lua_State* pL)             //æŒ‰å›¾ç‰‡è¯»å–PNG
 {
-    int n = lua_gettop(pL);         //µÃµ½²ÎÊıµÄ³¤¶È
+    int n = lua_gettop(pL);         //å¾—åˆ°å‚æ•°çš„é•¿åº¦
     int fileid = (int)lua_tonumber(pL, 1);
     int picid = (int)lua_tonumber(pL, 2);
     int x = (int)lua_tonumber(pL, 3);
@@ -697,8 +697,8 @@ int HAPI_SetWeather(lua_State* pL)
     return 0;
 }
 
-// byteÊı×éluaº¯Êı
-/*  lua µ÷ÓÃĞÎÊ½£º(×¢Òâ£¬Î»ÖÃ¶¼ÊÇ´Ó0¿ªÊ¼
+// byteæ•°ç»„luaå‡½æ•°
+/*  lua è°ƒç”¨å½¢å¼ï¼š(æ³¨æ„ï¼Œä½ç½®éƒ½æ˜¯ä»0å¼€å§‹
      handle=Byte_create(size);
      Byte_release(h);
      handle=Byte_loadfile(h,filename,start,length);
@@ -716,7 +716,7 @@ int HAPI_SetWeather(lua_State* pL)
 int Byte_create(lua_State* pL)
 {
     int x = (int)lua_tonumber(pL, 1);
-    char* p = (char*)lua_newuserdata(pL, x);                 //´´½¨userdata£¬²»ĞèÒªÊÍ·ÅÁË¡£
+    char* p = (char*)lua_newuserdata(pL, x);                 //åˆ›å»ºuserdataï¼Œä¸éœ€è¦é‡Šæ”¾äº†ã€‚
     int i;
 
     if (p == NULL)
