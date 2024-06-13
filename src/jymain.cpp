@@ -1,36 +1,13 @@
-﻿
-// 主程序
+﻿// 主程序
 // 本程序为游泳的鱼编写。
 // 版权所无，您可以以任何方式使用代码
 
 #include <stdio.h>
 #include <time.h>
 
-#include "charset.h"
-#include "jymain.h"
-#include "mainmap.h"
-#include "sdlfun.h"
 
 
-#include "config.h"
-
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
-#include "SDL2/SDL_ttf.h"
-
-#include "bass.h"
-#include "bassmidi.h"
-
-extern "C"
-{
-#include "lua.h"
-#include "luafun.h"
-#include "lualib.h"
-
-#include "lauxlib.h"
-}
-
-#include "ParticleExample.h"
+export module jymain;
 
 // 公共部分
 #ifndef BOOL
@@ -66,27 +43,6 @@ extern "C"
 
 // jymain.c
 
-int Lua_Main(lua_State* pL_main);
-
-int Lua_Config(lua_State* pL, const char* filename);
-
-int getfield(lua_State* pL, const char* key);
-
-int getfieldstr(lua_State* pL, const char* key, char* str);
-
-// 输出信息到文件debug.txt中
-int JY_Debug(const char* fmt, ...);
-
-// 输出信息到文件error.txt中
-int JY_Error(const char* fmt, ...);
-
-//限制 x在 xmin-xmax之间
-int limitX(int x, int xmin, int xmax);
-
-//取文件长度
-int FileLength(const char* filename);
-
-char* va(const char* format, ...);
 
 template <typename T>
 void swap(T& a, T& b)
@@ -96,100 +52,6 @@ void swap(T& a, T& b)
     b = t;
 }
 
-extern SDL_Window* g_Window;
-extern SDL_Renderer* g_Renderer;
-extern SDL_Texture* g_Texture;
-extern SDL_Texture* g_TextureShow;
-extern SDL_Texture* g_TextureTmp;
-
-extern SDL_Surface* g_Surface;    // 游戏使用的视频表面
-extern Uint32 g_MaskColor32;      // 透明色
-
-extern int g_Rotate;     //屏幕是否旋转
-extern int g_ScreenW;    // 屏幕宽高
-extern int g_ScreenH;
-extern int g_ScreenBpp;    // 屏幕色深
-extern int g_FullScreen;
-extern int g_EnableSound;    // 声音开关 0 关闭 1 打开
-extern int g_MusicVolume;    // 音乐声音大小
-extern int g_SoundVolume;    // 音效声音大小
-
-extern int g_XScale;    //贴图x,y方向一半大小
-extern int g_YScale;
-
-//各个地图绘制时xy方向需要多绘制的余量。保证可以全部显示
-extern int g_MMapAddX;
-extern int g_MMapAddY;
-extern int g_SMapAddX;
-extern int g_SMapAddY;
-extern int g_WMapAddX;
-extern int g_WMapAddY;
-
-extern int g_MAXCacheNum;     //最大缓存数量
-extern int g_LoadFullS;       //是否全部加载S文件
-extern int g_LoadMMapType;    //是否全部加载M文件
-extern int g_LoadMMapScope;
-extern int g_PreLoadPicGrp;     //是否预先加载贴图文件的grp
-extern int IsDebug;             //是否打开跟踪文件
-extern char JYMain_Lua[255];    //lua主函数
-extern int g_MP3;               //是否打开MP3
-extern int g_BJ;                //是否打开MP3
-extern char g_MidSF2[255];      //音色库对应的文件
-extern float g_Zoom;            //图片放大
-extern lua_State* pL_main;
-extern char g_Softener[255];    //是否柔化
-extern void* g_Tinypot;
-
-extern const char* JY_CurrentPath;
-
-extern int g_DelayTimes;
-
-extern ParticleExample g_Particle;
-
-
-
-// 全程变量
-SDL_Window* g_Window = NULL;
-SDL_Renderer* g_Renderer = NULL;
-SDL_Texture* g_Texture = NULL;
-SDL_Texture* g_TextureShow = NULL;
-SDL_Texture* g_TextureTmp = NULL;
-
-SDL_Surface* g_Surface = NULL;        // 游戏使用的视频表面
-Uint32 g_MaskColor32 = 0xff706020;    // 透明色
-
-int g_Rotate = 0;       //屏幕是否旋转
-int g_ScreenW = 800;    // 屏幕宽高
-int g_ScreenH = 600;
-int g_ScreenBpp = 16;    // 屏幕色深
-int g_FullScreen = 0;
-int g_EnableSound = 1;     // 声音开关 0 关闭 1 打开
-int g_MusicVolume = 32;    // 音乐声音大小
-int g_SoundVolume = 32;    // 音效声音大小
-
-int g_XScale = 18;    //贴图x,y方向一半大小
-int g_YScale = 9;
-
-//各个地图绘制时xy方向需要多绘制的余量。保证可以全部显示
-int g_MMapAddX;
-int g_MMapAddY;
-int g_SMapAddX;
-int g_SMapAddY;
-int g_WMapAddX;
-int g_WMapAddY;
-int g_BJ = 0;
-int g_MAXCacheNum = 1000;    //最大缓存数量
-int g_LoadFullS = 1;         //是否全部加载S文件
-int g_LoadMMapType = 0;      //是否全部加载M文件
-int g_LoadMMapScope = 0;
-int g_PreLoadPicGrp = 1;    //是否预先加载贴图文件的grp
-int IsDebug = 0;            //是否打开跟踪文件
-char JYMain_Lua[255];       //lua主函数
-int g_MP3 = 0;              //是否打开MP3
-char g_MidSF2[255];         //音色库对应的文件
-float g_Zoom = 1;           //图片放大
-char g_Softener[255];       //音色库对应的文件
-int g_DelayTimes;
 
 #ifdef _WIN32
 const char* JY_CurrentPath = "./";
@@ -293,31 +155,6 @@ static const struct luaL_Reg configLib[] = {
     { NULL, NULL }
 };
 
-void GetModes(int* width, int* height)
-{
-    char buf[10];
-    FILE* fp = fopen(_("resolution.txt"), "r");
-
-    if (!fp)
-    {
-        JY_Error("GetModes: cannot open resolution.txt");
-        return;
-    }
-
-    //宽
-    memset(buf, 0, 10);
-    fgets(buf, 10, fp);
-    *width = atoi(buf);
-
-    //高
-    memset(buf, 0, 10);
-    fgets(buf, 10, fp);
-    *height = atoi(buf);
-
-    JY_Debug("GetModes: width=%d, height=%d", *width, *height);
-
-    fclose(fp);
-}
 
 // 主程序
 int main(int argc, char* argv[])
@@ -491,107 +328,3 @@ int getfieldstr(lua_State* pL, const char* key, char* str)
 }
 
 //以下为几个通用函数
-
-// 调试函数
-// 输出到debug.txt中
-int JY_Debug(const char* fmt, ...)
-{
-    time_t t;
-    FILE* fp;
-    struct tm* newtime;
-    va_list argptr;
-#ifdef _DEBUG
-    if (IsDebug == 0)
-    {
-        return 0;
-    }
-#endif
-    char string[1024];
-    // concatenate all the arguments in one string
-    va_start(argptr, fmt);
-    vsnprintf(string, sizeof(string), fmt, argptr);
-    va_end(argptr);
-    time(&t);
-    newtime = localtime(&t);
-#ifdef _DEBUG
-    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-#else
-    fp = fopen(DEBUG_FILE, "a+t");
-    if (fp)
-    {
-        fprintf(stdout, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-        fclose(fp);
-    }
-#endif
-    return 0;
-}
-
-// 调试函数
-// 输出到error.txt中
-int JY_Error(const char* fmt, ...)
-{
-    //无酒不欢：不再输出error信息
-#ifdef _DEBUG
-    time_t t;
-    FILE* fp;
-    struct tm* newtime;
-
-    va_list argptr;
-    char string[1024];
-
-    va_start(argptr, fmt);
-    vsnprintf(string, sizeof(string), fmt, argptr);
-    va_end(argptr);
-    time(&t);
-    newtime = localtime(&t);
-    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-    fp = fopen(ERROR_FILE, "a+t");
-    if (fp)
-    {
-        fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-        fflush(fp);
-    }
-#endif
-    return 0;
-}
-
-// 限制x大小
-int limitX(int x, int xmin, int xmax)
-{
-    if (x > xmax)
-    {
-        x = xmax;
-    }
-    if (x < xmin)
-    {
-        x = xmin;
-    }
-    return x;
-}
-
-// 返回文件长度，若为0，则文件可能不存在
-int FileLength(const char* filename)
-{
-    FILE* f;
-    int ll;
-    if ((f = fopen(filename, "rb")) == NULL)
-    {
-        return 0;    // 文件不存在，返回
-    }
-    fseek(f, 0, SEEK_END);
-    ll = ftell(f);    //这里得到的len就是文件的长度了
-    fclose(f);
-    return ll;
-}
-
-char* va(const char* format, ...)
-{
-    static char string[256];
-    va_list argptr;
-
-    va_start(argptr, format);
-    vsnprintf(string, 256, format, argptr);
-    va_end(argptr);
-
-    return string;
-}

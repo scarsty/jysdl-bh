@@ -1,6 +1,10 @@
 ﻿#include "opencc/opencc.h"
+import std.compat;
+import PotConv;
 
-class OpenCCConverter
+export module OpenCCConverter;
+
+export class OpenCCConverter
 {
 public:
     OpenCCConverter();
@@ -21,9 +25,6 @@ private:
     opencc_t cc_t2s = nullptr, cc_s2t = nullptr;
     std::string utf8(const std::string& in, opencc_t cc);
 };
-
-
-#include "PotConv.h"
 
 OpenCCConverter::OpenCCConverter()
 {

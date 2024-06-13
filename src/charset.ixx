@@ -5,11 +5,6 @@
 //通过此文件，即可进行各种格式的转换
 //移除，改用iconv
 
-#include "charset.h"
-#include "OpenCCConverter.h"
-#include "PotConv.h"
-#include "jymain.h"
-
 // 显示TTF 字符串
 // 为快速显示，程序将保存已经打开的相应字号的字体结构。这样做可以加快程序速度
 // 为简化代码，没有用链表，而是采用数组来保存打开的字体。
@@ -17,7 +12,13 @@
 // 考虑到一般打开的字体不多，比如640*480模式实际上只用了16*24*32三种字体。
 // 设置数组为10已经足够。
 
+#include "SDL2/SDL_ttf.h"
 
+export module charset;
+import std;
+import PotConv;
+import OpenCCConverter;
+import util;
 
 //CharSet.c
 
@@ -29,39 +30,6 @@ typedef struct UseFont_Type
 } UseFont;
 
 #define FONTNUM 10    //定义同时打开的字体个数
-
-//初始化字体
-int InitFont();
-
-//释放字体结构
-int ExitFont();
-
-// 根据字体文件名和字号打开字体
-// size 为按像素大小的字号
-TTF_Font* GetFont(const char* filename, int size);
-
-// 写字符串
-// x,y 坐标
-// str 字符串
-// color 颜色
-// size 字体大小，字形为宋体。
-// fontname 字体名
-// charset 字符集 0 GBK 1 big5
-// OScharset 无用
-int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* fontname,
-    int charset, int OScharset);
-
-//加载码表转换文件
-int LoadMB(const char* mbfile);
-
-// 汉字字符集转换
-// flag = 0   Big5 --> GBK
-//      = 1   GBK  --> Big5
-//      = 2   Big5 --> Unicode
-//      = 3   GBK  --> Unicode
-// 注意要保证dest有足够的空间，一般建议取src长度的两倍+1，保证全英文字符也能转化为unicode
-int JY_CharSet(const char* src, char* dest, int flag);
-
 
 UseFont Font[FONTNUM];    //保存已打开的字体
 
@@ -78,8 +46,9 @@ int char_count = 0;
 std::map<std::string, std::map<int, SDL_Texture*>> chars_cache;
 SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
+//初始化字体
 //初始化
-int InitFont()
+export int InitFont()
 {
     int i;
 
@@ -96,7 +65,8 @@ int InitFont()
 }
 
 //释放字体结构
-int ExitFont()
+//释放字体结构
+export int ExitFont()
 {
     JY_Debug("%d chars cached.", char_count);
     /*for (int i = 0; i < 100; i++)
@@ -128,7 +98,9 @@ int ExitFont()
 
 // 根据字体文件名和字号打开字体
 // size 为按像素大小的字号
-TTF_Font* GetFont(const char* filename, int size)
+// 根据字体文件名和字号打开字体
+// size 为按像素大小的字号
+export TTF_Font* GetFont(const char* filename, int size)
 {
     int i;
     TTF_Font* myfont = NULL;
@@ -178,9 +150,17 @@ TTF_Font* GetFont(const char* filename, int size)
 // color 颜色
 // size 字体大小，字形为宋体。
 // fontname 字体名
+// charset 字符集 0 GBK 1 big5
+// OScharset 无用
+// 写字符串
+// x,y 坐标
+// str 字符串
+// color 颜色
+// size 字体大小，字形为宋体。
+// fontname 字体名
 // charset 字符集 0 GBK 1 big5 3 utf-8
 // OScharset 0 简体显示 1 繁体显示
-int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* fontname,
+export int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* fontname,
     int charset, int OScharset)
 {
     SDL_Color c, c2, white;
@@ -440,15 +420,81 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     return 0;
 }
 
+//加载码表转换文件
+//加载码表文件
+//码表文件顺序： 按GBK排列，unicode，big5。然后按big5排列，unicode和gbk。
+export int LoadMB(const char* mbfile)
+{
+    FILE* fp;
+    int i, j;
+
+    Uint16 gbk, big5, unicode;
+
+    fp = fopen(mbfile, "rb");
+    if (fp == NULL)
+    {
+        JY_Error("cannot open mbfile");
+        return 1;
+    }
+
+    for (i = 0; i < 128; i++)
+    {
+        for (j = 0; j < 256; j++)
+        {
+            gbk_unicode[i][j] = 0;
+            gbk_big5[i][j] = 0;
+            big5_gbk[i][j] = 0;
+            big5_unicode[i][j] = 0;
+        }
+    }
+
+    for (i = 0x81; i <= 0xfe; i++)
+    {
+        for (j = 0x40; j <= 0xfe; j++)
+        {
+            if (j != 0x7f)
+            {
+                fread(&unicode, 2, 1, fp);
+                fread(&big5, 2, 1, fp);
+                gbk_unicode[i - 128][j] = unicode;
+                gbk_big5[i - 128][j] = big5;
+            }
+        }
+    }
+
+    for (i = 0xa0; i <= 0xfe; i++)
+    {
+        for (j = 0x40; j <= 0xfe; j++)
+        {
+            if (j <= 0x7e || j >= 0xa1)
+            {
+                fread(&unicode, 2, 1, fp);
+                fread(&gbk, 2, 1, fp);
+                big5_unicode[i - 128][j] = unicode;
+                big5_gbk[i - 128][j] = gbk;
+            }
+        }
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+
+// 汉字字符集转换
+// flag = 0   Big5 --> GBK
+//      = 1   GBK  --> Big5
+//      = 2   Big5 --> Unicode
+//      = 3   GBK  --> Unicode
+// 注意要保证dest有足够的空间，一般建议取src长度的两倍+1，保证全英文字符也能转化为unicode
 // 汉字字符集转换
 // flag = 0   Big5 --> GBK
 //      = 1   GBK  --> Big5
 //      = 2   Big5 --> Unicode
 //      = 3   GBK  --> Unicode
 // 注意要保证dest有足够的空间，一般建议取src长度的两倍+2，保证全英文字符也能转化为unicode
-int JY_CharSet(const char* src, char* dest, int flag)
+export int JY_CharSet(const char* src, char* dest, int flag)
 {
-
     Uint8 *psrc, *pdest;
     Uint8 b0, b1;
     int d0;
@@ -540,62 +586,3 @@ int JY_CharSet(const char* src, char* dest, int flag)
     return 0;
 }
 
-//加载码表文件
-//码表文件顺序： 按GBK排列，unicode，big5。然后按big5排列，unicode和gbk。
-int LoadMB(const char* mbfile)
-{
-    FILE* fp;
-    int i, j;
-
-    Uint16 gbk, big5, unicode;
-
-    fp = fopen(mbfile, "rb");
-    if (fp == NULL)
-    {
-        JY_Error("cannot open mbfile");
-        return 1;
-    }
-
-    for (i = 0; i < 128; i++)
-    {
-        for (j = 0; j < 256; j++)
-        {
-            gbk_unicode[i][j] = 0;
-            gbk_big5[i][j] = 0;
-            big5_gbk[i][j] = 0;
-            big5_unicode[i][j] = 0;
-        }
-    }
-
-    for (i = 0x81; i <= 0xfe; i++)
-    {
-        for (j = 0x40; j <= 0xfe; j++)
-        {
-            if (j != 0x7f)
-            {
-                fread(&unicode, 2, 1, fp);
-                fread(&big5, 2, 1, fp);
-                gbk_unicode[i - 128][j] = unicode;
-                gbk_big5[i - 128][j] = big5;
-            }
-        }
-    }
-
-    for (i = 0xa0; i <= 0xfe; i++)
-    {
-        for (j = 0x40; j <= 0xfe; j++)
-        {
-            if (j <= 0x7e || j >= 0xa1)
-            {
-                fread(&unicode, 2, 1, fp);
-                fread(&gbk, 2, 1, fp);
-                big5_unicode[i - 128][j] = unicode;
-                big5_gbk[i - 128][j] = gbk;
-            }
-        }
-    }
-
-    fclose(fp);
-
-    return 0;
-}

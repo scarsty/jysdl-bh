@@ -1,12 +1,13 @@
-#pragma once
 
 //移植自Cocos2dx，版权声明请查看licenses文件夹
 
 #include "SDL2/SDL.h"
-#include <string>
-#include <vector>
 
-struct Pointf
+export module ParticleSystem;
+
+import std.compat;
+
+export struct Pointf
 {
 public:
     Pointf() {}
@@ -27,16 +28,16 @@ public:
     }
 };
 
-typedef Pointf Vec2;
+export typedef Pointf Vec2;
 
 //class ParticleBatchNode;
 
-struct Color4F
+export struct Color4F
 {
     float r = 0, g = 0, b = 0, a = 0;
 };
 
-class ParticleData
+export class ParticleData
 {
 public:
     float posx = 0;
@@ -115,7 +116,7 @@ emitter.startSpin = 0;
 
 */
 
-class ParticleSystem
+export class ParticleSystem
 {
 public:
     enum class Mode

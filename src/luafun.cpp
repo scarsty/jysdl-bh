@@ -1,12 +1,11 @@
-﻿#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "jymain.h"
-#include "charset.h"
-#include "sdlfun.h"
-#include "piccache.h"
-#include "mainmap.h"
-#include "ZipFile.h"
+﻿extern "C"
+{
+#include "lauxlib.h"
+#include "lua.h"
+#include "lualib.h"
+}
+
+export module luafun;
 
 //以下为所有包装的lua接口函数，对应于每个实际的函数
 

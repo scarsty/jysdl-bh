@@ -15,47 +15,44 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ZipFile.cpp">
+    <ClCompile Include="ZipFile.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="charset.cpp">
+    <ClCompile Include="OpenCCConverter.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="jymain.cpp">
+    <ClCompile Include="ParticleExample.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="luafun.cpp">
+    <ClCompile Include="ParticleSystem.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="mainmap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenCCConverter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleExample.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleSystem.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="piccache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PotConv.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="sdlfun.cpp">
+    <ClCompile Include="PotConv.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="zip.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="util.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="charset.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sdlfun.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="piccache.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="mainmap.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="miniz.h">
       <Filter>头文件</Filter>
     </ClInclude>

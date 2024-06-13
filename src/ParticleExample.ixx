@@ -1,6 +1,14 @@
-#include "ParticleExample.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
-class ParticleExample : public ParticleSystem
+
+
+
+export module ParticleExample;
+import std.compat;
+import ParticleSystem;
+
+export class ParticleExample : public ParticleSystem
 {
 public:
     ParticleExample() {}

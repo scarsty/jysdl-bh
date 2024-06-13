@@ -127,7 +127,7 @@
       <AdditionalIncludeDirectories>D:\project\local\include;..\smallpot\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BuildStlModules>true</BuildStlModules>
-      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
       <TranslateIncludes>true</TranslateIncludes>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
@@ -142,21 +142,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="charset.cpp" />
-    <ClCompile Include="jymain.cpp" />
-    <ClCompile Include="luafun.cpp" />
-    <ClCompile Include="mainmap.cpp" />
-    <ClCompile Include="OpenCCConverter.cpp" />
-    <ClCompile Include="ParticleExample.cpp" />
-    <ClCompile Include="ParticleSystem.cpp" />
-    <ClCompile Include="piccache.cpp" />
-    <ClCompile Include="PotConv.cpp" />
-    <ClCompile Include="sdlfun.cpp" />
+    <ClCompile Include="charset.ixx" />
+    <ClCompile Include="main.ixx" />
+    <ClCompile Include="mainmap.ixx" />
+    <ClCompile Include="OpenCCConverter.ixx" />
+    <ClCompile Include="ParticleExample.ixx" />
+    <ClCompile Include="ParticleSystem.ixx" />
+    <ClCompile Include="piccache.ixx" />
+    <ClCompile Include="PotConv.ixx" />
+    <ClCompile Include="sdlfun.ixx" />
+    <ClCompile Include="util.ixx" />
     <ClCompile Include="zip.c" />
-    <ClCompile Include="ZipFile.cpp" />
+    <ClCompile Include="ZipFile.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h" />
     <ClInclude Include="miniz.h" />
     <ClInclude Include="zip.h" />
   </ItemGroup>
