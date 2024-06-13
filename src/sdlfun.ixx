@@ -16,7 +16,6 @@ import std;
 import charset;
 import util;
 
-
 int KeyFilter(void* data, SDL_Event* event);
 int InitSDL(void);
 int ExitSDL(void);
@@ -222,8 +221,6 @@ export Uint32 ConvertColor(Uint32 color)
     return SDL_MapRGBA(g_Surface->format, *(p + 2), *(p + 1), *p, 255);
 }
 
-
-
 export int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_Rect* dst_rect, double angle, SDL_Point* center, SDL_RendererFlip filp)
 {
     SDL_SetRenderTarget(g_Renderer, dst);
@@ -337,7 +334,7 @@ export int JY_ShowSurface(int flag)
 }
 
 //延时x毫秒
-int JY_Delay(int x)
+export int JY_Delay(int x)
 {
     SDL_Delay(x);
     g_DelayTimes++;
@@ -586,8 +583,8 @@ export int JY_GetKey(int* key, int* type, int* mx, int* my)
                 //if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
                 if (r == 1)
                 {
-                    ExitGame();    //释放游戏数据
-                    ExitSDL();     //退出SDL
+                    //ExitGame();    //释放游戏数据
+                    ExitSDL();    //退出SDL
                     exit(1);
                 }
                 quit = 0;
@@ -999,7 +996,7 @@ export    //按照原来游戏的RLE格式创建表面
 }
 // 把表面blit到背景或者前景表面
 // x,y 要加载到表面的左上角坐标
-export int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height, double rotate,  SDL_RendererFlip reversal, int percent)
+export int RenderTexture(SDL_Texture* lps, int x, int y, int flag, int value, int color, int width, int height, double rotate, SDL_RendererFlip reversal, int percent)
 {
     SDL_Surface* tmps;
     SDL_Rect rect, rect0;

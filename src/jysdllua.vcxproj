@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="charset.ixx" />
+    <ClCompile Include="luafun.ixx" />
     <ClCompile Include="main.ixx" />
     <ClCompile Include="mainmap.ixx" />
     <ClCompile Include="OpenCCConverter.ixx" />
@@ -152,7 +153,9 @@
     <ClCompile Include="PotConv.ixx" />
     <ClCompile Include="sdlfun.ixx" />
     <ClCompile Include="util.ixx" />
-    <ClCompile Include="zip.c" />
+    <ClCompile Include="zip.c">
+      <ScanSourceForModuleDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ScanSourceForModuleDependencies>
+    </ClCompile>
     <ClCompile Include="ZipFile.ixx">
       <FileType>Document</FileType>
     </ClCompile>

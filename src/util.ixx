@@ -18,7 +18,7 @@ export void SafeFree(void* p)
 {
     if (p)
     {
-        free(p);
+        //free(p);
         p = NULL;
     }
     //safe个毛，这个函数有问题

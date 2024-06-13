@@ -53,7 +53,7 @@ public:
         return content;
     }
 
-    int zip(std::string zip_file, std::vector<std::string> files)
+    static int zip(std::string zip_file, std::vector<std::string> files)
     {
         struct zip_t* zip = zip_open(zip_file.c_str(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
         {
@@ -70,7 +70,7 @@ public:
         return 0;
     }
 
-    int unzip(std::string zip_file, std::vector<std::string> files)
+    static int unzip(std::string zip_file, std::vector<std::string> files)
     {
         struct zip_t* zip = zip_open(zip_file.c_str(), 0, 'r');
         {

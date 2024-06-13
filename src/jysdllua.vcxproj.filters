@@ -51,6 +51,9 @@
     <ClCompile Include="mainmap.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="luafun.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="miniz.h">

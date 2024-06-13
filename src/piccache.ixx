@@ -63,7 +63,6 @@ struct PicFileCache    //贴图文件链表节点
 #define PIC_FILE_NUM 10000    //缓存的贴图文件(idx/grp)个数
 PicFileCache pic_file[PIC_FILE_NUM];
 //std::forward_list<CacheNode*> pic_cache;     //pic_cache链表
-Uint32 m_color32[256];    // 256调色板
 //int CacheFailNum = 0;
 
 export int Init_Cache();
