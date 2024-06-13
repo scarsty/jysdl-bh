@@ -53,43 +53,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ZipFile.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="charset.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="config.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="jymain.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="luafun.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mainmap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="miniz.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenCCConverter.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleExample.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleSystem.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="piccache.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PotConv.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="sdlfun.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="zip.h">

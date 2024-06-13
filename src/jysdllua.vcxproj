@@ -156,20 +156,9 @@
     <ClCompile Include="ZipFile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="charset.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="jymain.h" />
-    <ClInclude Include="luafun.h" />
-    <ClInclude Include="mainmap.h" />
     <ClInclude Include="miniz.h" />
-    <ClInclude Include="OpenCCConverter.h" />
-    <ClInclude Include="ParticleExample.h" />
-    <ClInclude Include="ParticleSystem.h" />
-    <ClInclude Include="piccache.h" />
-    <ClInclude Include="PotConv.h" />
-    <ClInclude Include="sdlfun.h" />
     <ClInclude Include="zip.h" />
-    <ClInclude Include="ZipFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

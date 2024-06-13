@@ -3,11 +3,28 @@
 //为加快速度，这些函数改为c中实现
 
 #include <stdlib.h>
-#include "mainmap.h"
+
 #include <stdio.h>
 #include "sdlfun.h"
 #include "jymain.h"
 #include "piccache.h"
+
+
+#include "SDL2/SDL.h"
+#include "config.h"
+#include <stdio.h>
+
+export module mainmap;
+
+//mainmap.c
+
+typedef struct
+{
+    int x;
+    int y;
+    int num;
+    int key;
+} BuildingType;
 
 //主地图数据
 Sint16* pEarth = NULL;
