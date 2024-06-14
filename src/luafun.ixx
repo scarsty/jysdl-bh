@@ -1,15 +1,14 @@
 ﻿#include "SDL2/SDL.h"
 #include "lua.hpp"
 
-export module luafun;
+export module jy:luafun;
 import std;
-import sdlfun;
-import charset;
-import util;
-import piccache;
-import mainmap;
 import ParticleExample;
 import ZipFile;
+import :charset;
+import :sdlfun;
+import :piccache;
+import :mainmap;
 
 export
 {

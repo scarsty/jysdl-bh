@@ -4,13 +4,13 @@
 
 #include "SDL2/SDL.h"
 
-export module mainmap;
+export module jy:mainmap;
 
 import std;
-import util;
 import ParticleExample;
-import sdlfun;
-import piccache;
+import :util;
+import :sdlfun;
+import :piccache;
 
 //mainmap.c
 

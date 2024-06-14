@@ -1,12 +1,13 @@
-﻿
-#include "SDL2/SDL.h"
+﻿#include "SDL2/SDL.h"
 #include <SDL2/SDL_image.h>
 
-export module piccache;
+export module jy:piccache;
 import std;
 import ZipFile;
-import util;
-import sdlfun;
+import :util;
+import :charset;
+import :sdlfun;
+
 
 #define TEXTURE_NUM 10
 
@@ -241,8 +242,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         JY_Error("JY_PicLoadFile: grp file not open ---%s", grpfilename);
         return 1;
     }
-    if (g_PreLoadPicGrp == 1)    //grp文件读入内存
-    {
+    
         pic_file[id].grp = (unsigned char*)malloc(pic_file[id].filelength);
         if (pic_file[id].grp == NULL)
         {
@@ -251,11 +251,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         }
         fread(pic_file[id].grp, 1, pic_file[id].filelength, fp);
         fclose(fp);
-    }
-    else
-    {
-        pic_file[id].fp = fp;
-    }
+    
 
     pic_file[id].pcache.resize(pic_file[id].num);
     if (pic_file[id].pcache.size() == 0)

@@ -54,6 +54,15 @@
     <ClCompile Include="luafun.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="jy.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sdlfun.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="jy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="miniz.h">

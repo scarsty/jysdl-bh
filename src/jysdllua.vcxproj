@@ -143,6 +143,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="charset.ixx" />
+    <ClCompile Include="jy.cpp" />
+    <ClCompile Include="jy.ixx" />
     <ClCompile Include="luafun.ixx" />
     <ClCompile Include="main.ixx" />
     <ClCompile Include="mainmap.ixx" />
@@ -151,6 +153,7 @@
     <ClCompile Include="ParticleSystem.ixx" />
     <ClCompile Include="piccache.ixx" />
     <ClCompile Include="PotConv.ixx" />
+    <ClCompile Include="sdlfun.cpp" />
     <ClCompile Include="sdlfun.ixx" />
     <ClCompile Include="util.ixx" />
     <ClCompile Include="zip.c">

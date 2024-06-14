@@ -1,5 +1,4 @@
-﻿
-// 输出汉字和字符集转换
+﻿// 输出汉字和字符集转换
 
 //为保证平台兼容性，自己生成了一个gbk简体/繁体/big5/unicode的码表文件
 //通过此文件，即可进行各种格式的转换
@@ -14,11 +13,12 @@
 
 #include "SDL2/SDL_ttf.h"
 
-export module charset;
+export module jy:charset;
 import std;
 import PotConv;
 import OpenCCConverter;
-import util;
+import :util;
+
 
 //CharSet.c
 

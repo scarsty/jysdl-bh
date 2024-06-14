@@ -1,3 +1,5 @@
+
+
 #include <time.h>
 
 #include "SDL2/SDL.h"
@@ -9,7 +11,7 @@
 
 #include "lua.hpp"
 
-export module util;
+export module jy:util;
 
 import std;
 import ParticleExample;
@@ -141,12 +143,12 @@ export int JY_Error(const char* fmt, ...)
     time(&t);
     newtime = localtime(&t);
     fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-    fp = fopen(ERROR_FILE, "a+t");
-    if (fp)
-    {
-        fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-        fflush(fp);
-    }
+    //fp = fopen(ERROR_FILE, "a+t");
+    //if (fp)
+    //{
+    //    fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
+    //    fflush(fp);
+    //}
 #endif
     return 0;
 }
