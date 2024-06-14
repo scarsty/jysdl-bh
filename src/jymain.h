@@ -119,7 +119,7 @@ extern int g_MAXCacheNum;     //最大缓存数量
 extern int g_LoadFullS;       //是否全部加载S文件
 extern int g_LoadMMapType;    //是否全部加载M文件
 extern int g_LoadMMapScope;
-extern int g_PreLoadPicGrp;     //是否预先加载贴图文件的grp
+//extern int g_PreLoadPicGrp;     //是否预先加载贴图文件的grp
 extern int IsDebug;             //是否打开跟踪文件
 extern char JYMain_Lua[255];    //lua主函数
 extern int g_MP3;               //是否打开MP3

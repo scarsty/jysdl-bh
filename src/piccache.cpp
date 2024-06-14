@@ -172,7 +172,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
         JY_Error("JY_PicLoadFile: grp file not open ---%s", grpfilename);
         return 1;
     }
-    if (g_PreLoadPicGrp == 1)     //grp文件读入内存
+    if (true)     //grp文件读入内存
     {
         pic_file[id].grp = (unsigned char*)malloc(pic_file[id].filelength);
         if (pic_file[id].grp == NULL)
@@ -371,7 +371,7 @@ int LoadPic(int fileid, int picid, struct CacheNode* cache)
     if (datalong > 0)
     {
         //读取贴图grp文件，得到原始数据
-        if (g_PreLoadPicGrp == 1)           //有预读，从内存中读数据
+        if (true)           //有预读，从内存中读数据
         {
             data = pic_file[fileid].grp + id1;
             p = NULL;

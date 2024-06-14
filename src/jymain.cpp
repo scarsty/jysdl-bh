@@ -45,7 +45,7 @@ int g_MAXCacheNum = 1000;    //最大缓存数量
 int g_LoadFullS = 1;         //是否全部加载S文件
 int g_LoadMMapType = 0;      //是否全部加载M文件
 int g_LoadMMapScope = 0;
-int g_PreLoadPicGrp = 1;    //是否预先加载贴图文件的grp
+//int g_PreLoadPicGrp = 1;    //是否预先加载贴图文件的grp
 int IsDebug = 0;            //是否打开跟踪文件
 char JYMain_Lua[255];       //lua主函数
 int g_MP3 = 0;              //是否打开MP3

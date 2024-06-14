@@ -770,8 +770,8 @@ int Byte_loadfilefromzip(lua_State* pL)
     if (zip.opened())
     {
         content = zip.readEntryName(filename);
+        memcpy(p, (char*)content.data() + start, length);
     }
-    memcpy(p, (char*)content.data() + start, length);
     return 0;
 }
 
