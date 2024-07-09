@@ -1,4 +1,4 @@
-﻿
+
 // 主程序
 // 本程序为游泳的鱼编写。
 // 版权所无，您可以以任何方式使用代码
@@ -29,6 +29,7 @@ int g_FullScreen = 0;
 int g_EnableSound = 1;     // 声音开关 0 关闭 1 打开
 int g_MusicVolume = 32;    // 音乐声音大小
 int g_SoundVolume = 32;    // 音效声音大小
+int g_SwitchABXY = 0;    // 调换AB键，0为不调换，1为调换
 
 int g_XScale = 18;    //贴图x,y方向一半大小
 int g_YScale = 9;
@@ -321,6 +322,7 @@ int Lua_Config(lua_State* pL, const char* filename)
     g_WMapAddY = getfield(pL, "WMapAddY");
     g_SoundVolume = getfield(pL, "SoundVolume");
     g_MusicVolume = getfield(pL, "MusicVolume");
+	g_SwitchABXY = getfield(pL, "SwitchABXY");
 
     g_MAXCacheNum = getfield(pL, "MAXCacheNum");
     g_LoadFullS = getfield(pL, "LoadFullS");

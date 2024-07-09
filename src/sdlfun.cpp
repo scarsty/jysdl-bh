@@ -1,4 +1,4 @@
-﻿
+
 
 // SDL 相关函数
 
@@ -18,6 +18,13 @@ int currentWav = 0;                  //当前播放的音效
 #define RECTNUM  20
 SDL_Rect ClipRect[RECTNUM];          // 当前设置的剪裁矩形
 int currentRect = 0;
+
+//手柄支持相关设置
+int Key1 = 0; //模拟已按键位
+int Key2 = 0;
+SDL_GameController* ctrls[8] = { NULL };
+const int Controller_DEAD_ZONE = 20000;//手柄死区设置
+float axes[16] = {0.0f};
 
 //#define SURFACE_NUM  20
 //SDL_Texture* tmp_Surface[SURFACE_NUM];   //JY_SaveSur使用
@@ -97,7 +104,8 @@ int InitSDL(void)
     int i;
     //char tmpstr[255];
     int so = 22050;
-    r = SDL_Init(SDL_INIT_VIDEO);
+	//初始化检测手柄
+	r = (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0);
     if (r < 0)
     {
         JY_Error(
@@ -213,6 +221,16 @@ int InitGame(void)
     {
         JY_Error("Cannot set video mode");
     }
+	
+	SDL_GameControllerEventState(SDL_ENABLE);
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
+	{
+		if (SDL_IsGameController(i))
+		{
+			ctrls[i] = SDL_GameControllerOpen(i);
+		}
+	}
+	
     Init_Cache();
     JY_PicInit("");        // 初始化贴图cache
     g_Particle.setRenderer(g_Renderer);
@@ -226,6 +244,14 @@ int ExitGame(void)
 {
     SDL_DestroyTexture(g_Texture);
     SDL_DestroyTexture(g_TextureShow);
+	for (int i = 0; i < 8; ++i)
+	{
+		if (ctrls[i])
+		{
+			SDL_GameControllerClose(ctrls[i]);
+			ctrls[i] = NULL;
+		}
+	}
     SDL_DestroyRenderer(g_Renderer);
     SDL_DestroyWindow(g_Window);
     JY_PicInit("");
@@ -580,7 +606,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             }
             break;
         case SDL_MOUSEWHEEL:
-            //无酒不欢：添加鼠标滚轮
+            //无酒不欢:添加鼠标滚轮
             if (event.wheel.y == 1)
             {
                 *type = 6;
@@ -590,6 +616,298 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
                 *type = 7;
             }
             break;
+		case SDL_CONTROLLERAXISMOTION:	
+			{
+				axes[event.caxis.axis] = event.caxis.value;
+				if ((axes[1] > Controller_DEAD_ZONE) && (axes[0] > Controller_DEAD_ZONE))//右下
+				{
+					Key1 = 1073741905;
+					Key2 = 1073741903;
+				}
+				else if ((axes[1] < -Controller_DEAD_ZONE) && (axes[0] > Controller_DEAD_ZONE))//右上
+				{
+					Key1 = 1073741906;
+					Key2 = 1073741903;
+				}
+				else if ((axes[1] > Controller_DEAD_ZONE) && (axes[0] < -Controller_DEAD_ZONE))//左下
+				{
+					Key1 = 1073741905;
+					Key2 = 1073741904;
+				}
+				else if ((axes[1] < -Controller_DEAD_ZONE) && (axes[0] < -Controller_DEAD_ZONE))//左上
+				{
+					Key1 = 1073741906;
+					Key2 = 1073741904;
+				}
+				else if ((axes[1] > Controller_DEAD_ZONE) &&((Key1 != 1073741905) || (Key2 != 0)))//下
+				{
+					Key1 = 1073741905;
+					Key2 = 0;
+					*key = SDLK_DOWN;
+					*type = 1;
+					break;
+				}
+				else if ((axes[1] < -Controller_DEAD_ZONE) &&((Key1 != 1073741906) || (Key2 != 0)))//上
+				{
+					Key1 = 1073741906;
+					Key2 = 0;
+					*key = SDLK_UP;
+					*type = 1;
+					break;
+				}
+				else if ((axes[0] < -Controller_DEAD_ZONE) && ((Key1 != 0) || (Key2 != 1073741904)))//左
+				{
+					Key1 = 0;
+					Key2 = 1073741904;
+					*key = SDLK_LEFT;
+					*type = 1;
+					break;
+				}
+				else if ((axes[0] > Controller_DEAD_ZONE) && ((Key1 != 0) || (Key2 != 1073741903)))//右
+				{
+					Key1 = 0;
+					Key2 = 1073741903;
+					*key = SDLK_RIGHT;
+					*type = 1;
+					break;
+				}
+				else if((axes[2] > Controller_DEAD_ZONE)&&(Key1 != SDLK_p))//右摇杆下
+				{
+					Key1 = SDLK_p;
+					*key = SDLK_p;
+					*type = 1;
+					break;
+				}
+				else if((axes[2] < -Controller_DEAD_ZONE)&&(Key1 != SDLK_d))//右摇杆上
+				{
+					Key1 = SDLK_d;
+					*key = SDLK_d;
+					*type = 1;
+					break;
+				}
+				else if((axes[3] < -Controller_DEAD_ZONE)&&(Key1 != SDLK_w))//右摇杆左
+				{
+					Key1 = SDLK_w;
+					*key = SDLK_w;
+					*type = 1;
+					break;
+				}
+				else if((axes[3] > Controller_DEAD_ZONE)&&(Key1 != SDLK_j))//右摇杆右
+				{
+					Key1 = SDLK_j;
+					*key = SDLK_j;
+					*type = 1;
+					break;
+				}
+				else if((axes[4] > Controller_DEAD_ZONE)&&(Key1 != SDLK_e))//L2
+				{
+					Key1 = SDLK_e;
+					*key = SDLK_e;
+					*type = 1;
+					break;
+				}
+				else if((axes[5] > Controller_DEAD_ZONE)&&(Key1 != SDLK_z))//R2
+				{
+					Key1 = SDLK_z;
+					*key = SDLK_z;
+					*type = 1;
+					break;
+				}			
+				else if ((abs(axes[0]) < 4000 )&&(abs(axes[1]) < 4000 )&&(abs(axes[2]) < 4000 )&&(abs(axes[3]) < 4000 ))//摇杆复位
+				{
+					Key1 = 0;
+					Key2 = 0;
+				}
+			}	
+			break;
+		case SDL_CONTROLLERBUTTONDOWN:
+			{
+				if (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+				{
+					if ((Key2 == 1073741903) || (Key2 == 1073741904))
+					{
+						Key1 = 1073741906;
+					}
+					else
+					{
+						Key1 = 1073741906;
+						Key2 = 0;
+						*key = SDLK_UP;
+					}
+				}	
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+				{
+					if ((Key2 == 1073741903) || (Key2 == 1073741904))
+					{
+						Key1 = 1073741905;
+					}
+					else
+					{
+						Key1 = 1073741905;
+						Key2 = 0;
+						*key = SDLK_DOWN;
+					}
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+				{
+					if ((Key1 == 1073741905) || (Key1 == 1073741906))
+					{
+						Key2 = 1073741904;
+					}
+					else
+					{
+						Key2 = 1073741904;
+						Key1 = 0;
+						*key = SDLK_LEFT;
+					}
+				}	
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+				{
+					if ((Key1 == 1073741905) || (Key1 == 1073741906))
+					{
+						Key2 = 1073741903;
+					}
+					else
+					{
+						Key2 = 1073741903;
+						Key1 = 0;
+						*key = SDLK_RIGHT;
+					}
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A)
+				{
+					if (g_SwitchABXY == 1)
+					{
+						*key = SDLK_ESCAPE;
+					}
+					else
+					{
+						*key = SDLK_RETURN;
+					}
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_B)
+				{
+					if (g_SwitchABXY == 1)
+					{
+						*key = SDLK_RETURN;
+					}
+					else
+					{
+						*key = SDLK_ESCAPE;
+					}
+					
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_X)
+				{
+					if (g_SwitchABXY == 1)
+					{
+						*key = SDLK_F1;
+					}
+					else
+					{
+						*key = SDLK_h;
+					}
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_Y)
+				{
+					if (g_SwitchABXY == 1)
+					{
+						*key = SDLK_h;
+					}
+					else
+					{
+						*key = SDLK_F1;
+					}
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+				{
+					*key = SDLK_s;
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+				{
+					*key = SDLK_l;
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+				{
+					*key = SDLK_c;
+				}
+				else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_START)
+				{
+					static int quit = 0;
+					if (quit == 0)
+					{
+						quit = 1;
+						lua_getglobal(pL_main, "Menu_Exit");
+						lua_call(pL_main, 0, 1);
+						r = (int)lua_tointeger(pL_main, -1);
+						lua_pop(pL_main, 1);
+						//if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
+						if (r == 1)
+						{
+							ExitGame();       //释放游戏数据
+							ExitSDL();        //退出SDL
+							exit(1);
+						}
+						quit = 0;
+					}
+				}
+				if ((event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP) && (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT))
+				{
+					Key1 = 1073741904;
+					Key2 = 1073741906;
+				}
+				else if ((event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP) && (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
+				{
+					Key1 = 1073741903;
+					Key2 = 1073741906;
+				}
+				else if ((event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) && (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT))
+				{
+					Key1 = 1073741904;
+					Key2 = 1073741905;
+				}
+				else if ((event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) && (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
+				{
+					Key1 = 1073741903;
+					Key2 = 1073741905;
+				}
+				*type = 1;
+				break;
+			}
+		case SDL_CONTROLLERBUTTONUP:
+		{
+			if ((event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT) || (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
+			{
+				Key2 = 0;
+			}
+			else if ((event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP) || (event.cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN))
+			{
+				Key1 = 0;
+			}
+			break;
+		}
+		//支持手柄热插拔
+		case SDL_CONTROLLERDEVICEADDED:
+		case SDL_CONTROLLERDEVICEREMOVED:
+			{
+				JY_Error("Controller added or removed");
+				for (int i = 0; i < 8; ++i)
+				{
+					if (ctrls[i])
+					{
+						SDL_GameControllerClose(ctrls[i]);
+						ctrls[i] = NULL;
+					}
+				}
+				for (int i = 0; i < SDL_NumJoysticks(); ++i)
+				{
+					if (SDL_IsGameController(i))
+					{
+						ctrls[i] = SDL_GameControllerOpen(i);
+					}
+				}
+			}	
+			
         case SDL_QUIT:
         {
             static int quit = 0;
@@ -620,8 +938,15 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
 }
 
 int JY_GetKeyState(int key)
-{
+{	
+	if ((Key1 == key)||(Key2 == key))//手柄模拟按键状态
+	{
+		return 1;
+	}
+	else
+	{	
     return SDL_GetKeyboardState(NULL)[SDL_GetScancodeFromKey(key)];
+	}
 }
 
 //设置裁剪
