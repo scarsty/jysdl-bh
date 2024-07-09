@@ -1,4 +1,4 @@
-﻿// 头文件
+// 头文件
 #pragma once
 
 #include "config.h"
@@ -103,6 +103,7 @@ extern int g_FullScreen;
 extern int g_EnableSound;    // 声音开关 0 关闭 1 打开
 extern int g_MusicVolume;    // 音乐声音大小
 extern int g_SoundVolume;    // 音效声音大小
+extern int g_SwitchABXY;
 
 extern int g_XScale;    //贴图x,y方向一半大小
 extern int g_YScale;
