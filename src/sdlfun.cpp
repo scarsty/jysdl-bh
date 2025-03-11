@@ -1,4 +1,4 @@
-
+﻿
 
 // SDL 相关函数
 
@@ -105,7 +105,7 @@ int InitSDL(void)
     //char tmpstr[255];
     int so = 22050;
 	//初始化检测手柄
-	r = (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0);
+	r = (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) != 0);
     if (r < 0)
     {
         JY_Error(

@@ -140,7 +140,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     SDL_Color c, c2, white;
     SDL_Surface *fontSurface = NULL, *fontSurface1 = NULL;
     int w, h;
-    SDL_Rect rect1, rect2, rect_dest;
+    SDL_FRect rect1, rect2, rect_dest;
     SDL_Rect rect;
     //char tmp1[256], tmp2[256];
     TTF_Font* myfont;
@@ -221,11 +221,13 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         tmp = str;
     }
     tmp.resize(tmp.size() + 2);
-    SDL_RenderGetClipRect(g_Renderer, &rect);
+    SDL_GetRenderClipRect(g_Renderer, &rect);
     if (rect.w == 0) { rect.w = g_ScreenW - rect.x; }
     if (rect.h == 0) { rect.h = g_ScreenH - rect.y; }
 
-    TTF_SizeUNICODE(myfont, (Uint16*)tmp.c_str(), &w, &h);
+    //TTF_Size(myfont, (Uint16*)tmp.c_str(), &w, &h);
+    w=size;
+    h = size;
 
     if ((x >= rect.x + rect.w) || (x + w + 1) <= rect.x || (y >= rect.y + rect.h) || (y + h + 1) <= rect.y)    // 超出裁剪范围则不显示
     {
@@ -254,12 +256,12 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         }
         if (tex == NULL)
         {
-            Uint16 tmp[2] = { 0, 0 };
-            tmp[0] = *p;
-            SDL_Surface* sur = TTF_RenderUNICODE_Blended(myfont, tmp, white);
+            Uint32 tmp = 0;
+            tmp = *p;
+            SDL_Surface* sur = TTF_RenderGlyph_Blended(myfont, tmp, white);
             tex = SDL_CreateTextureFromSurface(g_Renderer, sur);
             chars_cache[fontname][*p + size * 65536] = tex;
-            SDL_FreeSurface(sur);
+            SDL_DestroySurface(sur);
             char_count++;
 #ifdef _DEBUG
             unsigned char out[3] = { 0, 0, 0 };
@@ -277,7 +279,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 #endif
         if (*p != 32)
         {
-            SDL_QueryTexture(tex, NULL, NULL, &rect1.w, &rect1.h);
+            SDL_GetTextureSize(tex, &rect1.w, &rect1.h);
             rect2 = rect1;
             SDL_SetRenderTarget(g_Renderer, g_Texture);
             SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
@@ -291,21 +293,21 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
             {
                 rect2.x = rect1.x + 1;
                 rect2.y = rect1.y + 1;
-                SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+                SDL_RenderTexture(g_Renderer, tex, NULL, &rect2);
                 //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
                 rect2.x = rect1.x + 1;
                 rect2.y = rect1.y;
-                SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+                SDL_RenderTexture(g_Renderer, tex, NULL, &rect2);
                 //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
                 rect2.x = rect1.x;
                 rect2.y = rect1.y + 1;
-                SDL_RenderCopy(g_Renderer, tex, NULL, &rect2);
+                SDL_RenderTexture(g_Renderer, tex, NULL, &rect2);
             }
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect2);
             SDL_SetTextureColorMod(tex, c.r, c.g, c.b);
             SDL_SetTextureAlphaMod(tex, 255);
 
-            SDL_RenderCopy(g_Renderer, tex, NULL, &rect1);
+            SDL_RenderTexture(g_Renderer, tex, NULL, &rect1);
             //SDL_BlitSurface(*tex, NULL, g_Surface, &rect1);
             s = rect1.w;
         }
