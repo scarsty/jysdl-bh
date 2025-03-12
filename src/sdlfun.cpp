@@ -914,7 +914,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
                 }
             }
         }
-
+        break;
         case SDL_EVENT_QUIT:
         {
             static int quit = 0;
