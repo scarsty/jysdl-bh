@@ -1,4 +1,4 @@
-
+﻿
 // 主程序
 // 本程序为游泳的鱼编写。
 // 版权所无，您可以以任何方式使用代码
@@ -410,12 +410,13 @@ int JY_Error(const char* fmt, ...)
     time(&t);
     newtime = localtime(&t);
     fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-    fp = fopen(ERROR_FILE, "a+t");
-    if (fp)
-    {
-        fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-        fflush(fp);
-    }
+    //fp = fopen(ERROR_FILE, "a+t");
+    //if (fp)
+    //{
+    //    fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
+    //    fflush(fp);
+    //    fclose(fp);
+    //}
 #endif
     return 0;
 }

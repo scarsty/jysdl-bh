@@ -355,12 +355,12 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
         rect_dest.y = rect2.y;
         //SDL_SetPaletteColors(fontSurface->format->palette, &c, 1, 1);
         SDL_BlitSurface(fontSurface, NULL, g_Surface, &rect_dest);    //表面写到游戏表面
-        SDL_FreeSurface(fontSurface1);
+        SDL_DestroySurface(fontSurface1);
     }
     else if (g_Rotate == 1)
     {
         tempSurface = RotateSurface(fontSurface);
-        SDL_FreeSurface(fontSurface);
+        SDL_DestroySurface(fontSurface);
         fontSurface = tempSurface;
         rect2 = RotateRect(&rect1);
 
@@ -392,7 +392,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 
     }*/
 
-    //SDL_FreeSurface(fontSurface);   //释放表面
+    //SDL_DestroySurface(fontSurface);   //释放表面
     return 0;
 }
 

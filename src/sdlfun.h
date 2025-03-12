@@ -1,15 +1,36 @@
 ﻿#pragma once
 #include "SDL3/SDL.h"
 
-//sdlfun.c
+struct Prop
+{
+    SDL_PropertiesID id_;
 
-int KeyFilter(void* data, SDL_Event* event);
+    Prop() { id_ = SDL_CreateProperties(); }
+
+    ~Prop() { SDL_DestroyProperties(id_); }
+
+    SDL_PropertiesID id() { return id_; }
+
+    bool set(const char* name, void* value) { return SDL_SetPointerProperty(id_, name, value); }
+
+    bool set(const char* name, const char* value) { return SDL_SetStringProperty(id_, name, value); }
+
+    bool set(const char* name, int64_t value) { return SDL_SetNumberProperty(id_, name, value); }
+
+    bool set(const char* name, int value) { return SDL_SetNumberProperty(id_, name, value); }
+
+    bool set(const char* name, float value) { return SDL_SetFloatProperty(id_, name, value); }
+
+    bool set(const char* name, bool value) { return SDL_SetBooleanProperty(id_, name, value); }
+};
+
+bool KeyFilter(void* data, SDL_Event* event);
 int InitSDL(void);
 int ExitSDL(void);
 Uint32 ConvertColor(Uint32 color);
 int InitGame(void);
 int ExitGame(void);
-int RenderToTexture(SDL_Texture* src, SDL_Rect* src_rect, SDL_Texture* dst, SDL_Rect* dst_rect,double angle, SDL_Point*center, SDL_RendererFlip filp);
+int RenderToTexture(SDL_Texture* src, SDL_FRect* src_rect, SDL_Texture* dst, SDL_FRect* dst_rect, double angle, SDL_FPoint* center, SDL_FlipMode filp);
 SDL_Texture* CreateRenderedTexture(SDL_Texture* ref);
 SDL_Texture* CreateRenderedTexture(int w, int h);
 int JY_LoadPicture(const char* str, int x, int y);
@@ -36,6 +57,3 @@ int JY_FreeSur(int id);
 
 SDL_Rect RotateRect(const SDL_Rect* rect);
 SDL_Rect RotateReverseRect(const SDL_Rect* rect);
-
-
-

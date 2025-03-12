@@ -1,4 +1,4 @@
-#include "ParticleSystem.h"
+﻿#include "ParticleSystem.h"
 #include <algorithm>
 #include <assert.h>
 #include <string>
@@ -19,7 +19,8 @@ inline float clampf(float value, float min_inclusive, float max_inclusive)
     {
         std::swap(min_inclusive, max_inclusive);
     }
-    return value < min_inclusive ? min_inclusive : value < max_inclusive ? value : max_inclusive;
+    return value < min_inclusive ? min_inclusive : value < max_inclusive ? value :
+                                                                           max_inclusive;
 }
 
 inline void normalize_point(float x, float y, Pointf* out)
@@ -49,11 +50,13 @@ A more effect random number getter function, get from ejoy2d.
 inline static float RANDOM_M11(unsigned int* seed)
 {
     *seed = *seed * 134775813 + 1;
+
     union
     {
         uint32_t d;
         float f;
     } u;
+
     u.d = (((uint32_t)(*seed) & 0x7fff) << 8) | 0x40000000;
     return u.f - 3.0f;
 }
@@ -114,9 +117,9 @@ void ParticleSystem::addParticles(int count)
     }
 
     //color
-#define SET_COLOR(c, b, v)                                                 \
-    for (int i = start; i < _particleCount; ++i)                           \
-    {                                                                      \
+#define SET_COLOR(c, b, v) \
+    for (int i = start; i < _particleCount; ++i) \
+    { \
         particle_data_[i].c = clampf(b + v * RANDOM_M11(&RANDSEED), 0, 1); \
     }
 
@@ -130,9 +133,9 @@ void ParticleSystem::addParticles(int count)
     SET_COLOR(deltaColorB, _endColor.b, _endColorVar.b);
     SET_COLOR(deltaColorA, _endColor.a, _endColorVar.a);
 
-#define SET_DELTA_COLOR(c, dc)                                                                              \
-    for (int i = start; i < _particleCount; ++i)                                                            \
-    {                                                                                                       \
+#define SET_DELTA_COLOR(c, dc) \
+    for (int i = start; i < _particleCount; ++i) \
+    { \
         particle_data_[i].dc = (particle_data_[i].dc - particle_data_[i].c) / particle_data_[i].timeToLive; \
     }
 
@@ -193,7 +196,6 @@ void ParticleSystem::addParticles(int count)
     // Mode Gravity: A
     if (_emitterMode == Mode::GRAVITY)
     {
-
         // radial accel
         for (int i = start; i < _particleCount; ++i)
         {
@@ -436,12 +438,12 @@ void ParticleSystem::draw()
     for (int i = 0; i < _particleCount; i++)
     {
         auto& p = particle_data_[i];
-        SDL_Rect r = { int(p.posx + p.startPosX - p.size / 2), int(p.posy + p.startPosY - p.size / 2), int(p.size), int(p.size) };
+        SDL_FRect r = { p.posx + p.startPosX - p.size / 2, p.posy + p.startPosY - p.size / 2, p.size, p.size };
         SDL_Color c = { Uint8(p.colorR * 255), Uint8(p.colorG * 255), Uint8(p.colorB * 255), Uint8(p.colorA * 255) };
         SDL_SetTextureColorMod(_texture, c.r, c.g, c.b);
         SDL_SetTextureAlphaMod(_texture, c.a);
         SDL_SetTextureBlendMode(_texture, SDL_BLENDMODE_BLEND);
-        SDL_RenderCopyEx(_renderer, _texture, nullptr, &r, p.rotation, nullptr, SDL_FLIP_NONE);
+        SDL_RenderTextureRotated(_renderer, _texture, nullptr, &r, p.rotation, nullptr, SDL_FLIP_NONE);
     }
     update();
 }
@@ -524,13 +526,11 @@ float ParticleSystem::getSpeed() const
 
 void ParticleSystem::setSpeedVar(float speedVar)
 {
-
     modeA.speedVar = speedVar;
 }
 
 float ParticleSystem::getSpeedVar() const
 {
-
     return modeA.speedVar;
 }
 
@@ -572,7 +572,6 @@ void ParticleSystem::setEndRadiusVar(float endRadiusVar)
 
 float ParticleSystem::getEndRadiusVar() const
 {
-
     return modeB.endRadiusVar;
 }
 

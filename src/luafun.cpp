@@ -267,7 +267,7 @@ int HAPI_LoadPic(lua_State* pL)
     int height = -1;
 	double rotate = NULL;
 	int fz = 0;
-	SDL_RendererFlip reversal = SDL_FLIP_NONE;
+	SDL_FlipMode reversal = SDL_FLIP_NONE;
     int percent = 100;
     if (lua_isnoneornil(pL, 5) == 0)
     {
