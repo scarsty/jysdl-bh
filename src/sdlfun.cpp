@@ -233,14 +233,16 @@ int InitGame(void)
     }
 
     SDL_SetGamepadEventsEnabled(true);
-    int count;
-    SDL_GetJoysticks(&count);
-    for (int i = 0; i < count; ++i)
-    {
-        if (SDL_IsGamepad(i))
-        {
-            ctrls[i] = SDL_OpenGamepad(i);
-        }
+	int i, num_joysticks;
+	SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks);
+	if (joysticks) {
+		for (i = 0; i < num_joysticks; ++i) {
+			SDL_JoystickID instance_id = joysticks[i];
+			if (SDL_IsGamepad(instance_id))
+			{
+				ctrls[i] = SDL_OpenGamepad(instance_id);
+			}
+		}
     }
 
     Init_Cache();
@@ -897,22 +899,25 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
         {
             JY_Error("Controller added or removed");
             for (int i = 0; i < 8; ++i)
-            {
-                if (ctrls[i])
-                {
-                    SDL_CloseGamepad(ctrls[i]);
-                    ctrls[i] = NULL;
-                }
-            }
-            int count;
-            SDL_GetJoysticks(&count);
-            for (int i = 0; i < count; ++i)
-            {
-                if (SDL_IsGamepad(i))
-                {
-                    ctrls[i] = SDL_OpenGamepad(i);
-                }
-            }
+			{
+				if (ctrls[i])
+				{
+					SDL_CloseGamepad(ctrls[i]);
+					ctrls[i] = NULL;
+				}
+			}
+			SDL_SetGamepadEventsEnabled(true);
+			int i, num_joysticks;
+			SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks);
+			if (joysticks) {
+				for (i = 0; i < num_joysticks; ++i) {
+					SDL_JoystickID instance_id = joysticks[i];
+					if (SDL_IsGamepad(instance_id))
+					{
+						ctrls[i] = SDL_OpenGamepad(instance_id);
+					}
+				}
+			}
         }
         break;
         case SDL_EVENT_QUIT:
