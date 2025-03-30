@@ -603,14 +603,14 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
     int ll = 0;
     char zip_name[1024];
     sprintf(zip_name, "%s.zip", path);
-    pic_file[fileid].zip_file.openFile(zip_name);
+    pic_file[fileid].zip_file.open(zip_name);
 
     char index_name[1024];
     std::vector<short> offset;
 
     if (pic_file[fileid].zip_file.opened())
     {
-        std::string content = pic_file[fileid].zip_file.readEntryName("index.ka");
+        std::string content = pic_file[fileid].zip_file.readFile("index.ka");
         ll = content.size();
         offset.resize(ll / 2);
         memcpy(offset.data(), content.data(), offset.size() * 2);
@@ -715,17 +715,17 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
         if (pic_file[fileid].zip_file.opened())
         {
             sprintf(str, "%d.png", picid);
-            content = pic_file[fileid].zip_file.readEntryName(str);
+            content = pic_file[fileid].zip_file.readFile(str);
             fp_SDL = SDL_IOFromMem((void*)content.data(), content.size());
             if (fp_SDL == NULL)
             {
                 sprintf(str, "%d_0.png", picid);
-                content = pic_file[fileid].zip_file.readEntryName(str);
+                content = pic_file[fileid].zip_file.readFile(str);
                 fp_SDL = SDL_IOFromMem((void*)content.data(), content.size());
                 for (int i = 1; i < TEXTURE_NUM; i++)
                 {
                     sprintf(str, "%d_%d.png", picid, i);
-                    std::string content1 = pic_file[fileid].zip_file.readEntryName(str);
+                    std::string content1 = pic_file[fileid].zip_file.readFile(str);
                     SDL_IOStream* fp_SDL1 = SDL_IOFromMem((void*)content1.data(), content1.size());
                     if (IMG_isPNG(fp_SDL1))
                     {

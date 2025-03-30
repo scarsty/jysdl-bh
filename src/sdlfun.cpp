@@ -105,6 +105,11 @@ int InitSDL(void)
     //char tmpstr[255];
     int so = 22050;
     //初始化检测手柄
+
+#ifdef _WIN32
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d12,direct3d,direct3d11,opengl,vulkan");
+#endif
+
     r = (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) != 0);
     if (r < 0)
     {
@@ -115,6 +120,7 @@ int InitSDL(void)
     //atexit(SDL_Quit);    可能有问题，屏蔽掉
     //SDL_VideoDriverName(tmpstr, 255);
     //JY_Debug("InitSDL: Video Driver: %s\n", tmpstr);
+
     InitFont();    //初始化
     r = SDL_InitSubSystem(SDL_INIT_AUDIO);
     if (r < 0)
@@ -1105,8 +1111,8 @@ int JY_PlayMPEG(char* filename, int esckey)
         g_Tinypot = PotCreateFromWindow(g_Window);
     }
     StopMIDI();
-    int r = PotInputVideo(g_Tinypot, filename);
-    if (r == 1)
+    //int r = PotInputVideo(g_Tinypot, filename);
+    //if (r == 1)
     {
         SDL_Event e;
         e.type = SDL_EVENT_QUIT;

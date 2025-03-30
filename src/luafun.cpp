@@ -766,10 +766,10 @@ int Byte_loadfilefromzip(lua_State* pL)
 
     ZipFile zip;
     std::string content;
-    zip.openFile(filenamezip);
+    zip.open(filenamezip);
     if (zip.opened())
     {
-        content = zip.readEntryName(filename);
+        content = zip.readFile(filename);
         memcpy(p, (char*)content.data() + start, length);
     }
     return 0;

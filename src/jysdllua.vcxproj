@@ -139,6 +139,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>\project\local\lib\x64;..\smallpot\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>bass.lib;bassmidi.lib;smallpot.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,7 +154,6 @@
     <ClCompile Include="piccache.cpp" />
     <ClCompile Include="PotConv.cpp" />
     <ClCompile Include="sdlfun.cpp" />
-    <ClCompile Include="zip.c" />
     <ClCompile Include="ZipFile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,7 +169,6 @@
     <ClInclude Include="piccache.h" />
     <ClInclude Include="PotConv.h" />
     <ClInclude Include="sdlfun.h" />
-    <ClInclude Include="zip.h" />
     <ClInclude Include="ZipFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
