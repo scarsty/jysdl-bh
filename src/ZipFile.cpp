@@ -1,7 +1,7 @@
 ﻿#include "ZipFile.h"
-#include "zip.h"
 #include "PotConv.h"
-
+#include "zip.h"
+#include <iostream>
 
 ZipFile::ZipFile()
 {
@@ -73,19 +73,20 @@ std::vector<std::string> ZipFile::getFileNames() const
 int ZipFile::zip(std::string zip_file, std::vector<std::string> files)
 {
     zip_t* zip = zip_open(zip_file.c_str(), ZIP_CREATE | ZIP_TRUNCATE, NULL);
+    std::vector<std::string> contents;
     for (auto& file : files)
     {
-        std::string content;
+        auto& content = contents.emplace_back();
         FILE* fp = fopen(file.c_str(), "rb");
         if (fp)
         {
             fseek(fp, 0, SEEK_END);
             content.resize(ftell(fp));
             fseek(fp, 0, SEEK_SET);
-            fread((void*)content.data(), 1, content.size(), fp);
+            int len = fread((void*)content.data(), 1, content.size(), fp);
             fclose(fp);
-            zip_source_t* source = zip_source_buffer_create(content.data(), content.size(), 0, NULL);
-            zip_file_add(zip, file.c_str(), source, ZIP_FL_OVERWRITE); 
+            zip_source_t* source = zip_source_buffer(zip, content.data(), content.size(), 0);
+            auto err = zip_file_add(zip, file.c_str(), source, ZIP_FL_OVERWRITE);
             zip_source_close(source);
         }
     }
