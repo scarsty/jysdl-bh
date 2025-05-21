@@ -939,7 +939,7 @@ int HAPI_SetM(lua_State* pL)
     int id = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
     int y = (int)lua_tonumber(pL, 3);
-    int v = (int)lua_tonumber(pL, 5);
+    int v = (int)lua_tonumber(pL, 4);
 
     JY_SetM(id, x, y, v);
 
