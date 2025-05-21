@@ -219,6 +219,7 @@ int InitGame(void)
         g_Renderer = SDL_CreateRendererWithProperties(props.id());
     }
     g_Texture = CreateRenderedTexture(g_ScreenW, g_ScreenH);
+    SDL_SetTextureScaleMode(g_Texture, SDL_SCALEMODE_LINEAR);
     g_TextureShow = CreateRenderedTexture(g_ScreenW, g_ScreenH);
     g_TextureTmp = CreateRenderedTexture(g_ScreenW, g_ScreenH);
 

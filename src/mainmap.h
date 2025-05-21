@@ -46,3 +46,6 @@ int JY_DrawWarMap(int flag, int x, int y, int v1, int v2, int v3, int v4, int v5
 int LoadMMap_Sub(const char* filename, Sint16** p);
 int LoadMMap_Part(int read, int x, int y);
 int LoadMMap_Part_Sub(FILE* fp, Sint16** p);
+
+int JY_GetM(int id, int x, int y);
+int JY_SetM(int id, int x, int y, int v);

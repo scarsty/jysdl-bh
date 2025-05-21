@@ -221,7 +221,7 @@ int JY_PicLoadFile(const char* idxfilename, const char* grpfilename, int id, int
 // x,y       显示位置
 //  flag 不同bit代表不同含义，缺省均为0
 //  B0    0 考虑偏移xoff，yoff。=1 不考虑偏移量
-//  B1    0     , 1 与背景alpla 混合显示, value 为alpha值(0-256), 0表示透明
+//  B1    0     , 1 与背景alpla 混合显示, value 为alpha值(0-255), 0表示透明
 //  B2            1 全黑
 //  B3            1 全白
 //  value 按照flag定义，为alpha值，
@@ -575,6 +575,12 @@ int LoadPalette(const char* filename)
     return 0;
 }
 
+//参数说明：
+// path 贴图文件路径
+// fileid 贴图文件id
+// num 贴图个数，-1表示全部贴图
+// percent 贴图缩放比例，0-100，0表示不缩放，100表示原大小
+
 int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const char* suffix)
 {
     int i;
@@ -681,6 +687,14 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
 
     return 0;
 }
+
+//参数说明：
+// fileid 贴图文件id
+// picid 贴图编号
+// x,y 显示位置
+// flag 不同bit代表不同含义，缺省均为0
+// B0 0 考虑偏移xoff，yoff。=1 不考虑偏移量
+// B1 0 , 1 与背景alpla 混合显示, value 为alpha值(0-255), 0表示透明
 
 int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int percent)
 {
@@ -823,7 +837,7 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
         return 1;
     }
 
-    if (flag & 0x00000001)
+    if (flag & 0x1)
     {
         r.x = x;
         r.y = y;
@@ -843,6 +857,18 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
     {
         newcache->t = newcache->tt[g_DelayTimes / 2 % newcache->t_count];
     }
+
+    if (flag & 0x2)    // alpha
+    {
+        SDL_SetTextureAlphaMod(newcache->t, (Uint8)value);
+        SDL_SetTextureBlendMode(newcache->t, SDL_BLENDMODE_BLEND);
+    }
+    else
+    {
+        SDL_SetTextureAlphaMod(newcache->t, 255);
+        SDL_SetTextureBlendMode(newcache->t, SDL_BLENDMODE_BLEND);
+    }
+
     SDL_RenderTexture(g_Renderer, newcache->t, NULL, &r);
 
     return 0;

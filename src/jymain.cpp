@@ -130,6 +130,8 @@ const struct luaL_Reg jylib[] = {
     { "LoadPNG", HAPI_LoadPNG },
     { "GetPNGXY", HAPI_GetPNGXY },
     { "SetWeather", HAPI_SetWeather },
+    { "GetM", HAPI_GetM },
+    { "SetM", HAPI_SetM },
     { NULL, NULL }
 };
 

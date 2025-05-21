@@ -246,6 +246,80 @@ int LoadMMap_Part_Sub(FILE* fp, Sint16** p)    //部分读取每个主地图
     return 0;
 }
 
+int JY_GetM(int id, int x, int y)
+{
+    int s;
+    if (id < 0 || id >= 5 || x < 0 || x >= M_XMax || y < 0 || y >= M_YMax)
+    {
+        JY_Error("GetM error: data out of range! id=%d,x=%d,y=%d\n", id, x, y);
+        return 0;
+    }
+    Sint16* pS = NULL;
+    s = y * M_XMax + x;    //计算数据在内存中的偏移地址
+    switch (id)
+    {
+    case 0:
+        pS = pEarth;
+        break;
+    case 1:
+        pS = pSurface;
+        break;
+    case 2:
+        pS = pBuilding;
+        break;
+    case 3:
+        pS = pBuildX;
+        break;
+    case 4:
+        pS = pBuildY;
+        break;
+    }
+    if (pS == NULL)
+    {
+        JY_Error("GetM error: data not exist! id=%d,x=%d,y=%d\n", id, x, y);
+        return 0;
+    }
+    return *(pS + s);
+}
+
+int JY_SetM(int id, int x, int y, int v)
+{
+    int s;
+    short value = (short)v;
+    if (id < 0 || id >= 5 || x < 0 || x >= M_XMax || y < 0 || y >= M_YMax)
+    {
+        JY_Error("SetM error: data out of range! id=%d,x=%d,y=%d\n", id, x, y);
+        return 0;
+    }
+    Sint16* pS = NULL;
+    s = y * M_XMax + x;    //计算数据在内存中的偏移地址
+    switch (id)
+    {
+    case 0:
+        pS = pEarth;
+        break;
+    case 1:
+        pS = pSurface;
+        break;
+    case 2:
+        pS = pBuilding;
+        break;
+    case 3:
+        pS = pBuildX;
+        break;
+    case 4:
+        pS = pBuildY;
+        break;
+    }
+    if (pS == NULL)
+    {
+        JY_Error("SetM error: data not exist! id=%d,x=%d,y=%d\n", id, x, y);
+        return 0;
+    }
+    *(pS + s) = value;    //设置数据
+    return 0;
+}
+
 // 释放主地图数据
 int JY_UnloadMMap(void)
 {

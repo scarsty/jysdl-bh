@@ -1,12 +1,12 @@
-﻿#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "jymain.h"
+﻿#include "ZipFile.h"
 #include "charset.h"
-#include "sdlfun.h"
-#include "piccache.h"
+#include "jymain.h"
 #include "mainmap.h"
-#include "ZipFile.h"
+#include "piccache.h"
+#include "sdlfun.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 //以下为所有包装的lua接口函数，对应于每个实际的函数
 
@@ -63,7 +63,6 @@ int HAPI_DrawRect(lua_State* pL)
     JY_DrawRect(x1, y1, x2, y2, color);
     return 0;
 }
-
 
 int HAPI_ShowSlow(lua_State* pL)
 {
@@ -201,15 +200,12 @@ int HAPI_PlayMPEG(lua_State* pL)
 
 int HAPI_SetSound(lua_State* pL)
 {
+    int id = (int)lua_tonumber(pL, 1);
+    int flag = (int)lua_tonumber(pL, 2);
 
-	int id = (int)lua_tonumber(pL, 1);
-	int flag = (int)lua_tonumber(pL, 2);
+    JY_SetSound(id, flag);
 
-
-	JY_SetSound(id, flag);
-
-	return 0;
-
+    return 0;
 }
 
 int HAPI_PicInit(lua_State* pL)
@@ -231,7 +227,7 @@ int HAPI_PicInit(lua_State* pL)
 
 int HAPI_PicLoadFile(lua_State* pL)
 {
-    int n = lua_gettop(pL);         //得到参数的长度
+    int n = lua_gettop(pL);    //得到参数的长度
     const char* idx = lua_tostring(pL, 1);
     const char* grp = lua_tostring(pL, 2);
     int id = (int)lua_tonumber(pL, 3);
@@ -255,7 +251,6 @@ int HAPI_PicLoadFile(lua_State* pL)
 
 int HAPI_LoadPic(lua_State* pL)
 {
-
     int fileid = (int)lua_tonumber(pL, 1);
     int picid = (int)lua_tonumber(pL, 2);
     int x = (int)lua_tonumber(pL, 3);
@@ -265,9 +260,9 @@ int HAPI_LoadPic(lua_State* pL)
     int color = 0;
     int width = -1;
     int height = -1;
-	double rotate = NULL;
-	int fz = 0;
-	SDL_FlipMode reversal = SDL_FLIP_NONE;
+    double rotate = NULL;
+    int fz = 0;
+    SDL_FlipMode reversal = SDL_FLIP_NONE;
     int percent = 100;
     if (lua_isnoneornil(pL, 5) == 0)
     {
@@ -293,24 +288,24 @@ int HAPI_LoadPic(lua_State* pL)
     {
         height = (int)lua_tonumber(pL, 9);
     }
-	//旋转
-	if (lua_isnoneornil(pL, 10) == 0)
-	{
-		rotate = (double)lua_tonumber(pL, 10);
-	}
-	//反转
-	if (lua_isnoneornil(pL, 11) == 0)
-	{
-		fz = (int)lua_tonumber(pL, 11);
-	}
-	if (fz == 1)
-	{
-		 reversal = SDL_FLIP_HORIZONTAL;
-	}
-	else if (fz == 2)
-	{
-		 reversal = SDL_FLIP_VERTICAL;
-	}
+    //旋转
+    if (lua_isnoneornil(pL, 10) == 0)
+    {
+        rotate = (double)lua_tonumber(pL, 10);
+    }
+    //反转
+    if (lua_isnoneornil(pL, 11) == 0)
+    {
+        fz = (int)lua_tonumber(pL, 11);
+    }
+    if (fz == 1)
+    {
+        reversal = SDL_FLIP_HORIZONTAL;
+    }
+    else if (fz == 2)
+    {
+        reversal = SDL_FLIP_VERTICAL;
+    }
     //反转
     if (lua_isnoneornil(pL, 12) == 0)
     {
@@ -339,7 +334,6 @@ int HAPI_GetPicXY(lua_State* pL)
 
 int HAPI_LoadMMap(lua_State* pL)
 {
-
     const char* earth = lua_tostring(pL, 1);
     const char* surface = lua_tostring(pL, 2);
     const char* building = lua_tostring(pL, 3);
@@ -380,7 +374,6 @@ int HAPI_UnloadMMap(lua_State* pL)
     JY_UnloadMMap();
     return 0;
 }
-
 
 int HAPI_FullScreen(lua_State* pL)
 {
@@ -430,7 +423,6 @@ int HAPI_GetS(lua_State* pL)
 
 int HAPI_SetS(lua_State* pL)
 {
-
     int id = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
     int y = (int)lua_tonumber(pL, 3);
@@ -440,7 +432,6 @@ int HAPI_SetS(lua_State* pL)
     JY_SetS(id, x, y, level, v);
 
     return 0;
-
 }
 
 int HAPI_GetD(lua_State* pL)
@@ -448,7 +439,6 @@ int HAPI_GetD(lua_State* pL)
     int Sceneid = (int)lua_tonumber(pL, 1);
     int id = (int)lua_tonumber(pL, 2);
     int i = (int)lua_tonumber(pL, 3);
-
 
     int v;
     v = JY_GetD(Sceneid, id, i);
@@ -532,7 +522,7 @@ int HAPI_CleanWarMap(lua_State* pL)
 
 int HAPI_DrawWarMap(lua_State* pL)
 {
-    int n = lua_gettop(pL);         //得到参数的长度
+    int n = lua_gettop(pL);    //得到参数的长度
     int flag = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
     int y = (int)lua_tonumber(pL, 3);
@@ -541,36 +531,36 @@ int HAPI_DrawWarMap(lua_State* pL)
     int v3 = (int)lua_tonumber(pL, 6);
     int v4 = (int)lua_tonumber(pL, 7);
 
-	int v5 = -1;
-	int ex = -1;
-	int ey = -1;
-	int pyx = 0;
-	int pyy = 0;
-	if (n >= 8)
-	{
-		v5 = (int)lua_tonumber(pL, 8);
-	}
-	if (n >= 9)
-	{
-		ex = (int)lua_tonumber(pL, 9);
-	}
-	if (n >= 10)
-	{
-		ey = (int)lua_tonumber(pL, 10);
-	}
-	if (n >= 11)
-	{
-		pyx = (int)lua_tonumber(pL, 11);
-	}
-	if (n >= 12)
-	{
-		pyy = (int)lua_tonumber(pL, 12);
-	}
-	JY_DrawWarMap(flag, x, y, v1, v2, v3, v4, v5, ex, ey, pyx, pyy);
-	return 0;
+    int v5 = -1;
+    int ex = -1;
+    int ey = -1;
+    int pyx = 0;
+    int pyy = 0;
+    if (n >= 8)
+    {
+        v5 = (int)lua_tonumber(pL, 8);
+    }
+    if (n >= 9)
+    {
+        ex = (int)lua_tonumber(pL, 9);
+    }
+    if (n >= 10)
+    {
+        ey = (int)lua_tonumber(pL, 10);
+    }
+    if (n >= 11)
+    {
+        pyx = (int)lua_tonumber(pL, 11);
+    }
+    if (n >= 12)
+    {
+        pyy = (int)lua_tonumber(pL, 12);
+    }
+    JY_DrawWarMap(flag, x, y, v1, v2, v3, v4, v5, ex, ey, pyx, pyy);
+    return 0;
 }
 
-int HAPI_SaveSur(lua_State* pL)         //保存屏幕到临时表面
+int HAPI_SaveSur(lua_State* pL)    //保存屏幕到临时表面
 {
     int x = (int)lua_tonumber(pL, 1);
     int y = (int)lua_tonumber(pL, 2);
@@ -581,7 +571,7 @@ int HAPI_SaveSur(lua_State* pL)         //保存屏幕到临时表面
     return 1;
 }
 
-int HAPI_LoadSur(lua_State* pL)             //加载临时表面到屏幕
+int HAPI_LoadSur(lua_State* pL)    //加载临时表面到屏幕
 {
     int id = (int)lua_tonumber(pL, 1);
     int x = (int)lua_tonumber(pL, 2);
@@ -590,28 +580,28 @@ int HAPI_LoadSur(lua_State* pL)             //加载临时表面到屏幕
     return 0;
 }
 
-int HAPI_FreeSur(lua_State* pL)                 //释放
+int HAPI_FreeSur(lua_State* pL)    //释放
 {
     int id = (int)lua_tonumber(pL, 1);
     JY_FreeSur(id);
     return 0;
 }
 
-int HAPI_ScreenWidth(lua_State* pL)             //屏幕宽度
+int HAPI_ScreenWidth(lua_State* pL)    //屏幕宽度
 {
     lua_pushnumber(pL, g_ScreenW);
     return 1;
 }
 
-int HAPI_ScreenHeight(lua_State* pL)            //屏幕高度
+int HAPI_ScreenHeight(lua_State* pL)    //屏幕高度
 {
     lua_pushnumber(pL, g_ScreenH);
     return 1;
 }
 
-int HAPI_LoadPNGPath(lua_State* pL)             //按图片读取PNG
+int HAPI_LoadPNGPath(lua_State* pL)    //按图片读取PNG
 {
-    int n = lua_gettop(pL);         //得到参数的长度
+    int n = lua_gettop(pL);    //得到参数的长度
     const char* path = lua_tostring(pL, 1);
     int fileid = (int)lua_tonumber(pL, 2);
     int num = (int)lua_tonumber(pL, 3);
@@ -632,9 +622,9 @@ int HAPI_LoadPNGPath(lua_State* pL)             //按图片读取PNG
 
     return 0;
 }
-int HAPI_LoadPNG(lua_State* pL)             //按图片读取PNG
+int HAPI_LoadPNG(lua_State* pL)    //按图片读取PNG
 {
-    int n = lua_gettop(pL);         //得到参数的长度
+    int n = lua_gettop(pL);    //得到参数的长度
     int fileid = (int)lua_tonumber(pL, 1);
     int picid = (int)lua_tonumber(pL, 2);
     int x = (int)lua_tonumber(pL, 3);
@@ -716,7 +706,7 @@ int HAPI_SetWeather(lua_State* pL)
 int Byte_create(lua_State* pL)
 {
     int x = (int)lua_tonumber(pL, 1);
-    char* p = (char*)lua_newuserdata(pL, x);                 //创建userdata，不需要释放了。
+    char* p = (char*)lua_newuserdata(pL, x);    //创建userdata，不需要释放了。
     int i;
 
     if (p == NULL)
@@ -861,7 +851,6 @@ int Byte_setu16(lua_State* pL)
     unsigned short v = (unsigned short)lua_tonumber(pL, 3);
     *(unsigned short*)(p + start) = v;
     return 0;
-
 }
 
 int Byte_get32(lua_State* pL)
@@ -932,3 +921,27 @@ int Config_GetPath(lua_State* pL)
     return 1;
 }
 
+int HAPI_GetM(lua_State* pL)
+{
+    int id = (int)lua_tonumber(pL, 1);
+    int x = (int)lua_tonumber(pL, 2);
+    int y = (int)lua_tonumber(pL, 3);
+
+    int v;
+    v = JY_GetM(id, x, y);
+
+    lua_pushnumber(pL, v);
+    return 1;
+}
+
+int HAPI_SetM(lua_State* pL)
+{
+    int id = (int)lua_tonumber(pL, 1);
+    int x = (int)lua_tonumber(pL, 2);
+    int y = (int)lua_tonumber(pL, 3);
+    int v = (int)lua_tonumber(pL, 5);
+
+    JY_SetM(id, x, y, v);
+
+    return 0;
+}

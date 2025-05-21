@@ -101,6 +101,9 @@ int HAPI_LoadPic(lua_State* pL);
 
 int Config_GetPath(lua_State *pL);
 
+int HAPI_GetM(lua_State* pL);
+int HAPI_SetM(lua_State* pL);
+
 #ifdef __cplusplus
 //}
 #endif
