@@ -6,9 +6,9 @@
 //移除，改用iconv
 
 #include "charset.h"
-#include "OpenCCConverter.h"
 #include "PotConv.h"
 #include "jymain.h"
+#include "SimpleCC.h"
 
 // 显示TTF 字符串
 // 为快速显示，程序将保存已经打开的相应字号的字体结构。这样做可以加快程序速度
@@ -32,6 +32,7 @@ int char_count = 0;
 std::map<std::string, std::map<int, SDL_Texture*>> chars_cache;
 SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
+SimpleCC ccs2t;
 //初始化
 int InitFont()
 {
@@ -45,6 +46,8 @@ int InitFont()
         Font[i].name = NULL;
         Font[i].font = NULL;
     }
+
+    ccs2t.init({ "STCharacters.txt", "STPhrases.txt" });
 
     return 0;
 }
@@ -187,7 +190,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     else if (charset == 0 && OScharset == 1)    //GBK -->unicode繁体
     {
         tmp = PotConv::conv(str, "cp936", "utf-8");
-        tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
+        tmp = ccs2t.conv(tmp);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp1, 1);
         //JY_CharSet(tmp1, tmp2, 2);
@@ -200,7 +203,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     else if (charset == 1 && OScharset == 1)    //big5-->unicode繁体
     {
         tmp = PotConv::conv(str, "cp936", "utf-8");
-        tmp = OpenCCConverter::getInstance()->UTF8s2t(tmp);
+        tmp = ccs2t.conv(tmp);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp2, 2);
     }
@@ -211,7 +214,7 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     }
     else if (charset == 3 && OScharset == 1)    //big5-->unicode繁体
     {
-        tmp = OpenCCConverter::getInstance()->UTF8s2t(str);
+        tmp = ccs2t.conv(str);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp2, 2);
     }

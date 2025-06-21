@@ -124,7 +124,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>\project\local\include;..\smallpot\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\project\local\include;C:\project\local\include\tinypot</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BuildStlModules>false</BuildStlModules>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
@@ -137,7 +137,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>\project\local\lib\x64;..\smallpot\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\project\local\lib\x64;..\smallpot\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>bass.lib;bassmidi.lib;smallpot.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
@@ -148,12 +148,12 @@
     <ClCompile Include="jymain.cpp" />
     <ClCompile Include="luafun.cpp" />
     <ClCompile Include="mainmap.cpp" />
-    <ClCompile Include="OpenCCConverter.cpp" />
     <ClCompile Include="ParticleExample.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="piccache.cpp" />
     <ClCompile Include="PotConv.cpp" />
     <ClCompile Include="sdlfun.cpp" />
+    <ClCompile Include="SimpleCC.cpp" />
     <ClCompile Include="ZipFile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,12 +163,12 @@
     <ClInclude Include="luafun.h" />
     <ClInclude Include="mainmap.h" />
     <ClInclude Include="miniz.h" />
-    <ClInclude Include="OpenCCConverter.h" />
     <ClInclude Include="ParticleExample.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="piccache.h" />
     <ClInclude Include="PotConv.h" />
     <ClInclude Include="sdlfun.h" />
+    <ClInclude Include="SimpleCC.h" />
     <ClInclude Include="ZipFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

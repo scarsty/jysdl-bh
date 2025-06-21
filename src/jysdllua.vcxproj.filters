@@ -27,9 +27,6 @@
     <ClCompile Include="mainmap.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="OpenCCConverter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ParticleExample.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -46,6 +43,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ZipFile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleCC.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,9 +68,6 @@
     <ClInclude Include="miniz.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="OpenCCConverter.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleExample.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -87,6 +84,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ZipFile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleCC.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
