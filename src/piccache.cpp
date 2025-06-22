@@ -102,11 +102,10 @@ int JY_PicInit(const char* PalletteFilename)
         char figgrp[512];
         sprintf(figidx, "./data/fight/fight%03d.idx", i - 101);
         sprintf(figgrp, "./data/fight/fight%03d.grp", i - 101);
-        if (FileLength(figidx) <= 0 || FileLength(figgrp) <= 0)
+        if (FileExists(figidx) && FileExists(figgrp))
         {
-            continue;    //文件不存在
+            JY_PicLoadFile(figidx, figgrp, i, NULL, NULL);
         }
-        JY_PicLoadFile(figidx, figgrp, i, NULL, NULL);
     }
 
     return 0;

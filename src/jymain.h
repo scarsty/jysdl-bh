@@ -73,6 +73,9 @@ int JY_Error(const char* fmt, ...);
 //限制 x在 xmin-xmax之间
 int limitX(int x, int xmin, int xmax);
 
+//检查文件是否存在
+int FileExists(const char* name);
+
 //取文件长度
 int FileLength(const char* filename);
 

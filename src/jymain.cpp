@@ -411,6 +411,19 @@ int limitX(int x, int xmin, int xmax)
     return x;
 }
 
+int FileExists(const char* name)
+{
+    // 检查文件是否存在
+    if (strlen(name) == 0)
+    {
+        return 0;    // 空字符串不代表文件
+    }
+
+    // 使用stat函数检查文件状态
+    struct stat buffer;
+    return (stat(name, &buffer) == 0);
+}
+
 // 返回文件长度，若为0，则文件可能不存在
 int FileLength(const char* filename)
 {
