@@ -32,7 +32,7 @@ int char_count = 0;
 std::map<std::string, std::map<int, SDL_Texture*>> chars_cache;
 SDL_Texture** chars_record[MAX_CACHE_CHAR] = { 0 };
 
-SimpleCC ccs2t;
+SimpleCC ccs2t, cct2s;
 //初始化
 int InitFont()
 {
@@ -48,6 +48,7 @@ int InitFont()
     }
 
     ccs2t.init({ "STCharacters.txt", "STPhrases.txt" });
+    ccs2t.init({ "TSCharacters.txt", "TSPhrases.txt" });
 
     return 0;
 }
@@ -184,7 +185,9 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     //charset=3;
     if (charset == 0 && OScharset == 0)    //GBK -->unicode简体
     {
-        tmp = PotConv::conv(str, "cp936", "utf-16le");
+        tmp = PotConv::conv(str, "cp936", "utf-8");
+        tmp = cct2s.conv(tmp);
+        tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp2, 3);
     }
     else if (charset == 0 && OScharset == 1)    //GBK -->unicode繁体
@@ -197,19 +200,22 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
     }
     else if (charset == 1 && OScharset == 0)    //big5-->unicode简体
     {
-        tmp = PotConv::conv(str, "cp950", "utf-16le");
+        tmp = PotConv::conv(str, "cp950", "utf-8");
+        tmp = cct2s.conv(tmp);
+        tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(tmp1, tmp2, 3);
     }
     else if (charset == 1 && OScharset == 1)    //big5-->unicode繁体
     {
-        tmp = PotConv::conv(str, "cp936", "utf-8");
+        tmp = PotConv::conv(str, "cp950", "utf-8");
         tmp = ccs2t.conv(tmp);
         tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(str, tmp2, 2);
     }
     else if (charset == 3 && OScharset == 0)    //big5-->unicode简体
     {
-        tmp = PotConv::conv(str, "utf-8", "utf-16le");
+        tmp = cct2s.conv(str);
+        tmp = PotConv::conv(tmp, "utf-8", "utf-16le");
         //JY_CharSet(tmp1, tmp2, 3);
     }
     else if (charset == 3 && OScharset == 1)    //big5-->unicode繁体
