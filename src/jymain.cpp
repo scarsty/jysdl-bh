@@ -193,9 +193,9 @@ void GetModes(int* width, int* height)
 // 主程序
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-    SetConsoleOutputCP(65001);
-#endif
+//#ifdef _WIN32
+//    SetConsoleOutputCP(65001);
+//#endif
     //lua_State* pL_main;
     srand(time(0));
     remove(DEBUG_FILE);
@@ -274,6 +274,12 @@ int Lua_Main(lua_State* pL_main)
     }
 
     result = lua_pcall(pL_main, 0, LUA_MULTRET, 0);
+    if (result)
+    {
+        JY_Error(lua_tostring(pL_main, -1));
+        lua_pop(pL_main, 1);
+        return 1;
+    }
 
     //调用lua的主函数JY_Main
     lua_getglobal(pL_main, "JY_Main");
@@ -283,6 +289,7 @@ int Lua_Main(lua_State* pL_main)
     {
         JY_Error(lua_tostring(pL_main, -1));
         lua_pop(pL_main, 1);
+        return 1;
     }
 
     return 0;

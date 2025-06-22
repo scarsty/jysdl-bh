@@ -113,8 +113,7 @@ int InitSDL(void)
     r = (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) != 0);
     if (r < 0)
     {
-        JY_Error(
-            "Couldn't initialize SDL: %s\n", SDL_GetError());
+        JY_Error("Couldn't initialize SDL\n");
         exit(1);
     }
     //atexit(SDL_Quit);    可能有问题，屏蔽掉
@@ -240,16 +239,18 @@ int InitGame(void)
     }
 
     SDL_SetGamepadEventsEnabled(true);
-	int i, num_joysticks;
-	SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks);
-	if (joysticks) {
-		for (i = 0; i < num_joysticks; ++i) {
-			SDL_JoystickID instance_id = joysticks[i];
-			if (SDL_IsGamepad(instance_id))
-			{
-				ctrls[i] = SDL_OpenGamepad(instance_id);
-			}
-		}
+    int i, num_joysticks;
+    SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks);
+    if (joysticks)
+    {
+        for (i = 0; i < num_joysticks; ++i)
+        {
+            SDL_JoystickID instance_id = joysticks[i];
+            if (SDL_IsGamepad(instance_id))
+            {
+                ctrls[i] = SDL_OpenGamepad(instance_id);
+            }
+        }
     }
 
     Init_Cache();
@@ -353,7 +354,7 @@ int JY_LoadPicture(const char* str, int x, int y)
     }
     else
     {
-        JY_Error("JY_LoadPicture: Load picture file %s failed! %s", str, SDL_GetError());
+        JY_Error("JY_LoadPicture: Load picture file %s failed!", str);
     }
     return 0;
 }
@@ -906,25 +907,27 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
         {
             JY_Error("Controller added or removed");
             for (int i = 0; i < 8; ++i)
-			{
-				if (ctrls[i])
-				{
-					SDL_CloseGamepad(ctrls[i]);
-					ctrls[i] = NULL;
-				}
-			}
-			SDL_SetGamepadEventsEnabled(true);
-			int i, num_joysticks;
-			SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks);
-			if (joysticks) {
-				for (i = 0; i < num_joysticks; ++i) {
-					SDL_JoystickID instance_id = joysticks[i];
-					if (SDL_IsGamepad(instance_id))
-					{
-						ctrls[i] = SDL_OpenGamepad(instance_id);
-					}
-				}
-			}
+            {
+                if (ctrls[i])
+                {
+                    SDL_CloseGamepad(ctrls[i]);
+                    ctrls[i] = NULL;
+                }
+            }
+            SDL_SetGamepadEventsEnabled(true);
+            int i, num_joysticks;
+            SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks);
+            if (joysticks)
+            {
+                for (i = 0; i < num_joysticks; ++i)
+                {
+                    SDL_JoystickID instance_id = joysticks[i];
+                    if (SDL_IsGamepad(instance_id))
+                    {
+                        ctrls[i] = SDL_OpenGamepad(instance_id);
+                    }
+                }
+            }
         }
         break;
         case SDL_EVENT_QUIT:
