@@ -108,6 +108,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
       <TranslateIncludes>false</TranslateIncludes>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,6 +132,7 @@
       <TranslateIncludes>false</TranslateIncludes>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

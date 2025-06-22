@@ -3,13 +3,16 @@
 // 本程序为游泳的鱼编写。
 // 版权所无，您可以以任何方式使用代码
 
+#include "jymain.h"
+#include "charset.h"
+#include "mainmap.h"
+#include "sdlfun.h"
 #include <stdio.h>
 #include <time.h>
 
-#include "charset.h"
-#include "jymain.h"
-#include "mainmap.h"
-#include "sdlfun.h"
+#include "spdlog/spdlog.h"
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 // 全程变量
 SDL_Window* g_Window = NULL;
@@ -29,7 +32,7 @@ int g_FullScreen = 0;
 int g_EnableSound = 1;     // 声音开关 0 关闭 1 打开
 int g_MusicVolume = 32;    // 音乐声音大小
 int g_SoundVolume = 32;    // 音效声音大小
-int g_SwitchABXY = 0;    // 调换AB键，0为不调换，1为调换
+int g_SwitchABXY = 0;      // 调换AB键，0为不调换，1为调换
 
 int g_XScale = 18;    //贴图x,y方向一半大小
 int g_YScale = 9;
@@ -47,12 +50,12 @@ int g_LoadFullS = 1;         //是否全部加载S文件
 int g_LoadMMapType = 0;      //是否全部加载M文件
 int g_LoadMMapScope = 0;
 //int g_PreLoadPicGrp = 1;    //是否预先加载贴图文件的grp
-int IsDebug = 0;            //是否打开跟踪文件
-char JYMain_Lua[255];       //lua主函数
-int g_MP3 = 0;              //是否打开MP3
-char g_MidSF2[255];         //音色库对应的文件
-float g_Zoom = 1;           //图片放大
-char g_Softener[255];       //音色库对应的文件
+int IsDebug = 0;         //是否打开跟踪文件
+char JYMain_Lua[255];    //lua主函数
+int g_MP3 = 0;           //是否打开MP3
+char g_MidSF2[255];      //音色库对应的文件
+float g_Zoom = 1;        //图片放大
+char g_Softener[255];    //音色库对应的文件
 int g_DelayTimes;
 
 #ifdef _WIN32
@@ -65,6 +68,8 @@ lua_State* pL_main = NULL;
 
 void* g_Tinypot;
 ParticleExample g_Particle;
+
+std::shared_ptr<spdlog::logger> g_logger_debug, g_logger_error;
 
 //定义的lua接口函数名
 const struct luaL_Reg jylib[] = {
@@ -188,10 +193,23 @@ void GetModes(int* width, int* height)
 // 主程序
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+    SetConsoleOutputCP(65001);
+#endif
     //lua_State* pL_main;
     srand(time(0));
     remove(DEBUG_FILE);
     remove(ERROR_FILE);    //设置stderr输出到文件
+
+    spdlog::set_level(spdlog::level::debug);
+
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(DEBUG_FILE, true);
+    spdlog::sinks_init_list sink_list = { console_sink, file_sink };
+
+    g_logger_debug = std::make_shared<spdlog::logger>("1", sink_list);
+    g_logger_debug->set_level(spdlog::level::debug);    // 设置日志级别为debug
+    g_logger_error = std::make_shared<spdlog::logger>("2", sink_list);
 
     pL_main = luaL_newstate();
     luaL_openlibs(pL_main);
@@ -324,7 +342,7 @@ int Lua_Config(lua_State* pL, const char* filename)
     g_WMapAddY = getfield(pL, "WMapAddY");
     g_SoundVolume = getfield(pL, "SoundVolume");
     g_MusicVolume = getfield(pL, "MusicVolume");
-	g_SwitchABXY = getfield(pL, "SwitchABXY");
+    g_SwitchABXY = getfield(pL, "SwitchABXY");
 
     g_MAXCacheNum = getfield(pL, "MAXCacheNum");
     g_LoadFullS = getfield(pL, "LoadFullS");
@@ -358,38 +376,17 @@ int getfieldstr(lua_State* pL, const char* key, char* str)
 }
 
 //以下为几个通用函数
-
 // 调试函数
 // 输出到debug.txt中
+
 int JY_Debug(const char* fmt, ...)
 {
-    time_t t;
-    FILE* fp;
-    struct tm* newtime;
     va_list argptr;
-#ifdef _DEBUG
-    if (IsDebug == 0)
-    {
-        return 0;
-    }
-#endif
     char string[1024];
-    // concatenate all the arguments in one string
     va_start(argptr, fmt);
     vsnprintf(string, sizeof(string), fmt, argptr);
     va_end(argptr);
-    time(&t);
-    newtime = localtime(&t);
-#ifdef _DEBUG
-    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-#else
-    fp = fopen(DEBUG_FILE, "a+t");
-    if (fp)
-    {
-        fprintf(stdout, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-        fclose(fp);
-    }
-#endif
+    g_logger_debug->debug("{}", string);
     return 0;
 }
 
@@ -397,29 +394,12 @@ int JY_Debug(const char* fmt, ...)
 // 输出到error.txt中
 int JY_Error(const char* fmt, ...)
 {
-    //无酒不欢：不再输出error信息
-#ifdef _DEBUG
-    time_t t;
-    FILE* fp;
-    struct tm* newtime;
-
     va_list argptr;
     char string[1024];
-
     va_start(argptr, fmt);
     vsnprintf(string, sizeof(string), fmt, argptr);
     va_end(argptr);
-    time(&t);
-    newtime = localtime(&t);
-    fprintf(stderr, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-    //fp = fopen(ERROR_FILE, "a+t");
-    //if (fp)
-    //{
-    //    fprintf(fp, "%02d:%02d:%02d %s\n", newtime->tm_hour, newtime->tm_min, newtime->tm_sec, string);
-    //    fflush(fp);
-    //    fclose(fp);
-    //}
-#endif
+    g_logger_error->error("{}", string);
     return 0;
 }
 

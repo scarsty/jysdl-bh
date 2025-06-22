@@ -13,8 +13,8 @@
 
 
 #define CONFIG_FILE "config.lua"
-#define DEBUG_FILE "debug.txt"
-#define ERROR_FILE "error.txt"
+#define DEBUG_FILE "debug.log"
+#define ERROR_FILE "error.log"
 
 
 //定义vsnprintf. vc6并不支持

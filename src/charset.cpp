@@ -48,7 +48,7 @@ int InitFont()
     }
 
     ccs2t.init({ "STCharacters.txt", "STPhrases.txt" });
-    ccs2t.init({ "TSCharacters.txt", "TSPhrases.txt" });
+    cct2s.init({ "TSCharacters.txt", "TSPhrases.txt" });
 
     return 0;
 }
@@ -413,7 +413,6 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 // 注意要保证dest有足够的空间，一般建议取src长度的两倍+2，保证全英文字符也能转化为unicode
 int JY_CharSet(const char* src, char* dest, int flag)
 {
-
     Uint8 *psrc, *pdest;
     Uint8 b0, b1;
     int d0;
