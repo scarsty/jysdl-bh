@@ -193,9 +193,9 @@ void GetModes(int* width, int* height)
 // 主程序
 int main(int argc, char* argv[])
 {
-//#ifdef _WIN32
-//    SetConsoleOutputCP(65001);
-//#endif
+    //#ifdef _WIN32
+    //    SetConsoleOutputCP(65001);
+    //#endif
     //lua_State* pL_main;
     srand(time(0));
     remove(DEBUG_FILE);
@@ -205,11 +205,13 @@ int main(int argc, char* argv[])
 
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(DEBUG_FILE, true);
+    auto file_sink2 = std::make_shared<spdlog::sinks::basic_file_sink_mt>(ERROR_FILE, true);
     spdlog::sinks_init_list sink_list = { console_sink, file_sink };
+    spdlog::sinks_init_list sink_list2 = { console_sink, file_sink2 };
 
     g_logger_debug = std::make_shared<spdlog::logger>("1", sink_list);
     g_logger_debug->set_level(spdlog::level::debug);    // 设置日志级别为debug
-    g_logger_error = std::make_shared<spdlog::logger>("2", sink_list);
+    g_logger_error = std::make_shared<spdlog::logger>("2", sink_list2);
 
     pL_main = luaL_newstate();
     luaL_openlibs(pL_main);
@@ -255,36 +257,21 @@ int main(int argc, char* argv[])
 int Lua_Main(lua_State* pL_main)
 {
     int result = 0;
-
-    //初始化lua
-
-    //加载lua文件
-    result = luaL_loadfile(pL_main, JYMain_Lua);
-    switch (result)
-    {
-    case LUA_ERRSYNTAX:
-        JY_Error("load lua file %s error: syntax error!\n", JYMain_Lua);
-        break;
-    case LUA_ERRMEM:
-        JY_Error("load lua file %s error: memory allocation error!\n", JYMain_Lua);
-        break;
-    case LUA_ERRFILE:
-        JY_Error("load lua file %s error: can not open file!\n", JYMain_Lua);
-        break;
-    }
-
-    result = lua_pcall(pL_main, 0, LUA_MULTRET, 0);
-    if (result)
-    {
-        JY_Error(lua_tostring(pL_main, -1));
-        lua_pop(pL_main, 1);
-        return 1;
-    }
-
-    //调用lua的主函数JY_Main
-    lua_getglobal(pL_main, "JY_Main");
-    result = lua_pcall(pL_main, 0, 0, 0);
-
+    do {
+        result = luaL_loadfile(pL_main, JYMain_Lua);
+        if (result)
+        {
+            break;
+        }
+        result = lua_pcall(pL_main, 0, 0, 0);
+        if (result)
+        {
+            break;
+        }
+        //调用lua的主函数JY_Main
+        lua_getglobal(pL_main, "JY_Main");
+        result = lua_pcall(pL_main, 0, 1, 0);
+    } while (0);
     if (result)
     {
         JY_Error(lua_tostring(pL_main, -1));
