@@ -193,9 +193,9 @@ void GetModes(int* width, int* height)
 // 主程序
 int main(int argc, char* argv[])
 {
-    //#ifdef _WIN32
-    //    SetConsoleOutputCP(65001);
-    //#endif
+#ifdef _WIN32
+    SetConsoleOutputCP(65001);
+#endif
     //lua_State* pL_main;
     srand(time(0));
     remove(DEBUG_FILE);
