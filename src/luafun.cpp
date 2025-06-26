@@ -132,7 +132,7 @@ int HAPI_Delay(lua_State* pL)
 int HAPI_Debug(lua_State* pL)
 {
     const char* str = lua_tostring(pL, 1);
-    JY_Debug(str);
+    JY_Debug("%s", str);
     return 0;
 }
 
