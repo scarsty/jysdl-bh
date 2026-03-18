@@ -48,6 +48,9 @@
     <ClCompile Include="SimpleCC.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Audio.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="charset.h">
@@ -87,6 +90,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SimpleCC.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

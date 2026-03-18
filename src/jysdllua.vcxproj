@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="charset.cpp" />
     <ClCompile Include="jymain.cpp" />
     <ClCompile Include="luafun.cpp" />
@@ -159,6 +160,7 @@
     <ClCompile Include="ZipFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="charset.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="jymain.h" />
