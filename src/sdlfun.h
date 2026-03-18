@@ -40,6 +40,8 @@ int JY_Delay(int x);
 double JY_GetTime();
 int JY_PlayMIDI(const char* filename);
 int StopMIDI();
+int PausedMIDI();
+int ResumeMIDI();
 int JY_PlayWAV(const char* filename);
 int JY_GetKey(int* key, int* type, int* mx, int* my);
 int JY_GetKeyState(int key);

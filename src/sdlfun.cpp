@@ -6,14 +6,9 @@
 #include "PotDll.h"
 #include "charset.h"
 #include "jymain.h"
+#include "Audio.h"
 #include "mainmap.h"
 #include "piccache.h"
-
-HSTREAM currentMusic = 0;    //播放音乐数据，由于同时只播放一个，用一个变量
-#define WAVNUM 5
-HSAMPLE WavChunk[WAVNUM];    //播放音效数据，可以同时播放几个，因此用数组
-BASS_MIDI_FONT midfonts;
-int currentWav = 0;    //当前播放的音效
 
 #define RECTNUM 20
 SDL_FRect ClipRect[RECTNUM];    // 当前设置的剪裁矩形
@@ -122,37 +117,11 @@ int InitSDL(void)
 
     InitFont();    //初始化
     r = SDL_InitSubSystem(SDL_INIT_AUDIO);
-    if (r < 0)
-    {
-        g_EnableSound = 0;
-        JY_Error("Init audio error!");
-    }
-    if (g_MP3 == 1)
-    {
-        so = 44100;
-    }
-    if (!BASS_Init(-1, so, 0, 0, NULL))
-    {
-        JY_Error("Can't initialize device");
-        g_EnableSound = 0;
-    }
-    currentWav = 0;
-    for (i = 0; i < WAVNUM; i++)
-    {
-        WavChunk[i] = 0;
-    }
+
+    Audio::getInstance()->init();
+
     SDL_SetEventFilter(KeyFilter, NULL);
-    if (g_MP3 != 1)
-    {
-        midfonts.font = BASS_MIDI_FontInit(g_MidSF2, 0);
-        if (!midfonts.font)
-        {
-            JY_Error("BASS_MIDI_FontInit error ! %d", BASS_ErrorGetCode());
-        }
-        midfonts.preset = -1;                         // use all presets
-        midfonts.bank = 0;                            // use default bank(s)
-        BASS_MIDI_StreamSetFonts(0, &midfonts, 1);    // set default soundfont
-    }
+
     return 0;
 }
 
@@ -161,21 +130,7 @@ int ExitSDL(void)
 {
     ExitFont();
     StopMIDI();
-    if (midfonts.font)
-    {
-        BASS_MIDI_FontFree(midfonts.font);
-    }
-    for (int i = 0; i < WAVNUM; i++)
-    {
-        if (WavChunk[i])
-        {
-            //Mix_FreeChunk(WavChunk[i]);
-            BASS_SampleFree(WavChunk[i]);
-            WavChunk[i] = 0;
-        }
-    }
-    //Mix_CloseAudio();
-    BASS_Free();
+    Audio::getInstance()->quit();
 #ifdef WIN32
     if (g_Tinypot) { PotDestory(g_Tinypot); }
 #endif
@@ -479,90 +434,41 @@ double JY_GetTime()
 #endif
 }
 
-//播放音乐
+// 重新封装音乐播放函数
 int JY_PlayMIDI(const char* filename)
 {
-    static char currentfile[255] = "\0";
-    if (g_EnableSound == 0)
-    {
-        JY_Error("disable sound!");
-        return 1;
-    }
-    if (strlen(filename) == 0)    //文件名为空，停止播放
-    {
-        StopMIDI();
-        strcpy(currentfile, filename);
-        return 0;
-    }
-    if (strcmp(currentfile, filename) == 0)    //与当前播放文件相同，直接返回
-    {
-        return 0;
-    }
-    StopMIDI();
-    //currentMusic = BASS_MIDI_StreamCreateFile(0, filename, 0, 0, 0, 0);
-    currentMusic = BASS_StreamCreateFile(0, filename, 0, 0, 0);
-    if (!currentMusic)
-    {
-        JY_Error("Open music file %s failed! %d", filename, BASS_ErrorGetCode());
-        return 1;
-    }
-    if (g_MP3 == 1)
-    {
-        BASS_MIDI_StreamSetFonts(currentMusic, &midfonts, 1);
-    }    // set for current stream too
-    BASS_ChannelSetAttribute(currentMusic, BASS_ATTRIB_VOL, (float)(g_MusicVolume / 100.0));
-    BASS_ChannelFlags(currentMusic, BASS_SAMPLE_LOOP, BASS_SAMPLE_LOOP);
-    BASS_ChannelPlay(currentMusic, FALSE);
-    strcpy(currentfile, filename);
-    return 0;
+    return Audio::getInstance()->PlayMIDI(filename);
 }
 
-//停止音效
 int StopMIDI()
 {
-    if (currentMusic)
-    {
-        BASS_ChannelStop(currentMusic);
-        BASS_StreamFree(currentMusic);
-        currentMusic = 0;
-    }
-    return 0;
+    return Audio::getInstance()->StopMIDI();
 }
 
-//播放音效
+int PausedMIDI()
+{
+    return Audio::getInstance()->PausedMIDI();
+}
+
+int ResumeMIDI()
+{
+    return Audio::getInstance()->ResumeMIDI();
+}
+
 int JY_PlayWAV(const char* filename)
 {
-    HCHANNEL ch;
-    if (g_EnableSound == 0)
+    return Audio::getInstance()->PlayWAV(filename);
+}
+
+int JY_SetSound(int id, int flag)
+{
+    if (flag == 1)
     {
-        return 1;
+        g_SoundVolume = id;    // 声音开关 0 关闭 1 打开
     }
-    if (WavChunk[currentWav])    //释放当前音效
+    else if (flag == 2)
     {
-        //Mix_FreeChunk(WavChunk[currentWav]);
-        BASS_SampleStop(WavChunk[currentWav]);
-        BASS_SampleFree(WavChunk[currentWav]);
-        WavChunk[currentWav] = 0;
-    }
-    //WavChunk[currentWav]= Mix_LoadWAV(filename);  //加载到当前音效
-    WavChunk[currentWav] = BASS_SampleLoad(0, filename, 0, 0, 1, 0);
-    if (WavChunk[currentWav])
-    {
-        //Mix_VolumeChunk(WavChunk[currentWav],g_SoundVolume);
-        //Mix_PlayChannel(-1, WavChunk[currentWav], 0);  //播放音效
-        ch = BASS_SampleGetChannel(WavChunk[currentWav], 0);
-        BASS_ChannelSetAttribute(ch, BASS_ATTRIB_VOL, (float)(g_SoundVolume / 100.0));
-        BASS_ChannelFlags(ch, 0, BASS_SAMPLE_LOOP);
-        BASS_ChannelPlay(ch, 0);
-        currentWav++;
-        if (currentWav >= WAVNUM)
-        {
-            currentWav = 0;
-        }
-    }
-    else
-    {
-        JY_Error("Open wav file %s failed!", filename);
+        Audio::getInstance()->SetVolume(id);
     }
     return 0;
 }
@@ -1129,21 +1035,6 @@ int JY_PlayMPEG(char* filename, int esckey)
     }
 #endif
     //g_Tinypot = NULL;
-    return 0;
-}
-
-//取s的值
-int JY_SetSound(int id, int flag)
-{
-    if (flag == 1)
-    {
-        g_SoundVolume = id;    // 声音开关 0 关闭 1 打开
-    }
-    else if (flag == 2)
-    {
-        g_MusicVolume = id;
-        BASS_ChannelSetAttribute(currentMusic, BASS_ATTRIB_VOL, (float)(g_MusicVolume / 100.0));
-    }
     return 0;
 }
 
