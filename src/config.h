@@ -8,11 +8,16 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+// 防止Windows头文件定义min/max宏
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 
 // 定义程序运行时在运行目录下访问的文件名。用于主程序运行目录不是当前目录的情况下。
 
 
-#define CONFIG_FILE "config.lua"
+#define CONFIG_FILE "CONFIG.ini"
 #define DEBUG_FILE "debug.log"
 #define ERROR_FILE "error.log"
 

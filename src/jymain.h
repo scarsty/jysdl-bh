@@ -10,16 +10,9 @@
 #include "bass.h"
 #include "bassmidi.h"
 
-extern "C"
-{
-#include "lua.h"
-#include "lualib.h"
-#include "luafun.h"
-
-#include "lauxlib.h"
-}
-
 #include "ParticleExample.h"
+#include "GameData.h"
+#include "GameMain.h"
 
 
 // 公共部分
@@ -55,14 +48,6 @@ extern "C"
 #define AMASK (0xff000000)
 
 // jymain.c
-
-int Lua_Main(lua_State* pL_main);
-
-int Lua_Config(lua_State* pL, const char* filename);
-
-int getfield(lua_State* pL, const char* key);
-
-int getfieldstr(lua_State* pL, const char* key, char* str);
 
 // 输出信息到文件debug.txt中
 int JY_Debug(const char* fmt, ...);
@@ -130,7 +115,6 @@ extern int g_MP3;               //是否打开MP3
 extern int g_BJ;                //是否打开MP3
 extern char g_MidSF2[255];      //音色库对应的文件
 extern float g_Zoom;            //图片放大
-extern lua_State* pL_main;
 extern char g_Softener[255];    //是否柔化
 extern void* g_Tinypot;
 

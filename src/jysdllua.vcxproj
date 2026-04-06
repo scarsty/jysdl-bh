@@ -104,11 +104,11 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>c:\project\local\include;..\smallpot\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\project\local\include;c:\project\mlcc;..\smallpot\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
       <TranslateIncludes>false</TranslateIncludes>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,14 +125,14 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>c:\project\local\include;C:\project\local\include\tinypot</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\project\local\include;c:\project\mlcc;C:\project\local\include\tinypot</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BuildStlModules>false</BuildStlModules>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
       <TranslateIncludes>false</TranslateIncludes>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,8 +148,11 @@
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="charset.cpp" />
+    <ClCompile Include="GameData.cpp" />
+    <ClCompile Include="GameEvent.cpp" />
+    <ClCompile Include="GameMain.cpp" />
+    <ClCompile Include="GameWar.cpp" />
     <ClCompile Include="jymain.cpp" />
-    <ClCompile Include="luafun.cpp" />
     <ClCompile Include="mainmap.cpp" />
     <ClCompile Include="ParticleExample.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
@@ -163,8 +166,11 @@
     <ClInclude Include="Audio.h" />
     <ClInclude Include="charset.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="GameData.h" />
+    <ClInclude Include="GameEvent.h" />
+    <ClInclude Include="GameMain.h" />
+    <ClInclude Include="GameWar.h" />
     <ClInclude Include="jymain.h" />
-    <ClInclude Include="luafun.h" />
     <ClInclude Include="mainmap.h" />
     <ClInclude Include="miniz.h" />
     <ClInclude Include="ParticleExample.h" />

@@ -852,11 +852,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
                 if (quit == 0)
                 {
                     quit = 1;
-                    lua_getglobal(pL_main, "Menu_Exit");
-                    lua_call(pL_main, 0, 1);
-                    r = (int)lua_tointeger(pL_main, -1);
-                    lua_pop(pL_main, 1);
-                    //if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
+                    r = Menu_Exit();
                     if (r == 1)
                     {
                         ExitGame();    //释放游戏数据
@@ -936,11 +932,7 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
             if (quit == 0)
             {
                 quit = 1;
-                lua_getglobal(pL_main, "Menu_Exit");
-                lua_call(pL_main, 0, 1);
-                r = (int)lua_tointeger(pL_main, -1);
-                lua_pop(pL_main, 1);
-                //if (MessageBox(NULL, "你确定要关闭游戏吗?", "系统提示", MB_ICONQUESTION | MB_OKCANCEL) == IDOK)
+                r = Menu_Exit();
                 if (r == 1)
                 {
                     ExitGame();    //释放游戏数据
