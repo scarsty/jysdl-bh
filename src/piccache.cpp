@@ -78,7 +78,7 @@ int JY_PicInit(const char* PalletteFilename)
             pic_file[i].fp = NULL;
         }
     }
-  
+
     return 0;
 }
 
@@ -810,17 +810,30 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
     {
         return 1;
     }
-
     if (flag & 0x1)
     {
+        // 模式1：绝对坐标
         r.x = x;
         r.y = y;
     }
     else
     {
-        r.x = x - newcache->xoff;
-        r.y = y - newcache->yoff;
+        // 模式2：尝试计算相对坐标
+        if (newcache->xoff == 0 && newcache->yoff == 0)
+        {
+            // 虽然进入了相对模式，但偏移量是0，效果等同于绝对坐标
+            r.x = x - newcache->w / 2;
+            r.y = y - newcache->h / 2;
+        }
+        else
+        {
+            // 真正的偏移计算
+            r.x = x - newcache->xoff;
+            r.y = y - newcache->yoff;
+        }
     }
+
+
 
     //SDL_BlitSurface(newcache->s, NULL, g_Surface, &r);
     r.w = newcache->w * percent / 100.0;

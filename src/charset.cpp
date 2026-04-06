@@ -406,6 +406,13 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 }
 
 // 汉字字符集转换
+// 汉字字符集转换
+// flag = 0   Big5 --> GBK
+//      = 1   GBK  --> Big5
+//      = 2   Big5 --> Unicode
+//      = 3   GBK  --> Unicode
+// 注意要保证dest有足够的空间，一般建议取src长度的两倍+2，保证全英文字符也能转化为unicode
+// 汉字字符集转换
 // flag = 0   Big5 --> GBK
 //      = 1   GBK  --> Big5
 //      = 2   Big5 --> Unicode
@@ -413,92 +420,103 @@ int JY_DrawStr(int x, int y, const char* str, int color, int size, const char* f
 // 注意要保证dest有足够的空间，一般建议取src长度的两倍+2，保证全英文字符也能转化为unicode
 int JY_CharSet(const char* src, char* dest, int flag)
 {
-    Uint8 *psrc, *pdest;
-    Uint8 b0, b1;
-    int d0;
-    Uint16 tmpchar;
-
-    psrc = (Uint8*)src;
-    pdest = (Uint8*)dest;
-
-    for (;;)
+    if (src == nullptr || dest == nullptr)
     {
-        b0 = *psrc;
-        if (b0 == 0)    //字符串结束
+        return -1;
+    }
+
+    if (strlen(src) == 0)
+    {
+        if (flag == 0 || flag == 1)
         {
-            if ((flag == 0) || (flag == 1))
-            {
-                *pdest = 0;
-                break;
-            }
-            else    //unicode结束标志 0x0000?
-            {
-                *pdest = 0;
-                *(pdest + 1) = 0;
-                break;
-            }
+            dest[0] = '\0';
         }
-        if (b0 < 128)    //英文字符
+        else
         {
-            if ((flag == 0) || (flag == 1))    //不转换
-            {
-                *pdest = b0;
-                pdest++;
-                psrc++;
-            }
-            else    //unicode 后面加个0
-            {
-                *pdest = b0;
-                pdest++;
-                *pdest = 0;
-                pdest++;
-                psrc++;
-            }
+            dest[0] = '\0';
+            dest[1] = '\0';
         }
-        else    //中文字符
+        return 0;
+    }
+
+    std::string result;
+
+    try
+    {
+        switch (flag)
         {
-            b1 = *(psrc + 1);
-            if (b1 == 0)    // 非正常结束
+        case 0:    // Big5 --> GBK
+            result = PotConv::conv(src, "cp950", "cp936");
+            break;
+        case 1:    // GBK --> Big5
+            result = PotConv::conv(src, "cp936", "cp950");
+            break;
+        case 2:    // Big5 --> Unicode (UTF-16LE)
+            result = PotConv::conv(src, "cp950", "utf-16le");
+            break;
+        case 3:    // GBK --> Unicode (UTF-16LE)
+            result = PotConv::conv(src, "cp936", "utf-16le");
+            break;
+        default:
+            // 未知标志，直接复制原字符串
+            strcpy(dest, src);
+            return 0;
+        }
+
+        if (result.empty())
+        {
+            // 转换失败，根据目标格式设置错误标记
+            if (flag == 0 || flag == 1)
             {
-                *pdest = '?';
-                *(pdest + 1) = 0;
-                break;
+                dest[0] = '?';
+                dest[1] = '\0';
             }
             else
             {
-                d0 = b0 + b1 * 256;
-                switch (flag)
-                {
-                case 0:    //Big5 --> GBK
-                    tmpchar = big5_gbk[b0 - 128][b1];
-                    break;
-                case 1:    //GBK  --> Big5
-                    tmpchar = gbk_big5[b0 - 128][b1];
-                    break;
-                case 2:    //Big5 --> Unicode
-                    tmpchar = big5_unicode[b0 - 128][b1];
-                    break;
-                case 3:    //GBK  --> Unicode
-                    tmpchar = gbk_unicode[b0 - 128][b1];
-                    break;
-                default:
-                    tmpchar = 0;
-                }
+                dest[0] = '?';
+                dest[1] = '\0';
+                dest[2] = '\0';
+            }
+            return -1;
+        }
 
-                if (tmpchar != 0)
-                {
-                    *(Uint16*)pdest = tmpchar;
-                }
-                else
-                {
-                    *pdest = '?';
-                    *(pdest + 1) = '?';
-                }
+        // 复制转换结果到目标缓冲区
+        memcpy(dest, result.c_str(), result.length());
 
-                pdest = pdest + 2;
-                psrc = psrc + 2;
+        // 添加结束标记
+        if (flag == 0 || flag == 1)
+        {
+            dest[result.length()] = '\0';
+        }
+        else
+        {
+            // Unicode需要双字节结束标记
+            if (result.length() % 2 == 0)
+            {
+                dest[result.length()] = '\0';
+                dest[result.length() + 1] = '\0';
+            }
+            else
+            {
+                dest[result.length()] = '\0';
             }
         }
+    }
+    catch (...)
+    {
+        // 异常处理
+        if (flag == 0 || flag == 1)
+        {
+            dest[0] = '?';
+            dest[1] = '\0';
+        }
+        else
+        {
+            dest[0] = '?';
+            dest[1] = '\0';
+            dest[2] = '\0';
+        }
+        return -1;
     }
 
     return 0;

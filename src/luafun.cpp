@@ -85,17 +85,17 @@ int HAPI_GetKey(lua_State* pL)
 {
     int key, type, mx, my;
     JY_GetKey(&key, &type, &mx, &my);
-    lua_pushnumber(pL, key);
-    lua_pushnumber(pL, type);
-    lua_pushnumber(pL, mx);
-    lua_pushnumber(pL, my);
+    lua_pushinteger(pL, key);
+    lua_pushinteger(pL, type);
+    lua_pushinteger(pL, mx);
+    lua_pushinteger(pL, my);
     return 4;
 }
 
 int HAPI_GetKeyState(lua_State* pL)
 {
     int state = JY_GetKeyState((int)lua_tonumber(pL, 1));
-    lua_pushnumber(pL, state);
+    lua_pushinteger(pL, state);
     return 1;
 }
 
@@ -118,7 +118,7 @@ int HAPI_GetTime(lua_State* pL)
 {
     double t;
     t = JY_GetTime();
-    lua_pushnumber(pL, t);
+    lua_pushinteger(pL, t);
     return 1;
 }
 
@@ -324,10 +324,10 @@ int HAPI_GetPicXY(lua_State* pL)
     int w, h, xoff, yoff;
 
     JY_GetPicXY(fileid, picid, &w, &h, &xoff, &yoff);
-    lua_pushnumber(pL, w);
-    lua_pushnumber(pL, h);
-    lua_pushnumber(pL, xoff);
-    lua_pushnumber(pL, yoff);
+    lua_pushinteger(pL, w);
+    lua_pushinteger(pL, h);
+    lua_pushinteger(pL, xoff);
+    lua_pushinteger(pL, yoff);
 
     return 4;
 }
@@ -365,7 +365,7 @@ int HAPI_GetMMap(lua_State* pL)
     int flag = (int)lua_tonumber(pL, 3);
     int v;
     v = JY_GetMMap(x, y, flag);
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -417,7 +417,7 @@ int HAPI_GetS(lua_State* pL)
     int v;
     v = JY_GetS(id, x, y, level);
 
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -443,7 +443,7 @@ int HAPI_GetD(lua_State* pL)
     int v;
     v = JY_GetD(Sceneid, id, i);
 
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -496,7 +496,7 @@ int HAPI_GetWarMap(lua_State* pL)
     int v;
     v = JY_GetWarMap(x, y, level);
 
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -567,7 +567,7 @@ int HAPI_SaveSur(lua_State* pL)    //保存屏幕到临时表面
     int w = (int)lua_tonumber(pL, 3);
     int h = (int)lua_tonumber(pL, 4);
     int id = JY_SaveSur(x, y, w, h);
-    lua_pushnumber(pL, id);
+    lua_pushinteger(pL, id);
     return 1;
 }
 
@@ -589,13 +589,13 @@ int HAPI_FreeSur(lua_State* pL)    //释放
 
 int HAPI_ScreenWidth(lua_State* pL)    //屏幕宽度
 {
-    lua_pushnumber(pL, g_ScreenW);
+    lua_pushinteger(pL, g_ScreenW);
     return 1;
 }
 
 int HAPI_ScreenHeight(lua_State* pL)    //屏幕高度
 {
-    lua_pushnumber(pL, g_ScreenH);
+    lua_pushinteger(pL, g_ScreenH);
     return 1;
 }
 
@@ -632,10 +632,14 @@ int HAPI_LoadPNG(lua_State* pL)    //按图片读取PNG
     int flag = 0;
     int value = 0;
     int percent = 100;
-
+   
     if (n > 4)
     {
         flag = (int)lua_tonumber(pL, 5);
+        if (flag == 2)
+        {
+            value = 255;
+        }
     }
     if (n > 5)
     {
@@ -659,10 +663,10 @@ int HAPI_GetPNGXY(lua_State* pL)
     int w, h, xoff, yoff;
 
     JY_GetPNGXY(fileid, picid, &w, &h, &xoff, &yoff);
-    lua_pushnumber(pL, w);
-    lua_pushnumber(pL, h);
-    lua_pushnumber(pL, xoff);
-    lua_pushnumber(pL, yoff);
+    lua_pushinteger(pL, w);
+    lua_pushinteger(pL, h);
+    lua_pushinteger(pL, xoff);
+    lua_pushinteger(pL, yoff);
 
     return 4;
 }
@@ -821,7 +825,7 @@ int Byte_get16(lua_State* pL)
     int start = (int)lua_tonumber(pL, 2);
 
     short v = *(short*)(p + start);
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -840,7 +844,7 @@ int Byte_getu16(lua_State* pL)
     int start = (int)lua_tonumber(pL, 2);
 
     unsigned short v = *(unsigned short*)(p + start);
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -859,7 +863,7 @@ int Byte_get32(lua_State* pL)
     int start = (int)lua_tonumber(pL, 2);
 
     int v = *(int*)(p + start);
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
@@ -930,7 +934,7 @@ int HAPI_GetM(lua_State* pL)
     int v;
     v = JY_GetM(id, x, y);
 
-    lua_pushnumber(pL, v);
+    lua_pushinteger(pL, v);
     return 1;
 }
 
