@@ -4,6 +4,7 @@
 #include "GameEvent.h"
 #include "GameData.h"
 #include "GameMain.h"
+#include "PotConv.h"
 #include "jymain.h"
 #include "sdlfun.h"
 #include "mainmap.h"
@@ -177,9 +178,7 @@ std::string ReadTalk(int id)
         byte = 255 - (byte % 256);
         str += (char)byte;
     }
-    char dest[16384];
-    JY_CharSet(str.c_str(), dest, 0);
-    return std::string(dest);
+    return PotConv::conv(str, "cp936", "utf-8");
 }
 
 // Forward declaration

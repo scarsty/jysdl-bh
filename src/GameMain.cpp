@@ -3,6 +3,7 @@
 
 #include "GameMain.h"
 #include "GameData.h"
+#include "PotConv.h"
 #include "jymain.h"
 #include "sdlfun.h"
 #include "mainmap.h"
@@ -26,7 +27,21 @@ void ReadBin();
 int War_UseAnqi(int id);
 
 // ============ 全局运行时变量============
-static int g_Step = 0;  // 走路动画步数
+
+// UTF-8显示宽度：ASCII算1，CJK算2（与GBK字节计数等价）
+static int utf8DisplayLen(const std::string& s)
+{
+    int len = 0;
+    for (size_t i = 0; i < s.size(); )
+    {
+        unsigned char c = (unsigned char)s[i];
+        if (c < 0x80) { len += 1; i += 1; }
+        else if (c < 0xE0) { len += 2; i += 2; }
+        else if (c < 0xF0) { len += 2; i += 3; }
+        else { len += 2; i += 4; }
+    }
+    return len;
+}
 
 // ============ 工具函数 ============
 void Cls(int x1, int y1, int x2, int y2)
@@ -43,7 +58,7 @@ void Cls(int x1, int y1, int x2, int y2)
     }
     else if (g_JY.Status == GAME_MMAP)
     {
-        JY_DrawMMap(g_JY.getBase().personX(), g_JY.getBase().personY(), GetMyPic(g_JY.getBase().personDir(), g_Step));
+        JY_DrawMMap(g_JY.getBase().personX(), g_JY.getBase().personY(), GetMyPic());
     }
     else if (g_JY.Status == GAME_SMAP)
     {
@@ -68,12 +83,12 @@ void ShowScreen(int flag)
 
 void DrawString(int x, int y, const std::string& str, int color, int fontsize)
 {
-    JY_DrawStr(x, y, str.c_str(), color, fontsize, g_CC.FontName.c_str(), g_CC.SrcCharSet, g_CC.OSCharSet);
+    JY_DrawStr(x, y, str.c_str(), color, fontsize, g_CC.FontName.c_str(), 3, g_CC.OSCharSet);
 }
 
 void MyDrawString(int x1, int x2, int y, const std::string& str, int color, int fontsize)
 {
-    int len = (int)(str.length() * fontsize / 4);
+    int len = utf8DisplayLen(str) * fontsize / 4;
     int x = (x1 + x2) / 2 - len;
     DrawString(x, y, str, color, fontsize);
 }
@@ -86,7 +101,7 @@ void DrawBox(int x1, int y1, int x2, int y2, int color)
 
 void DrawStrBox(int x, int y, const std::string& str, int color, int fontsize)
 {
-    int len = (int)str.length();
+    int len = utf8DisplayLen(str);
     int w = len * fontsize / 2 + 2 * g_CC.MenuBorderPixel;
     int h = fontsize + 2 * g_CC.MenuBorderPixel;
     if (x < 0) x = (g_CC.ScreenW - w) / 2;
@@ -180,15 +195,23 @@ void CleanMemory()
 int GetMyPic(int direction, int step)
 {
     if (direction < 0) direction = g_JY.getBase().personDir();
-    int n = g_CC.SceneFlagPic[g_Config.Type] + direction * 2;
-    if (step % 2 == 1) n += 8;
+    int n;
+    if (g_JY.Status == GAME_MMAP && g_JY.getBase().boatFlag() == 1)
+    {
+        if (g_JY.MyCurrentPic >= 4) g_JY.MyCurrentPic = 0;
+        n = g_CC.BoatStartPic + direction * 4 + g_JY.MyCurrentPic;
+    }
+    else
+    {
+        if (g_JY.MyCurrentPic > 6) g_JY.MyCurrentPic = 1;
+        n = g_CC.MyStartPic + direction * 7 + g_JY.MyCurrentPic;
+    }
     return n;
 }
 
 void AddMyCurrentPic(int direction, int step)
 {
-    g_Step++;
-    g_JY.MyPic = GetMyPic(direction, g_Step);
+    g_JY.MyCurrentPic++;
 }
 
 // ============ 场景地图辅助 ============
@@ -407,9 +430,7 @@ static std::string ReadTalk(int id)
         str += (char)byte;
     }
     // GBK->UTF8
-    char dest[8192];
-    JY_CharSet(str.c_str(), dest, 0);
-    std::string result = dest;
+    std::string result = PotConv::conv(str, "cp936", "utf-8");
     result = GenTalkString(result, 12);
     return result;
 }
@@ -499,7 +520,7 @@ int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
     int maxlen = 0;
     for (int i = 0; i < n; i++)
     {
-        int len = (int)menu[i].label.length();
+        int len = utf8DisplayLen(menu[i].label);
         if (len > maxlen) maxlen = len;
     }
     int itemw = maxlen * fontsize / 2 + 2 * g_CC.MenuBorderPixel;
@@ -638,6 +659,7 @@ void LoadRecord(int id)
     // 加载Base
     g_JY.Data_Base.alloc(g_CC.BaseSize);
     g_JY.Data_Base.loadfile(grpfile.c_str(), offset[0], g_CC.BaseSize);
+    g_JY.Base.buf = &g_JY.Data_Base;
 
     // 加载Person
     int personLen = offset[2] - offset[1];
@@ -1487,139 +1509,330 @@ void MMenu()
 }
 
 // ============ 事件执行 ============
-void EventExecute(int sceneid, int did)
+// eventtype: 1=空格, 2=物品, 3=路过
+void EventExecute(int did, int eventtype)
 {
     g_JY.CurrentD = did;
-    int eventnum = GetD(sceneid, did, 2); // 空格触发事件
+    g_JY.CurrentEventType = eventtype;
+    // 空格→D字段2, 物品→D字段3, 路过→D字段4
+    int dfield = eventtype + 1;
+    int eventnum = GetD(g_JY.SubScene, did, dfield);
     if (eventnum > 0)
         ReadKDEF(eventnum);
     g_JY.CurrentD = -1;
+    g_JY.CurrentEventType = -1;
     g_JY.Darkness = 0;
 }
 
-// ============ 初始�?============
+// ============ 初始化 ============
 void Init_MMap()
 {
-    CleanMemory();
     JY_PicInit(g_Config.PaletteFile.c_str());
     JY_LoadMMap(g_CC.MMapFile[0].c_str(), g_CC.MMapFile[1].c_str(), g_CC.MMapFile[2].c_str(),
         g_CC.MMapFile[3].c_str(), g_CC.MMapFile[4].c_str(),
         g_CC.MWidth, g_CC.MHeight,
         g_JY.getBase().personX(), g_JY.getBase().personY());
     JY_PicLoadFile(g_CC.MMAPPicFile[0].c_str(), g_CC.MMAPPicFile[1].c_str(), 0, 0, 0);
+    int zoom = limitX(g_CC.ScreenW / 800 * g_Config.Zoom, 0, g_Config.Zoom);
+    JY_LoadPNGPath(g_CC.HeadPath.c_str(), 1, g_CC.HeadNum, zoom, "png");
+    JY_LoadPNGPath(g_CC.ThingPath.c_str(), 2, g_CC.ThingNum, zoom, "png");
+    g_JY.EnterSceneXY_Dirty = true;
+    g_JY.oldMMapX = -1;
+    g_JY.oldMMapY = -1;
     PlayMIDI(g_JY.MmapMusic);
-    g_JY.Status = GAME_MMAP;
-    g_JY.MyPic = GetMyPic();
 }
 
-void Init_SMap(int sceneid)
+void Init_SMap(int sceneid, int showname)
 {
     g_JY.SubScene = sceneid;
-    CleanMemory();
     JY_PicInit(g_Config.PaletteFile.c_str());
     JY_PicLoadFile(g_CC.SMAPPicFile[0].c_str(), g_CC.SMAPPicFile[1].c_str(), 0, 0, 0);
     int zoom = limitX(g_CC.ScreenW / 800 * g_Config.Zoom, 0, g_Config.Zoom);
     JY_LoadPNGPath(g_CC.HeadPath.c_str(), 1, g_CC.HeadNum, zoom, "png");
     JY_LoadPNGPath(g_CC.ThingPath.c_str(), 2, g_CC.ThingNum, zoom, "png");
-    int music = g_JY.getScene(sceneid).getByName("进门音乐");
+    int music = g_JY.getScene(sceneid).enterMusic();
     if (music >= 0) PlayMIDI(music);
-    g_JY.Status = GAME_SMAP;
+    g_JY.oldSMapX = -1;
+    g_JY.oldSMapY = -1;
     g_JY.SubSceneX = 0;
     g_JY.SubSceneY = 0;
+    g_JY.OldDPass = -1;
+    g_JY.D_Valid_Dirty = true;
     g_JY.MyPic = GetMyPic();
     Cal_D_Valid(sceneid);
     DtoSMap(sceneid);
+    DrawSMap();
+    JY_ShowSlow(50, 0);
+    int k, t, mx, my;
+    JY_GetKey(&k, &t, &mx, &my);
+
+    if (showname == 1)
+    {
+        std::string sceneName = g_JY.getScene(sceneid).name();
+        DrawStrBox(-1, 10, sceneName, C_WHITE, g_CC.DefaultFont);
+        ShowScreen();
+        WaitKey();
+        Cls();
+        ShowScreen();
+    }
+}
+
+// ============ 场景入口缓存 ============
+void Cal_EnterSceneXY()
+{
+    g_JY.EnterSceneXY.clear();
+    for (int id = 0; id < g_JY.SceneNum; id++)
+    {
+        auto scene = g_JY.getScene(id);
+        int x1 = scene.outerEnterX1(), y1 = scene.outerEnterY1();
+        int x2 = scene.outerEnterX2(), y2 = scene.outerEnterY2();
+        if (x1 > 0 && y1 > 0)
+            g_JY.EnterSceneXY[y1 * g_CC.MWidth + x1] = id;
+        if (x2 > 0 && y2 > 0)
+            g_JY.EnterSceneXY[y2 * g_CC.MWidth + x2] = id;
+    }
+    g_JY.EnterSceneXY_Dirty = false;
+}
+
+int CanEnterScene(int x, int y)
+{
+    if (g_JY.EnterSceneXY_Dirty)
+        Cal_EnterSceneXY();
+
+    auto it = g_JY.EnterSceneXY.find(y * g_CC.MWidth + x);
+    if (it != g_JY.EnterSceneXY.end())
+    {
+        int id = it->second;
+        int e = g_JY.getScene(id).enterCondition();
+        if (e == 0) return id;          // 可进
+        if (e == 1) return -1;          // 不可进
+        if (e == 2)                     // 有轻功高者进
+        {
+            for (int i = 1; i <= g_CC.TeamNum; i++)
+            {
+                int pid = g_JY.getBase().team(i);
+                if (pid >= 0)
+                {
+                    if (g_JY.getPerson(pid).agility() >= 70)
+                        return id;
+                }
+            }
+        }
+    }
+    return -1;
 }
 
 // ============ 游戏循环 ============
 void Game_MMap()
 {
-    Cls();
-    ShowScreen();
+    int direct = -1;
     int key = WaitKey();
-    int x = g_JY.getBase().personX();
-    int y = g_JY.getBase().personY();
-
-    if (key == GK_UP) { y--; g_JY.getBase().setPersonDir(0); }
-    else if (key == GK_DOWN) { y++; g_JY.getBase().setPersonDir(3); }
-    else if (key == GK_LEFT) { x--; g_JY.getBase().setPersonDir(2); }
-    else if (key == GK_RIGHT) { x++; g_JY.getBase().setPersonDir(1); }
-    else if (key == GK_ESCAPE) { MMenu(); return; }
-
-    x = limitX(x, 0, g_CC.MWidth - 1);
-    y = limitX(y, 0, g_CC.MHeight - 1);
-
-    // 检查是否进入场景
-    int building = JY_GetMMap(x, y, 2);
-    if (building > 0)
+    if (key != -1)
     {
-        // 查找场景
-        for (int i = 0; i < g_JY.SceneNum; i++)
+        g_JY.MyTick = 0;
+        if (key == GK_ESCAPE)
         {
-            auto s = g_JY.getScene(i);
-            if ((s.getByName("外景入口X1") == x && s.getByName("外景入口Y1") == y) ||
-                (s.getByName("外景入口X2") == x && s.getByName("外景入口Y2") == y))
+            MMenu();
+            if (g_JY.Status == GAME_FIRSTMMAP) return;
+            g_JY.oldMMapX = -1;
+            g_JY.oldMMapY = -1;
+        }
+        else if (key == GK_UP)    direct = 0;
+        else if (key == GK_DOWN)  direct = 3;
+        else if (key == GK_LEFT)  direct = 2;
+        else if (key == GK_RIGHT) direct = 1;
+    }
+
+    int x, y;
+    if (direct != -1)
+    {
+        AddMyCurrentPic();
+        x = g_JY.getBase().personX() + g_CC.DirectX[direct];
+        y = g_JY.getBase().personY() + g_CC.DirectY[direct];
+        g_JY.getBase().setPersonDir(direct);
+    }
+    else
+    {
+        x = g_JY.getBase().personX();
+        y = g_JY.getBase().personY();
+    }
+
+    g_JY.SubScene = CanEnterScene(x, y);
+
+    // 没有建筑才可以到达
+    if (JY_GetMMap(x, y, 3) == 0 && JY_GetMMap(x, y, 4) == 0)
+    {
+        g_JY.getBase().setPersonX(x);
+        g_JY.getBase().setPersonY(y);
+    }
+    g_JY.getBase().setPersonX(limitX(g_JY.getBase().personX(), 10, g_CC.MWidth - 10));
+    g_JY.getBase().setPersonY(limitX(g_JY.getBase().personY(), 10, g_CC.MHeight - 10));
+
+    // 判断乘船
+    if (g_CC.MMapBoat.count(JY_GetMMap(g_JY.getBase().personX(), g_JY.getBase().personY(), 0)))
+        g_JY.getBase().setBoatFlag(1);
+    else
+        g_JY.getBase().setBoatFlag(0);
+
+    int pic = GetMyPic();
+
+    // 绘制主地图
+    JY_SetClip(0, 0, g_CC.ScreenW, g_CC.ScreenH);
+    JY_DrawMMap(g_JY.getBase().personX(), g_JY.getBase().personY(), pic);
+
+    ShowScreen();
+    JY_SetClip(0, 0, 0, 0);
+
+    g_JY.oldMMapX = g_JY.getBase().personX();
+    g_JY.oldMMapY = g_JY.getBase().personY();
+    g_JY.oldMMapPic = pic;
+
+    if (g_JY.SubScene >= 0)       // 进入子场景
+    {
+        CleanMemory();
+        JY_UnloadMMap();
+        JY_PicInit(g_Config.PaletteFile.c_str());
+        JY_ShowSlow(50, 1);
+
+        g_JY.Status = GAME_SMAP;
+        g_JY.MMAPMusic = -1;
+
+        g_JY.MyPic = GetMyPic();
+        g_JY.getBase().setPersonX1(g_JY.getScene(g_JY.SubScene).enterX());
+        g_JY.getBase().setPersonY1(g_JY.getScene(g_JY.SubScene).enterY());
+
+        Init_SMap(g_JY.SubScene, 1);
+    }
+}
+
+void Game_SMap()
+{
+    // 先绘制场景
+    DrawSMap();
+    ShowScreen();
+    JY_SetClip(0, 0, 0, 0);
+
+    // 检查路过触发事件
+    int d_pass = GetS(g_JY.SubScene, g_JY.getBase().personX1(), g_JY.getBase().personY1(), 3);
+    if (d_pass >= 0)
+    {
+        if (d_pass != g_JY.OldDPass)
+        {
+            EventExecute(d_pass, 3);
+            g_JY.OldDPass = d_pass;
+            g_JY.oldSMapX = -1;
+            g_JY.oldSMapY = -1;
+            g_JY.D_Valid_Dirty = true;
+        }
+    }
+    else
+    {
+        g_JY.OldDPass = -1;
+    }
+
+    // 检查是否到出口（出口→返回主地图）
+    auto scene = g_JY.getScene(g_JY.SubScene);
+    int px1 = g_JY.getBase().personX1();
+    int py1 = g_JY.getBase().personY1();
+    bool isout = (px1 == scene.exitX1() && py1 == scene.exitY1()) ||
+                 (px1 == scene.exitX2() && py1 == scene.exitY2()) ||
+                 (px1 == scene.exitX3() && py1 == scene.exitY3());
+
+    if (isout)
+    {
+        g_JY.Status = GAME_MMAP;
+        JY_PicInit(g_Config.PaletteFile.c_str());
+        CleanMemory();
+        JY_ShowSlow(50, 1);
+        if (g_JY.MMAPMusic < 0)
+            g_JY.MMAPMusic = scene.exitMusic();
+        Init_MMap();
+        g_JY.SubScene = -1;
+        g_JY.oldSMapX = -1;
+        g_JY.oldSMapY = -1;
+        JY_DrawMMap(g_JY.getBase().personX(), g_JY.getBase().personY(), GetMyPic());
+        JY_ShowSlow(50, 0);
+        int k, t, mx, my;
+        JY_GetKey(&k, &t, &mx, &my);
+        return;
+    }
+
+    // 检查是否跳转到其他场景（跳转口坐标不同于出口坐标）
+    if (scene.jumpScene() >= 0)
+    {
+        if (px1 == scene.jumpX1() && py1 == scene.jumpY1())
+        {
+            int newScene = scene.jumpScene();
+            JY_ShowSlow(50, 1);
+            auto ns = g_JY.getScene(newScene);
+            if (ns.outerEnterX1() == 0 && ns.outerEnterY1() == 0)
             {
-                if (s.getByName("进入条件") == 0)
+                g_JY.getBase().setPersonX1(ns.enterX());
+                g_JY.getBase().setPersonY1(ns.enterY());
+            }
+            else
+            {
+                g_JY.getBase().setPersonX1(ns.jumpX2());
+                g_JY.getBase().setPersonY1(ns.jumpY2());
+            }
+            g_JY.SubScene = newScene;
+            Init_SMap(newScene, 1);
+            return;
+        }
+    }
+
+    // 处理键盘输入
+    int key = WaitKey();
+    int direct = -1;
+    if (key != -1)
+    {
+        g_JY.MyTick = 0;
+        if (key == GK_ESCAPE)
+        {
+            MMenu();
+            g_JY.oldSMapX = -1;
+            g_JY.oldSMapY = -1;
+        }
+        else if (key == GK_UP)    direct = 0;
+        else if (key == GK_DOWN)  direct = 3;
+        else if (key == GK_LEFT)  direct = 2;
+        else if (key == GK_RIGHT) direct = 1;
+        else if (key == GK_SPACE || key == GK_RETURN)
+        {
+            if (g_JY.getBase().personDir() >= 0)
+            {
+                int fx = g_JY.getBase().personX1() + g_CC.DirectX[g_JY.getBase().personDir()];
+                int fy = g_JY.getBase().personY1() + g_CC.DirectY[g_JY.getBase().personDir()];
+                int d_num = GetS(g_JY.SubScene, fx, fy, 3);
+                if (d_num >= 0)
                 {
-                    g_JY.getBase().setPersonX(x);
-                    g_JY.getBase().setPersonY(y);
-                    Init_SMap(i);
-                    g_JY.getBase().setPersonX1(s.enterX());
-                    g_JY.getBase().setPersonY1(s.enterY());
-                    g_JY.Status = GAME_SMAP;
-                    return;
+                    EventExecute(d_num, 1);
+                    g_JY.oldSMapX = -1;
+                    g_JY.oldSMapY = -1;
+                    g_JY.D_Valid_Dirty = true;
                 }
             }
         }
     }
 
-    // 检查是否水面/可通行
-    int ground = JY_GetMMap(x, y, 0);
-    if (g_CC.MMapBoat.count(ground))
+    if (g_JY.Status != GAME_SMAP) return;
+
+    int x, y;
+    if (direct != -1)
     {
-        // 船行�?
-        g_JY.getBase().setBoatFlag(1);
+        AddMyCurrentPic();
+        x = g_JY.getBase().personX1() + g_CC.DirectX[direct];
+        y = g_JY.getBase().personY1() + g_CC.DirectY[direct];
+        g_JY.getBase().setPersonDir(direct);
+    }
+    else
+    {
+        x = g_JY.getBase().personX1();
+        y = g_JY.getBase().personY1();
     }
 
-    g_JY.getBase().setPersonX(x);
-    g_JY.getBase().setPersonY(y);
-    AddMyCurrentPic();
     g_JY.MyPic = GetMyPic();
-}
-
-void Game_SMap()
-{
     DtoSMap();
-    DrawSMap();
-    ShowScreen();
-    int key = WaitKey();
-    int x = g_JY.getBase().personX1();
-    int y = g_JY.getBase().personY1();
-
-    if (key == GK_UP) { y--; g_JY.getBase().setPersonDir(0); }
-    else if (key == GK_DOWN) { y++; g_JY.getBase().setPersonDir(3); }
-    else if (key == GK_LEFT) { x--; g_JY.getBase().setPersonDir(2); }
-    else if (key == GK_RIGHT) { x++; g_JY.getBase().setPersonDir(1); }
-    else if (key == GK_ESCAPE) { MMenu(); return; }
-    else if (key == GK_SPACE || key == GK_RETURN)
-    {
-        // 空格触发事件
-        int fx = x + g_CC.DirectX[g_JY.getBase().personDir()];
-        int fy = y + g_CC.DirectY[g_JY.getBase().personDir()];
-        int d = GetS(g_JY.SubScene, fx, fy, 3);
-        if (d >= 0)
-        {
-            int ev = GetD(g_JY.SubScene, d, 2);
-            if (ev > 0)
-            {
-                EventExecute(g_JY.SubScene, d);
-                Cal_D_Valid(g_JY.SubScene);
-                DtoSMap(g_JY.SubScene);
-            }
-        }
-        return;
-    }
 
     if (SceneCanPass(g_JY.SubScene, x, y))
     {
@@ -1628,45 +1841,6 @@ void Game_SMap()
     }
     g_JY.getBase().setPersonX1(limitX(g_JY.getBase().personX1(), 1, g_CC.SWidth - 2));
     g_JY.getBase().setPersonY1(limitX(g_JY.getBase().personY1(), 1, g_CC.SHeight - 2));
-    AddMyCurrentPic();
-    g_JY.MyPic = GetMyPic();
-
-    // 检查是否路过触发事件
-    int d = GetS(g_JY.SubScene, g_JY.getBase().personX1(), g_JY.getBase().personY1(), 3);
-    if (d >= 0)
-    {
-        int ev = GetD(g_JY.SubScene, d, 4);
-        if (ev > 0)
-        {
-            g_JY.CurrentD = d;
-            ReadKDEF(ev);
-            g_JY.CurrentD = -1;
-            Cal_D_Valid(g_JY.SubScene);
-            DtoSMap(g_JY.SubScene);
-        }
-    }
-
-    // 检查是否到出口
-    auto scene = g_JY.getScene(g_JY.SubScene);
-    if ((g_JY.getBase().personX1() == scene.exitX1() && g_JY.getBase().personY1() == scene.getByName("出口Y1")) ||
-        (g_JY.getBase().personX1() == scene.getByName("出口X2") && g_JY.getBase().personY1() == scene.getByName("出口Y2")) ||
-        (g_JY.getBase().personX1() == scene.getByName("出口X3") && g_JY.getBase().personY1() == scene.getByName("出口Y3")))
-    {
-        // 检查跳转场景
-        int jumpScene = scene.jumpScene();
-        if (jumpScene >= 0)
-        {
-            Init_SMap(jumpScene);
-            auto js = g_JY.getScene(jumpScene);
-            g_JY.getBase().setPersonX1(js.enterX());
-            g_JY.getBase().setPersonY1(js.enterY());
-        }
-        else
-        {
-            // 回到大地图
-            g_JY.Status = GAME_FIRSTMMAP;
-        }
-    }
 }
 
 void Game_Cycle()
@@ -1676,11 +1850,11 @@ void Game_Cycle()
         if (g_JY.Status == GAME_FIRSTMMAP)
         {
             Init_MMap();
+            g_JY.Status = GAME_MMAP;
             Cls();
             JY_ShowSlow(50, 0);
             int k, t, mx, my;
             JY_GetKey(&k, &t, &mx, &my);
-            g_JY.Status = GAME_MMAP;
         }
         else if (g_JY.Status == GAME_MMAP)
         {
@@ -1702,19 +1876,39 @@ void NewGame()
     if (vi > 11) vi = 11;
 
     // 设置新游戏场景
-    auto scene = g_JY.getScene(g_CC.NewGameSceneID[vi]);
     g_JY.SubScene = g_CC.NewGameSceneID[vi];
     g_JY.getBase().setPersonX1(g_CC.NewGameSceneX[vi]);
     g_JY.getBase().setPersonY1(g_CC.NewGameSceneY[vi]);
 
     // 设置主角贴图
-    g_JY.MyPic = g_CC.NewPersonPic[vi] / 2;
+    g_JY.MyPic = g_CC.NewPersonPic[vi];
 
-    g_JY.Status = GAME_FIRSTMMAP;
     g_JY.MmapMusic = 3;
 
     // 执行新游戏事件
-    ReadKDEF(g_CC.NewGameEvent[vi]);
+    if (g_CC.NewGameEvent[vi] > 0)
+        ReadKDEF(g_CC.NewGameEvent[vi]);
+}
+
+// ============ 版本选择 ============
+void Edition()
+{
+    std::vector<MenuItem> menu = {
+        {"侠客西游", nullptr, 1}, {"苍龙逐日", nullptr, 1},
+        {"苍龙极乐", nullptr, 1}, {"天书劫", nullptr, 1},
+        {"乡民PTT", nullptr, 1},  {"小猪PTT", nullptr, 1},
+        {"群芳726", nullptr, 1},  {"再战江湖", nullptr, 1},
+        {"苍龙1028", nullptr, 1}, {"正邪谁判", nullptr, 1},
+        {"真龙觉醒", nullptr, 1}, {"天书奇侠", nullptr, 1}
+    };
+    int n = (int)menu.size();
+    int menux = (g_CC.ScreenW - 4 * g_CC.StartMenuFontSize - 2 * g_CC.MenuBorderPixel) / 2;
+    int menuy = g_CC.StartMenuY - g_CC.StartMenuFontSize * 4 + g_CC.StartMenuFontSize;
+    int r = ShowMenu(menu, n, 4, menux, menuy, 0, 0, 0, 0,
+        g_CC.StartMenuFontSize, C_STARTMENU, C_RED);
+    if (r < 1) r = 1;
+    g_Config.Version = r;
+    g_CC.init(g_Config.Version, g_Config.Zoom);
 }
 
 // ============ 退出确认 ============
@@ -1736,6 +1930,9 @@ int JY_GameMain()
     // 读取二进制辅助数据
     ReadBin();
 
+    // 版本选择
+    Edition();
+
     // 开始菜单
     g_JY.Status = GAME_START;
     Cls();
@@ -1743,34 +1940,49 @@ int JY_GameMain()
     JY_ShowSlow(50, 0);
 
     std::vector<MenuItem> startMenu = {
-        {"新的游戏", nullptr, 1},
+        {"重新开始", nullptr, 1},
         {"载入进度", nullptr, 1},
         {"离开游戏", nullptr, 1}
     };
-    int menux = (g_CC.ScreenW - 3 * g_CC.StartMenuFontSize - 2 * g_CC.MenuBorderPixel) / 2;
+    int menux = (g_CC.ScreenW - 4 * g_CC.StartMenuFontSize - 2 * g_CC.MenuBorderPixel) / 2;
     int r = ShowMenu(startMenu, 3, 0, menux, g_CC.StartMenuY, 0, 0, 0, 0,
         g_CC.StartMenuFontSize, C_STARTMENU, C_RED);
 
     if (r == 1)
     {
+        Cls();
+        DrawString(menux, g_CC.StartMenuY, "请稍候...", C_RED, g_CC.StartMenuFontSize);
+        ShowScreen();
         NewGame();
+        JY_ShowSlow(50, 1);
+        g_JY.Status = GAME_SMAP;
+        g_JY.MMAPMusic = -1;
+        CleanMemory();
+        Init_SMap(g_JY.SubScene, 0);
         Game_Cycle();
     }
     else if (r == 2)
     {
+        Cls();
         std::vector<MenuItem> loadMenu = {
             {"进度一", nullptr, 1}, {"进度二", nullptr, 1}, {"进度三", nullptr, 1}
         };
-        int lr = ShowMenu(loadMenu, 3, 0, menux, g_CC.StartMenuY, 0, 0, 1, 1,
+        int lr = ShowMenu(loadMenu, 3, 0, menux, g_CC.StartMenuY, 0, 0, 0, 0,
             g_CC.StartMenuFontSize, C_STARTMENU, C_RED);
         if (lr > 0)
         {
+            Cls();
+            DrawString(menux, g_CC.StartMenuY, "请稍候...", C_RED, g_CC.StartMenuFontSize);
+            ShowScreen();
             LoadRecord(lr);
+            Cls();
+            ShowScreen();
             g_JY.Status = GAME_FIRSTMMAP;
             Game_Cycle();
         }
     }
 
+    JY_LoadPicture("", 0, 0);
     JY_Debug("JY_GameMain end");
     return 0;
 }

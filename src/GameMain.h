@@ -36,7 +36,7 @@ void NewGame();
 void Game_MMap();
 void Game_SMap();
 void Init_MMap();
-void Init_SMap(int sceneid);
+void Init_SMap(int sceneid, int showname = 0);
 
 // ====== 记录加载/保存 ======
 void LoadRecord(int id);
@@ -88,6 +88,13 @@ void DrawStrBox(int x, int y, const std::string& str, int color, int fontsize);
 void DrawStrBoxWaitKey(const std::string& str, int color, int fontsize);
 int DrawStrBoxYesNo(const std::string& str, int color, int fontsize);
 
+// ====== 版本选择 ======
+void Edition();
+
+// ====== 场景入口 ======
+void Cal_EnterSceneXY();
+int CanEnterScene(int x, int y);
+
 // ====== 人物贴图 ======
 int GetMyPic(int direction = -1, int step = 0);
 void AddMyCurrentPic(int direction = -1, int step = 0);
@@ -112,7 +119,7 @@ int WaitKey();
 int TrainNeedExp(int pid);
 
 // ====== 事件执行 ======
-void EventExecute(int sceneid, int did);
+void EventExecute(int did, int eventtype);
 
 // ====== 退出确认 ======
 int Menu_Exit();

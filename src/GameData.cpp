@@ -2,6 +2,7 @@
 // 从 jyconst.lua 转换而来
 
 #include "GameData.h"
+#include "PotConv.h"
 #include "jymain.h"
 #include "sdlfun.h"
 #include "mainmap.h"
@@ -33,9 +34,10 @@ int Rnd(int i)
 std::string charsetConvert(const std::string& str, int flag)
 {
     // flag=0: GBK->UTF-8 (for display), flag=1: UTF-8->GBK (for file)
-    char dest[2048] = {0};
-    JY_CharSet(str.c_str(), dest, flag);
-    return std::string(dest);
+    if (flag == 0)
+        return PotConv::conv(str, "cp936", "utf-8");
+    else
+        return PotConv::conv(str, "utf-8", "cp936");
 }
 
 // ============== DataBuffer 实现 ==============
