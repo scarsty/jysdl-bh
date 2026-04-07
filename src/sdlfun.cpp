@@ -423,27 +423,23 @@ int JY_ShowSlow(int delaytime, int Flag)
     SDL_SetRenderTarget(g_Renderer, lps1);
     SDL_RenderTexture(g_Renderer, g_Texture, NULL, NULL);
     //SDL_BlitSurface(g_Surface, NULL, lps1, NULL);    //当前表面复制到临时表面
-    for (i = 0; i <= 32; i++)
+    const int STEPS = 16;
+    for (i = 0; i <= STEPS; i++)
     {
         if (Flag == 0)
         {
-            step = 32 - i;
+            step = STEPS - i;
         }
         else
         {
             step = i;
         }
         t1 = (int)JY_GetTime();
-        //SDL_SetRenderDrawColor(g_Renderer, 0, 0, 0, 0);
-        //SDL_RenderFillRect(g_Renderer, NULL);          //当前表面变黑
-        alpha = step << 3;
+        alpha = step * 255 / STEPS;
         if (alpha > 255)
         {
             alpha = 255;
         }
-        //SDL_SetTextureAlphaMod(lps1, (Uint8)alpha);  //设置alpha
-        //SDL_RenderTexture(g_Renderer, lps1, NULL, NULL);
-        //SDL_BlitSurface(lps1, NULL, g_Surface, NULL);
         SDL_SetRenderTarget(g_Renderer, g_Texture);
         SDL_RenderTexture(g_Renderer, lps1, NULL, NULL);
         SDL_SetRenderDrawColor(g_Renderer, 0, 0, 0, alpha);
@@ -455,7 +451,6 @@ int JY_ShowSlow(int delaytime, int Flag)
         {
             JY_Delay(delaytime - (t2 - t1));
         }
-        //JY_GetKey();
     }
     SDL_DestroyTexture(lps1);    //释放表面
     return 0;
@@ -572,10 +567,15 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
 {
     SDL_Event event;
     int win_w, win_h, r;
-    if (key)*key = -1;
-    if (type)*type = -1;
-    if (mx)*mx = -1;
-    if (my)*my = -1;
+    int key1, type1, mx1, my1;
+    if (!key) { key = &key1; }
+    if (!type) { type = &type1; }
+    if (!mx) { mx = &mx1; }
+    if (!my) { my = &my1; }
+    *key = -1;
+    *type = -1;
+    *mx = -1;
+    *my = -1;
     while (SDL_PollEvent(&event))
     //if (SDL_PollEvent(&event))
     {

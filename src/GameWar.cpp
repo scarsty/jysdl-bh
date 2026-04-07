@@ -12,6 +12,7 @@
 #include <cstring>
 #include <algorithm>
 #include <climits>
+#include <format>
 
 WarState WAR;
 
@@ -147,7 +148,7 @@ int WarMain(int warid, int isexp)
                 if (first == 0)
                 {
                     WarDrawMap(0);
-                    ShowScreen();
+                    JY_ShowSlow(50, 0);
                     first = 1;
                 }
 
@@ -188,6 +189,8 @@ int WarMain(int warid, int isexp)
 
     War_EndPersonData(isexp, warStatus);
 
+    JY_ShowSlow(50, 1);
+
     // 恢复场景
     if (g_JY.getScene(g_JY.SubScene).enterMusic() >= 0)
         PlayMIDI(g_JY.getScene(g_JY.SubScene).enterMusic());
@@ -197,8 +200,11 @@ int WarMain(int warid, int isexp)
     CleanMemory();
 
     // 重新加载场景图片
-    JY_PicInit(g_CC.SMAPPicFile[0].c_str());
-    JY_PicInit(g_CC.EffectFile[0].c_str());
+    JY_PicInit("");
+    JY_PicLoadFile(g_CC.SMAPPicFile[0].c_str(), g_CC.SMAPPicFile[1].c_str(), 0, 0, 0);
+    zoom = limitX(g_CC.ScreenW / 800 * g_Config.Zoom, 0, g_Config.Zoom);
+    JY_LoadPNGPath(g_CC.HeadPath.c_str(), 1, g_CC.HeadNum, zoom, "png");
+    JY_LoadPNGPath(g_CC.ThingPath.c_str(), 2, g_CC.ThingNum, zoom, "png");
     g_JY.Status = GAME_SMAP;
 
     return warStatus;
@@ -326,15 +332,12 @@ void War_EndPersonData(int isexp, int warStatus)
         if (WAR.Person[i].isAlly)
         {
             auto p = g_JY.getPerson(pid);
-            char buf[256];
-            snprintf(buf, sizeof(buf), "%s 获得经验点数 %d", p.name().c_str(), exp);
-            DrawStrBoxWaitKey(buf, C_WHITE, g_CC.DefaultFont);
+            DrawStrBoxWaitKey(std::format("{} 获得经验点数 {}", p.name(), exp), C_WHITE, g_CC.DefaultFont);
 
             bool leveled = War_AddPersonLevel(pid);
             if (leveled)
             {
-                snprintf(buf, sizeof(buf), "%s 升级了", p.name().c_str());
-                DrawStrBoxWaitKey(buf, C_WHITE, g_CC.DefaultFont);
+                DrawStrBoxWaitKey(std::format("{} 升级了", p.name()), C_WHITE, g_CC.DefaultFont);
             }
         }
 
@@ -394,6 +397,7 @@ bool War_AddPersonLevel(int personid)
 }
 
 // ============= War_PersonTrainBook =============
+// 匹配Lua War_PersonTrainBook：修炼秘籍
 void War_PersonTrainBook(int personid)
 {
     auto p = g_JY.getPerson(personid);
@@ -401,88 +405,70 @@ void War_PersonTrainBook(int personid)
     if (trainItem < 0) return;
 
     auto thing = g_JY.getThing(trainItem);
-    int needPoint = thing.trainNeedExp();
+    int wugongid = thing.trainWugong();
+
+    int needPoint = TrainNeedExp(personid);
     if (p.trainExp() < needPoint) return;
 
-    p.setTrainExp((int16_t)(p.trainExp() - needPoint));
+    // 修炼成功
+    DrawStrBoxWaitKey(std::format("{} 修炼 {} 成功", p.name(), thing.name()), C_WHITE, g_CC.DefaultFont);
 
-    // 修炼武功
-    int trainWugong = thing.trainWugong();
-    if (trainWugong >= 0)
+    // 先加属性（匹配Lua顺序）
+    AddPersonAttrib(personid, "生命最大值", thing.addMaxHp());
+    if (thing.changeMpType() == 2) p.setMpType(2);
+    AddPersonAttrib(personid, "内力最大值", thing.addMaxMp());
+    AddPersonAttrib(personid, "攻击力", thing.addAttack());
+    AddPersonAttrib(personid, "轻功", thing.addAgility());
+    AddPersonAttrib(personid, "防御力", thing.addDefense());
+    AddPersonAttrib(personid, "医疗能力", thing.addMedic());
+    AddPersonAttrib(personid, "用毒能力", thing.addUsePoison());
+    AddPersonAttrib(personid, "解毒能力", thing.addDetox());
+    AddPersonAttrib(personid, "抗毒能力", thing.addAntiPoison());
+    AddPersonAttrib(personid, "拳掌功夫", thing.addFist());
+    AddPersonAttrib(personid, "御剑能力", thing.addSword());
+    AddPersonAttrib(personid, "耍刀技巧", thing.addBlade());
+    AddPersonAttrib(personid, "特殊兵器", thing.addSpecial());
+    AddPersonAttrib(personid, "暗器技巧", thing.addHidden());
+    AddPersonAttrib(personid, "武学常识", thing.addKnowledge());
+    AddPersonAttrib(personid, "品德", thing.addMorality());
+    AddPersonAttrib(personid, "攻击带毒", thing.addAttackPoison());
+    if (thing.addAttackCount() == 1) p.setDualWield(1);
+
+    p.setTrainExp(0);
+
+    // 再处理武功
+    if (wugongid >= 0)
     {
-        // 查找是否已有该武功
-        int slot = -1;
+        int oldwugong = 0;
         for (int i = 1; i <= 10; i++)
         {
-            if (p.wugong(i) == trainWugong)
+            if (p.wugong(i) == wugongid)
             {
-                slot = i;
+                oldwugong = 1;
+                p.setWugongLevel(i, (int16_t)(p.wugongLevel(i) + 100));
+                auto wg = g_JY.getWugong(wugongid);
+                int newLv = (int)std::floor(p.wugongLevel(i) / 100.0) + 1;
+                DrawStrBoxWaitKey(std::format("{} 升为第{}级", wg.name(), newLv), C_WHITE, g_CC.DefaultFont);
                 break;
             }
         }
-        if (slot > 0)
-        {
-            // 已有武功，升级
-            int lv = p.wugongLevel(slot);
-            if (lv < 900)
-            {
-                p.setWugongLevel(slot, (int16_t)(lv + 100));
-                auto wg = g_JY.getWugong(trainWugong);
-                int newLv = (int)std::floor(p.wugongLevel(slot) / 100.0) + 1;
-                DrawStrBox(-1, -1,
-                    std::string(wg.name()) + " 升为 " + std::to_string(newLv) + " 级",
-                    C_ORANGE, g_CC.DefaultFont);
-                ShowScreen();
-                JY_Delay(500);
-                Cls();
-            }
-        }
-        else
+        if (oldwugong == 0)
         {
             // 学新武功
             for (int i = 1; i <= 10; i++)
             {
-                if (p.wugong(i) <= 0)
+                if (p.wugong(i) == 0)
                 {
-                    p.setWugong(i, (int16_t)trainWugong);
-                    p.setWugongLevel(i, 0);
-                    auto wg = g_JY.getWugong(trainWugong);
-                    DrawStrBox(-1, -1,
-                        std::string(p.name()) + " 学会了" + wg.name(),
-                        C_ORANGE, g_CC.DefaultFont);
-                    ShowScreen();
-                    JY_Delay(500);
-                    Cls();
+                    p.setWugong(i, (int16_t)wugongid);
                     break;
                 }
             }
         }
     }
-
-    // 加属性
-    if (thing.addHp() != 0) AddPersonAttrib(personid, "生命最大值", thing.addMaxHp());
-    if (thing.addMp() != 0) AddPersonAttrib(personid, "内力最大值", thing.addMaxMp());
-    if (thing.addAttack() != 0) AddPersonAttrib(personid, "攻击力", thing.addAttack());
-    if (thing.addAgility() != 0) AddPersonAttrib(personid, "轻功", thing.addAgility());
-    if (thing.addDefense() != 0) AddPersonAttrib(personid, "防御力", thing.addDefense());
-    if (thing.addMedic() != 0) AddPersonAttrib(personid, "医疗能力", thing.addMedic());
-    if (thing.addUsePoison() != 0) AddPersonAttrib(personid, "用毒能力", thing.addUsePoison());
-    if (thing.addDetox() != 0) AddPersonAttrib(personid, "解毒能力", thing.addDetox());
-    if (thing.addAntiPoison() != 0) AddPersonAttrib(personid, "抗毒能力", thing.addAntiPoison());
-    if (thing.addFist() != 0) AddPersonAttrib(personid, "拳掌功夫", thing.addFist());
-    if (thing.addSword() != 0) AddPersonAttrib(personid, "御剑能力", thing.addSword());
-    if (thing.addBlade() != 0) AddPersonAttrib(personid, "耍刀技巧", thing.addBlade());
-    if (thing.addSpecial() != 0) AddPersonAttrib(personid, "特殊兵器", thing.addSpecial());
-    if (thing.addHidden() != 0) AddPersonAttrib(personid, "暗器技巧", thing.addHidden());
-    if (thing.addAttackPoison() != 0) AddPersonAttrib(personid, "攻击带毒", thing.addAttackPoison());
-    if (thing.addKnowledge() != 0) AddPersonAttrib(personid, "武学常识", thing.addKnowledge());
-    if (thing.addMorality() != 0) AddPersonAttrib(personid, "道德", thing.addMorality());
-
-    // 递归检查
-    War_PersonTrainBook(personid);
 }
 
 // ============= War_PersonTrainDrug =============
+// 匹配Lua War_PersonTrainDrug：战斗后修炼药品
 void War_PersonTrainDrug(int personid)
 {
     auto p = g_JY.getPerson(personid);
@@ -490,52 +476,69 @@ void War_PersonTrainDrug(int personid)
     if (trainItem < 0) return;
 
     auto thing = g_JY.getThing(trainItem);
-    int needMaterial = thing.needMaterial();
-    if (needMaterial < 0) return;
 
-    // 检查是否有足够材料
-    int matCount = 0;
+    // 检查是否可以练出物品
+    int trainNeedExp = thing.trainNeedExp();
+    if (trainNeedExp <= 0) return;
+
+    // 计算需要的物品修炼点数
+    int needpoint = (7 - (int)std::floor(p.aptitude() / 15.0)) * trainNeedExp;
+    int trainPoints = p.getByName("物品修炼点数");
+    if (trainPoints < needpoint) return;
+
+    // 检查是否有需要的材料
+    int needMaterial = thing.needMaterial();
+    int haveMaterial = 0;
+    int materialNum = -1;
     for (int i = 1; i <= g_CC.MyThingNum; i++)
     {
         if (g_JY.Base.item(i) == needMaterial)
         {
-            matCount = g_JY.Base.itemNum(i);
+            haveMaterial = 1;
+            materialNum = g_JY.Base.itemNum(i);
             break;
         }
     }
-    if (matCount < 3) return;
 
-    // 消耗材料
-    instruct_32(needMaterial, -3);
-
-    // 随机制造物品
-    int candidates[5] = { -1, -1, -1, -1, -1 };
-    int numCand = 0;
-    for (int i = 1; i <= 5; i++)
+    if (haveMaterial == 1)
     {
-        int tid = thing.trainItem(i);
-        if (tid >= 0)
+        // 根据材料数量标记可以练出哪些物品
+        int enough[6] = {0};  // 1-based
+        int canMake = 0;
+        for (int i = 1; i <= 5; i++)
         {
-            candidates[numCand++] = tid;
+            int tid = thing.trainItem(i);
+            int needNum = thing.trainItemNum(i);
+            if (tid >= 0 && materialNum >= needNum)
+            {
+                canMake = 1;
+                enough[i] = 1;
+            }
+        }
+
+        if (canMake == 1)
+        {
+            // 随机选择可以练出的物品
+            int makeID;
+            while (true)
+            {
+                makeID = Rnd(5) + 1;
+                if (enough[makeID] == 1) break;
+            }
+            int newThingID = thing.trainItem(makeID);
+
+            auto nt = g_JY.getThing(newThingID);
+            DrawStrBoxWaitKey(std::format("{} 制造出 {}", p.name(), nt.name()), C_WHITE, g_CC.DefaultFont);
+
+            if (instruct_18(newThingID))
+                instruct_32(newThingID, 1);
+            else
+                instruct_32(newThingID, 1 + Rnd(3));
+
+            instruct_32(needMaterial, -thing.trainItemNum(makeID));
+            p.setByName("物品修炼点数", 0);
         }
     }
-    if (numCand > 0)
-    {
-        int sel = Rnd(numCand);
-        int newThing = candidates[sel];
-        instruct_2(newThing, 1);
-
-        auto nt = g_JY.getThing(newThing);
-        DrawStrBox(-1, -1,
-            std::string(p.name()) + " 制造了 " + nt.name(),
-            C_ORANGE, g_CC.DefaultFont);
-        ShowScreen();
-        JY_Delay(500);
-        Cls();
-    }
-
-    // 递归检查
-    War_PersonTrainDrug(personid);
 }
 
 // ============= WarSelectTeam =============
@@ -681,24 +684,25 @@ void WarDrawMap(int flag, int extra1, int extra2, int extra3,
 {
     int x0 = WAR.Person[WAR.CurID].x;
     int y0 = WAR.Person[WAR.CurID].y;
+    int subScene = g_JY.SubScene;
 
     if (flag == 0)
     {
-        JY_DrawWarMap(0, x0, y0, -1, -1, -1, -1, -1, -1, -1, g_Config.WMapAddX, g_Config.WMapAddY);
+        JY_DrawWarMap(0, x0, y0, 0, 0, -1, subScene, -1, -1, -1, g_Config.WMapAddX, g_Config.WMapAddY);
     }
     else if (flag == 1)  // 移动路径
     {
-        JY_DrawWarMap(1, x0, y0, extra1, extra2, -1, -1, -1, -1, -1, g_Config.WMapAddX, g_Config.WMapAddY);
+        int drawFlag = (subScene == 0 || subScene == 2 || subScene == 3 || subScene == 4 || subScene == 39) ? 1 : 2;
+        JY_DrawWarMap(drawFlag, x0, y0, extra1, extra2, -1, subScene, -1, -1, -1, g_Config.WMapAddX, g_Config.WMapAddY);
     }
     else if (flag == 2)  // 命中目标
     {
-        JY_DrawWarMap(2, x0, y0, -1, -1, -1, -1, -1, -1, -1, g_Config.WMapAddX, g_Config.WMapAddY);
+        JY_DrawWarMap(3, x0, y0, 0, 0, -1, subScene, -1, -1, -1, g_Config.WMapAddX, g_Config.WMapAddY);
     }
     else if (flag == 4)  // 战斗动画
     {
-        // extra1=pic*2, extra2=mytype, extra3=eft*2 or -1, extra4=nil, extra5=3, extra6=-1, extra7=ex, extra8=ey
         JY_DrawWarMap(4, x0, y0, extra1, extra2, extra3,
-            extra4 >= 0 ? extra4 : -1,
+            extra4 >= 0 ? extra4 : subScene,
             extra5 >= 0 ? extra5 : -1,
             extra6,
             extra7 >= 0 ? extra7 : -1,
@@ -771,6 +775,7 @@ int WarCalPersonPic(int id)
 void WarShowHead()
 {
     int id = WAR.CurID;
+    if (id < 0 || id >= WAR.PersonNum) return;
     int pid = WAR.Person[id].personId;
     auto p = g_JY.getPerson(pid);
     int h = g_CC.DefaultFont;
@@ -826,9 +831,6 @@ void WarShowHead()
     DrawString(x1 + 3, y1 + g_CC.RowPixel + 2 * (g_CC.RowPixel + g_CC.Fontsmall), "体力:", C_ORANGE, g_CC.Fontsmall);
     DrawString(x1 + 3, y1 + g_CC.RowPixel + 3 * (g_CC.RowPixel + g_CC.Fontsmall), "中毒:", C_ORANGE, g_CC.Fontsmall);
 
-    char buf[64];
-    snprintf(buf, sizeof(buf), "%d/%d", p.hp(), p.maxHp());
-
     if (p.injury() < 33)
         color = RGB_JY(236, 200, 40);
     else if (p.injury() < 66)
@@ -836,7 +838,8 @@ void WarShowHead()
     else
         color = RGB_JY(232, 32, 44);
 
-    DrawString(x1 + g_CC.Fontsmall + 2 * g_CC.Fontsmall, y1 + g_CC.RowPixel, buf, color, g_CC.Fontsmall);
+    DrawString(x1 + g_CC.Fontsmall + 2 * g_CC.Fontsmall, y1 + g_CC.RowPixel,
+        std::format("{}/{}", p.hp(), p.maxHp()), color, g_CC.Fontsmall);
 
     if (p.mpType() == 0)
         color = RGB_JY(208, 152, 208);
@@ -848,17 +851,14 @@ void WarShowHead()
     if (GetS(4, 5, 5, 5) == 5 && pid == 0)
         color = RGB_JY(216, 20, 24);
 
-    snprintf(buf, sizeof(buf), "%d/%d", p.mp(), p.maxMp());
     DrawString(x1 + g_CC.Fontsmall + 2 * g_CC.Fontsmall, y1 + g_CC.RowPixel + g_CC.RowPixel + g_CC.Fontsmall,
-        buf, color, g_CC.Fontsmall);
+        std::format("{}/{}", p.mp(), p.maxMp()), color, g_CC.Fontsmall);
 
-    snprintf(buf, sizeof(buf), "%d/100", p.stamina());
     DrawString(x1 + g_CC.Fontsmall + 2 * g_CC.Fontsmall, y1 + g_CC.RowPixel + 2 * (g_CC.RowPixel + g_CC.Fontsmall),
-        buf, C_GOLD, g_CC.Fontsmall);
+        std::format("{}/100", p.stamina()), C_GOLD, g_CC.Fontsmall);
 
-    snprintf(buf, sizeof(buf), "%d", p.poison());
     DrawString(x1 + 3 + 3 * g_CC.Fontsmall, y1 + g_CC.RowPixel + 3 * (g_CC.RowPixel + g_CC.Fontsmall),
-        buf, RGB_JY(120, 208, 88), g_CC.Fontsmall);
+        std::format("{}", p.poison()), RGB_JY(120, 208, 88), g_CC.Fontsmall);
 
     y1 = y1 + 2 * (g_CC.RowPixel + g_CC.Fontsmall);
 
@@ -875,8 +875,8 @@ void WarShowHead()
             if (wp >= 0)
             {
                 auto t = g_JY.getThing(wp);
-                snprintf(buf, sizeof(buf), "%s%d", t.name().c_str(), wps);
-                DrawString(x1, y1 + hl * (g_CC.DefaultFont + g_CC.RowPixel), buf, C_ORANGE, g_CC.DefaultFont);
+                DrawString(x1, y1 + hl * (g_CC.DefaultFont + g_CC.RowPixel),
+                    std::format("{}{}", t.name(), wps), C_ORANGE, g_CC.DefaultFont);
                 hl++;
             }
         }
@@ -911,7 +911,7 @@ int War_Manual()
         ShowScreen();
 
         int r = War_Manual_Sub();
-        if (r == 1) break;  // 行动完毕
+        if (r != 0 && std::abs(r) != 1) break;  // r=0:取消重显菜单, abs(r)==1:移动后重显菜单, 其他:回合结束
     }
     WAR.ShowHead = 0;
     return 0;
@@ -980,7 +980,8 @@ int War_Manual_Sub()
     case 10: result = War_AutoMenu(); break;
     }
 
-    return result;
+    if (result == 1) return -r;  // 操作完成，返回负的菜单项编号
+    return 0;  // 操作取消，重新显示菜单
 }
 
 // ============= War_MoveMenu =============
@@ -1293,7 +1294,7 @@ int War_Fight_Sub(int id, int wugongnum, int x, int y)
                 if (effect > 0)
                 {
                     int emeny = GetWarMap(i, j, 2);
-                    if (emeny >= 0)
+                    if (emeny >= 0 && emeny < WAR.PersonNum)
                     {
                         if (WAR.Person[WAR.CurID].isAlly != WAR.Person[emeny].isAlly)
                         {
@@ -1329,11 +1330,9 @@ int War_Fight_Sub(int id, int wugongnum, int x, int y)
         if (newLevel != level)
         {
             level = newLevel;
-            char buf[128];
-            snprintf(buf, sizeof(buf), "%s 升为 %d 级", wg.name().c_str(), level);
-            DrawStrBox(-1, -1, buf, C_ORANGE, g_CC.DefaultFont);
+            DrawStrBox(-1, -1, std::format("{} 升为 {} 级", wg.name(), level), C_ORANGE, g_CC.DefaultFont);
             ShowScreen();
-            JY_Delay(500);
+            JY_Delay(300);
             Cls();
             ShowScreen();
         }
@@ -1610,11 +1609,11 @@ void War_ShowFight(int pid, int wugong, int wugongtype, int level, int x, int y,
     WarSetPerson();
     WarDrawMap(0);
     ShowScreen();
-    JY_Delay(200);
+    JY_Delay(100);
 
     WarDrawMap(2);
     ShowScreen();
-    JY_Delay(200);
+    JY_Delay(100);
 
     WarDrawMap(0);
     ShowScreen();
@@ -1630,9 +1629,7 @@ void War_ShowFight(int pid, int wugong, int wugongtype, int level, int x, int y,
         if (!WAR.Person[i].dead && GetWarMap(hx, hy, 4) > 1)
         {
             int n = WAR.Person[i].points;
-            char buf[32];
-            snprintf(buf, sizeof(buf), "%+d", n);
-            hitXY.push_back({ hx, hy, buf });
+            hitXY.push_back({ hx, hy, std::format("{:+d}", n) });
         }
     }
 
@@ -1873,7 +1870,7 @@ int War_ExecuteMenu_Sub(int x1, int y1, int flag, int thingid)
     SetWarMap(x1, y1, 4, 1);
 
     int emeny = GetWarMap(x1, y1, 2);
-    if (emeny >= 0)
+    if (emeny >= 0 && emeny < WAR.PersonNum)
     {
         if (flag == 1)
         {
@@ -2702,7 +2699,7 @@ int War_AutoCalMaxEnemy(int x, int y, int wugongid, int level, int& outx, int& o
                 if (xnew >= 0 && xnew < g_CC.WarWidth && ynew >= 0 && ynew < g_CC.WarHeight)
                 {
                     int id = GetWarMap(xnew, ynew, 2);
-                    if (id >= 0 && WAR.Person[WAR.CurID].isAlly != WAR.Person[id].isAlly)
+                    if (id >= 0 && id < WAR.PersonNum && WAR.Person[WAR.CurID].isAlly != WAR.Person[id].isAlly)
                         enemynum++;
                 }
             }
@@ -2726,7 +2723,7 @@ int War_AutoCalMaxEnemy(int x, int y, int wugongid, int level, int& outx, int& o
                 if (xnew >= 0 && xnew < g_CC.WarWidth && ynew >= 0 && ynew < g_CC.WarHeight)
                 {
                     int id = GetWarMap(xnew, ynew, 2);
-                    if (id >= 0 && WAR.Person[WAR.CurID].isAlly != WAR.Person[id].isAlly)
+                    if (id >= 0 && id < WAR.PersonNum && WAR.Person[WAR.CurID].isAlly != WAR.Person[id].isAlly)
                         enemynum++;
                 }
             }
@@ -2929,7 +2926,7 @@ void War_AutoEatDrug(int flag)
             instruct_41(pid, selectid, -1);
     }
 
-    JY_Delay(500);
+    JY_Delay(300);
 }
 
 // ============= War_AutoDoctor =============

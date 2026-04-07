@@ -542,11 +542,11 @@ struct GameConst
     int XScale = 18;
     int YScale = 9;
 
-    int Frame = 50;
-    int SceneMoveFrame = 100;
-    int PersonMoveFrame = 100;
-    int AnimationFrame = 150;
-    int WarAutoDelay = 300;
+    int Frame = 30;
+    int SceneMoveFrame = 60;
+    int PersonMoveFrame = 60;
+    int AnimationFrame = 80;
+    int WarAutoDelay = 200;
 
     int DirectX[4] = { 0, 1, -1, 0 };
     int DirectY[4] = { -1, 0, 0, 1 };

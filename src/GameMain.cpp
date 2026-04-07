@@ -654,7 +654,7 @@ int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
         {
             int idx = top + i;
             int cy = y + g_CC.MenuBorderPixel + i * itemh;
-            int col = (idx == cur) ? color1 : color2;
+            int col = (idx == cur) ? color2 : color1;
             DrawString(x + g_CC.MenuBorderPixel, cy, vis[idx].label, col, fontsize);
         }
         ShowScreen();
@@ -757,7 +757,7 @@ int ShowMenu2(std::vector<MenuItem>& menu, int n, int x, int y, int fontsize, in
         int cx = x + g_CC.MenuBorderPixel;
         for (int i = 0; i < num; i++)
         {
-            int col = (i == cur) ? color1 : color2;
+            int col = (i == cur) ? color2 : color1;
             DrawString(cx, y + g_CC.MenuBorderPixel, vis[i].label, col, fontsize);
             cx += cellw;
         }

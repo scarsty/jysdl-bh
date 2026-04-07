@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <format>
 
 // ============== 全局变量 ==============
 GameConfig g_Config;
@@ -190,29 +191,19 @@ static const std::map<std::string, int>& getPersonFieldMap()
         m["修炼物品"] = 122; m["修炼点数"] = 124;
         for (int i = 1; i <= 5; i++)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "出招动画帧数%d", i);
-            m[buf] = 50 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "出招动画延迟%d", i);
-            m[buf] = 60 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "武功音效延迟%d", i);
-            m[buf] = 70 + 2 * (i - 1);
+            m[std::format("出招动画帧数{}", i)] = 50 + 2 * (i - 1);
+            m[std::format("出招动画延迟{}", i)] = 60 + 2 * (i - 1);
+            m[std::format("武功音效延迟{}", i)] = 70 + 2 * (i - 1);
         }
         for (int i = 1; i <= 10; i++)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "武功%d", i);
-            m[buf] = 126 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "武功等级%d", i);
-            m[buf] = 146 + 2 * (i - 1);
+            m[std::format("武功{}", i)] = 126 + 2 * (i - 1);
+            m[std::format("武功等级{}", i)] = 146 + 2 * (i - 1);
         }
         for (int i = 1; i <= 4; i++)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "携带物品%d", i);
-            m[buf] = 166 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "携带物品数量%d", i);
-            m[buf] = 174 + 2 * (i - 1);
+            m[std::format("携带物品{}", i)] = 166 + 2 * (i - 1);
+            m[std::format("携带物品数量{}", i)] = 174 + 2 * (i - 1);
         }
     }
     return m;
@@ -275,11 +266,8 @@ int ThingAccessor::getByName(const std::string& fieldName) const
         m["练出物品需经验"] = 166; m["需材料"] = 168;
         for (int i = 1; i <= 5; i++)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "练出物品%d", i);
-            m[buf] = 170 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "需要物品数量%d", i);
-            m[buf] = 180 + 2 * (i - 1);
+            m[std::format("练出物品{}", i)] = 170 + 2 * (i - 1);
+            m[std::format("需要物品数量{}", i)] = 180 + 2 * (i - 1);
         }
     }
     auto it = m.find(fieldName);
@@ -367,17 +355,11 @@ int WugongAccessor::getByName(const std::string& fieldName) const
         m["攻击范围"] = 30; m["消耗内力点数"] = 32; m["敌人中毒点数"] = 34;
         for (int i = 1; i <= 10; i++)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "攻击力%d", i);
-            m[buf] = 36 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "移动范围%d", i);
-            m[buf] = 56 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "杀伤范围%d", i);
-            m[buf] = 76 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "加内力%d", i);
-            m[buf] = 96 + 2 * (i - 1);
-            snprintf(buf, sizeof(buf), "杀内力%d", i);
-            m[buf] = 116 + 2 * (i - 1);
+            m[std::format("攻击力{}", i)] = 36 + 2 * (i - 1);
+            m[std::format("移动范围{}", i)] = 56 + 2 * (i - 1);
+            m[std::format("杀伤范围{}", i)] = 76 + 2 * (i - 1);
+            m[std::format("加内力{}", i)] = 96 + 2 * (i - 1);
+            m[std::format("杀内力{}", i)] = 116 + 2 * (i - 1);
         }
     }
     auto it = m.find(fieldName);
@@ -402,17 +384,12 @@ int BaseAccessor::getByName(const std::string& fieldName) const
         m["船X"] = 14; m["船Y"] = 16; m["船X1"] = 18; m["船Y1"] = 20; m["船方向"] = 22;
         for (int i = 1; i <= 6; i++)
         {
-            char b[32];
-            snprintf(b, sizeof(b), "队伍%d", i);
-            m[b] = 24 + 2 * (i - 1);
+            m[std::format("队伍{}", i)] = 24 + 2 * (i - 1);
         }
         for (int i = 1; i <= 200; i++)
         {
-            char b[32];
-            snprintf(b, sizeof(b), "物品%d", i);
-            m[b] = 36 + 4 * (i - 1);
-            snprintf(b, sizeof(b), "物品数量%d", i);
-            m[b] = 36 + 4 * (i - 1) + 2;
+            m[std::format("物品{}", i)] = 36 + 4 * (i - 1);
+            m[std::format("物品数量{}", i)] = 36 + 4 * (i - 1) + 2;
         }
     }
     auto it = m.find(fieldName);
@@ -429,17 +406,12 @@ void BaseAccessor::setByName(const std::string& fieldName, int value)
         m["人X1"] = 8; m["人Y1"] = 10; m["人方向"] = 12;
         for (int i = 1; i <= 6; i++)
         {
-            char b[32];
-            snprintf(b, sizeof(b), "队伍%d", i);
-            m[b] = 24 + 2 * (i - 1);
+            m[std::format("队伍{}", i)] = 24 + 2 * (i - 1);
         }
         for (int i = 1; i <= 200; i++)
         {
-            char b[32];
-            snprintf(b, sizeof(b), "物品%d", i);
-            m[b] = 36 + 4 * (i - 1);
-            snprintf(b, sizeof(b), "物品数量%d", i);
-            m[b] = 36 + 4 * (i - 1) + 2;
+            m[std::format("物品{}", i)] = 36 + 4 * (i - 1);
+            m[std::format("物品数量{}", i)] = 36 + 4 * (i - 1) + 2;
         }
     }
     auto it = m.find(fieldName);
@@ -517,9 +489,7 @@ void GameConfig::loadFromINI(const std::string& filename)
     }
 
     // DataPath
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%sdata/%d/", CurrentPath.c_str(), Version);
-    DataPath = buf;
+    DataPath = std::format("{}data/{}/", CurrentPath, Version);
 }
 
 // ============== GameConst 初始化 ==============
@@ -548,35 +518,22 @@ void GameConst::init(int version, int zoom)
     // 文件路径
     for (int i = 0; i < 4; i++)
     {
-        char buf[512];
         if (i == 0)
         {
-            snprintf(buf, sizeof(buf), "%sranger.idx", DataPath.c_str());
-            R_IDXFilename[i] = buf;
-            snprintf(buf, sizeof(buf), "%sranger.grp", DataPath.c_str());
-            R_GRPFilename[i] = buf;
-            snprintf(buf, sizeof(buf), "%sallsin.grp", DataPath.c_str());
-            S_Filename[i] = buf;
-            snprintf(buf, sizeof(buf), "%salldef.grp", DataPath.c_str());
-            D_Filename[i] = buf;
+            R_IDXFilename[i] = DataPath + "ranger.idx";
+            R_GRPFilename[i] = DataPath + "ranger.grp";
+            S_Filename[i] = DataPath + "allsin.grp";
+            D_Filename[i] = DataPath + "alldef.grp";
         }
         else
         {
-            snprintf(buf, sizeof(buf), "%ssave/r%d.idx", DataPath.c_str(), i);
-            R_IDXFilename[i] = buf;
-            snprintf(buf, sizeof(buf), "%ssave/r%d.grp", DataPath.c_str(), i);
-            R_GRPFilename[i] = buf;
-            snprintf(buf, sizeof(buf), "%ssave/s%d.grp", DataPath.c_str(), i);
-            S_Filename[i] = buf;
-            snprintf(buf, sizeof(buf), "%ssave/d%d.grp", DataPath.c_str(), i);
-            D_Filename[i] = buf;
+            R_IDXFilename[i] = std::format("{}save/r{}.idx", DataPath, i);
+            R_GRPFilename[i] = std::format("{}save/r{}.grp", DataPath, i);
+            S_Filename[i] = std::format("{}save/s{}.grp", DataPath, i);
+            D_Filename[i] = std::format("{}save/d{}.grp", DataPath, i);
         }
     }
-    {
-        char buf[512];
-        snprintf(buf, sizeof(buf), "%sallsinbk.grp", DataPath.c_str());
-        TempS_Filename = buf;
-    }
+    TempS_Filename = DataPath + "allsinbk.grp";
 
     PaletteFile = g_Config.PaletteFile;
     FirstFile = g_Config.PicturePath + "title.png";

@@ -830,7 +830,7 @@ static void instruct_58_jy()
             TalkEx("少侠已连战三场，*可先休息再战。", 70, 0);
             Cls();
             JY_ShowSlow(50, 1); g_JY.Darkness = 1;
-            JY_Delay(300);
+            JY_Delay(200);
             auto p = g_JY.getPerson(0);
             if (p.getByName("受伤程度") < 50 && p.getByName("中毒程度") <= 0)
             {
