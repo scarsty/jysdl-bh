@@ -72,7 +72,7 @@ int War_isEnd();
 // 战斗辅助
 void War_PersonLostLife();
 void War_EndPersonData(int isexp, int warStatus);
-void War_AddPersonLevel(int personid, int addexp);
+bool War_AddPersonLevel(int personid);
 void War_PersonTrainBook(int personid);
 void War_PersonTrainDrug(int personid);
 int War_UseAnqi(int thingid);

@@ -3,6 +3,7 @@
 
 #include "GameMain.h"
 #include "GameData.h"
+#include "GameWar.h"
 #include "PotConv.h"
 #include "jymain.h"
 #include "sdlfun.h"
@@ -149,23 +150,23 @@ void DrawStrBoxWaitKey(const std::string& str, int color, int fontsize)
 
 int DrawStrBoxYesNo(const std::string& str, int color, int fontsize)
 {
-    Cls();
-    DrawStrBox(-1, -1, str, color, fontsize);
-    ShowScreen();
-    while (true)
-    {
-        int key = WaitKey();
-        if (key == GK_Y || key == GK_SPACE || key == GK_RETURN)
-        {
-            Cls();
-            return 1;
-        }
-        if (key == GK_N || key == GK_ESCAPE)
-        {
-            Cls();
-            return 0;
-        }
-    }
+    // 匹配Lua：先显示文字框，再在其右下方显示"确定/是""取消/否"菜单
+    int len = utf8DisplayLen(str);
+    int w = len * fontsize / 2 + 2 * g_CC.MenuBorderPixel;
+    int h = fontsize + 2 * g_CC.MenuBorderPixel;
+    int x = (g_CC.ScreenW - w) / 2;
+    int y = (g_CC.ScreenH - h) / 2;
+
+    DrawStrBox(x, y, str, color, fontsize);
+
+    std::vector<MenuItem> menu = {
+        {"确定/是", nullptr, 1},
+        {"取消/否", nullptr, 1},
+    };
+    int mx = x + w - 4 * fontsize - 2 * g_CC.MenuBorderPixel;
+    int my = y + h + g_CC.MenuBorderPixel;
+    int r = ShowMenu(menu, 2, 0, mx, my, 0, 0, 1, 0, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+    return (r == 1) ? 1 : 0;
 }
 
 int WaitKey()
@@ -418,8 +419,15 @@ int AddPersonAttrib(int pid, const std::string& attr, int value)
     auto p = g_JY.getPerson(pid);
     int oldv = p.getByName(attr);
     int maxv = 9999;
-    auto it = g_CC.PersonAttribMax.find(attr);
-    if (it != g_CC.PersonAttribMax.end()) maxv = it->second;
+    // 生命和内力以人物自身最大值为上限（匹配Lua逻辑）
+    if (attr == "生命")
+        maxv = p.getByName("生命最大值");
+    else if (attr == "内力")
+        maxv = p.getByName("内力最大值");
+    else {
+        auto it = g_CC.PersonAttribMax.find(attr);
+        if (it != g_CC.PersonAttribMax.end()) maxv = it->second;
+    }
     int newv = limitX(oldv + value, 0, maxv);
     p.setByName(attr, newv);
     return newv - oldv;
@@ -680,6 +688,9 @@ int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
                     // 子功能返回后，恢复背景并重绘本菜单
                     JY_FillColor(0, 0, 0, 0, 0);
                     JY_LoadSur(surid, 0, 0);
+                    // 刷新vis标签（回调可能修改了menu中的label）
+                    for (int vi = 0; vi < newNumItem; vi++)
+                        vis[vi].label = menu[vis[vi].origIdx].label;
                 }
             }
             else
@@ -1350,7 +1361,7 @@ int UseThingEffect(int thingid, int pid)
 
     tryAdd("生命最大值");
 
-    int decPoison = thing.getByName("加中毒解药");
+    int decPoison = thing.getByName("加中毒解毒");
     if (decPoison < 0)
     {
         int actual = AddPersonAttrib(pid, "中毒程度", decPoison / 2);
@@ -1383,19 +1394,187 @@ int UseThingEffect(int thingid, int pid)
     return 0;
 }
 
+// 判断一个人是否可以装备或修炼一个物品
+static bool CanUseThing(int thingid, int personid)
+{
+    auto thing = g_JY.getThing(thingid);
+    auto person = g_JY.getPerson(personid);
+
+    int onlyPerson = thing.getByName("仅修炼人物");
+    if (onlyPerson >= 0 && onlyPerson != personid) return false;
+
+    int needMpType = thing.getByName("需内力性质");
+    int myMpType = person.getByName("内力性质");
+    if (needMpType != 2 && myMpType != 2)
+    {
+        if (needMpType != myMpType) return false;
+    }
+
+    if (thing.getByName("需内力") > person.getByName("内力最大值")) return false;
+    if (thing.getByName("需攻击力") > person.getByName("攻击力")) return false;
+    if (thing.getByName("需轻功") > person.getByName("轻功")) return false;
+    if (thing.getByName("需用毒能力") > person.getByName("用毒能力")) return false;
+    if (thing.getByName("需医疗能力") > person.getByName("医疗能力")) return false;
+    if (thing.getByName("需解毒能力") > person.getByName("解毒能力")) return false;
+    if (thing.getByName("需拳掌功夫") > person.getByName("拳掌功夫")) return false;
+    if (thing.getByName("需御剑能力") > person.getByName("御剑能力")) return false;
+    if (thing.getByName("需耍刀技巧") > person.getByName("耍刀技巧")) return false;
+    if (thing.getByName("需特殊兵器") > person.getByName("特殊兵器")) return false;
+    if (thing.getByName("需暗器技巧") > person.getByName("暗器技巧")) return false;
+
+    int needApt = thing.getByName("需资质");
+    if (needApt >= 0)
+    {
+        if (needApt > person.getByName("资质")) return false;
+    }
+    else
+    {
+        if (-needApt < person.getByName("资质")) return false;
+    }
+
+    return true;
+}
+
 int UseThing(int thingid, int personid)
 {
     auto thing = g_JY.getThing(thingid);
     int type = thing.type();
 
-    if (type == 3) // 药品
+    if (type == 0) // 剧情物品：触发事件
+    {
+        if (g_JY.SubScene >= 0)
+        {
+            int direct = g_JY.getBase().personDir();
+            int x = g_JY.getBase().personX1() + g_CC.DirectX[direct];
+            int y = g_JY.getBase().personY1() + g_CC.DirectY[direct];
+            int d_num = GetS(g_JY.SubScene, x, y, 3);
+            if (d_num >= 0)
+            {
+                g_JY.CurrentThing = thingid;
+                EventExecute(d_num, 2); // flag=2 物品触发
+                g_JY.CurrentThing = -1;
+                return 1;
+            }
+        }
+        return 0;
+    }
+    else if (type == 1) // 装备物品
+    {
+        Cls(g_CC.MainSubMenuX, g_CC.MainSubMenuY, g_CC.ScreenW, g_CC.ScreenH);
+        DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY,
+            std::format("谁要配备{}?", thing.name()), C_WHITE, g_CC.DefaultFont);
+        int nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+        int r = SelectTeamMenu(g_CC.MainSubMenuX, nexty);
+        if (r > 0)
+        {
+            int pid = g_JY.getBase().team(r);
+            if (CanUseThing(thingid, pid))
+            {
+                int equipType = thing.getByName("装备类型");
+                if (equipType == 0) // 武器
+                {
+                    int curUser = thing.getByName("使用人");
+                    if (curUser >= 0) g_JY.getPerson(curUser).setByName("武器", -1);
+                    int oldWeapon = g_JY.getPerson(pid).getByName("武器");
+                    if (oldWeapon >= 0) g_JY.getThing(oldWeapon).setByName("使用人", -1);
+                    g_JY.getPerson(pid).setByName("武器", thingid);
+                }
+                else if (equipType == 1) // 防具
+                {
+                    int curUser = thing.getByName("使用人");
+                    if (curUser >= 0) g_JY.getPerson(curUser).setByName("防具", -1);
+                    int oldArmor = g_JY.getPerson(pid).getByName("防具");
+                    if (oldArmor >= 0) g_JY.getThing(oldArmor).setByName("使用人", -1);
+                    g_JY.getPerson(pid).setByName("防具", thingid);
+                }
+                thing.setByName("使用人", pid);
+            }
+            else
+            {
+                DrawStrBoxWaitKey("此人不适合配备此物品", C_WHITE, g_CC.DefaultFont);
+            }
+        }
+        return 1;
+    }
+    else if (type == 2) // 秘籍物品：修炼
+    {
+        if (thing.getByName("使用人") >= 0)
+        {
+            if (!DrawStrBoxYesNo("此物品已经有人修炼，是否换人修炼?", C_WHITE, g_CC.DefaultFont))
+            {
+                Cls(g_CC.MainSubMenuX, g_CC.MainSubMenuY, g_CC.ScreenW, g_CC.ScreenH);
+                ShowScreen();
+                return 0;
+            }
+        }
+        Cls();
+        DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY,
+            std::format("谁要修炼{}?", thing.name()), C_WHITE, g_CC.DefaultFont);
+        int nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+        int r = SelectTeamMenu(g_CC.MainSubMenuX, nexty);
+        if (r > 0)
+        {
+            int pid = g_JY.getBase().team(r);
+            // 检查武功槽位
+            int trainWugong = thing.getByName("练出武功");
+            if (trainWugong >= 0)
+            {
+                bool already = false;
+                for (int i = 1; i <= 10; i++)
+                {
+                    if (g_JY.getPerson(pid).getByName("武功" + std::to_string(i)) == trainWugong)
+                    { already = true; break; }
+                }
+                if (!already && g_JY.getPerson(pid).getByName("武功10") > 0)
+                {
+                    DrawStrBoxWaitKey("一个人只能修炼10种武功", C_WHITE, g_CC.DefaultFont);
+                    return 0;
+                }
+            }
+            if (CanUseThing(thingid, pid))
+            {
+                if (thing.getByName("使用人") == pid) return 0; // 已经在修炼
+
+                // 取消当前修炼
+                int oldTrain = g_JY.getPerson(pid).getByName("修炼物品");
+                if (oldTrain >= 0) g_JY.getThing(oldTrain).setByName("使用人", -1);
+
+                int curUser = thing.getByName("使用人");
+                if (curUser >= 0)
+                {
+                    g_JY.getPerson(curUser).setByName("修炼物品", -1);
+                    g_JY.getPerson(curUser).setByName("修炼点数", 0);
+                    g_JY.getPerson(curUser).setByName("物品修炼点数", 0);
+                }
+                thing.setByName("使用人", pid);
+                g_JY.getPerson(pid).setByName("修炼物品", thingid);
+                g_JY.getPerson(pid).setByName("修炼点数", 0);
+                g_JY.getPerson(pid).setByName("物品修炼点数", 0);
+            }
+            else
+            {
+                DrawStrBoxWaitKey("此人不适合修炼此物品", C_WHITE, g_CC.DefaultFont);
+                return 0;
+            }
+        }
+        return 1;
+    }
+    else if (type == 3) // 药品
     {
         if (personid < 0)
         {
-            // 选择使用对象
-            int r = SelectTeamMenu(g_CC.MainSubMenuX, g_CC.MainSubMenuY);
-            if (r <= 0) return 0;
-            personid = g_JY.getBase().team(r);
+            if (g_JY.Status == GAME_WMAP)
+            {
+                // 战斗中自动选择当前战斗人物
+                personid = WAR.Person[WAR.CurID].personId;
+            }
+            else
+            {
+                // 非战斗选择使用对象
+                int r = SelectTeamMenu(g_CC.MainSubMenuX, g_CC.MainSubMenuY);
+                if (r <= 0) return 0;
+                personid = g_JY.getBase().team(r);
+            }
         }
         if (personid < 0) return 0;
         if (UseThingEffect(thingid, personid) == 1)
@@ -1975,16 +2154,7 @@ void Menu_PersonExit()
 
 int Menu_System()
 {
-    std::vector<MenuItem> menu = {
-        {"读取进度", nullptr, 1},
-        {"保存进度", nullptr, 1},
-        {"关闭音乐", nullptr, 1},
-        {"关闭音效", nullptr, 1},
-        {"离开游戏", nullptr, 1}
-    };
-    int r = ShowMenu(menu, 5, 0, g_CC.MainSubMenuX, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
-    if (r == 1) // 读取进度
-    {
+    auto cb_ReadRecord = [](std::vector<MenuItem>&, int) -> int {
         std::vector<MenuItem> loadMenu = {
             {"进度一", nullptr, 1}, {"进度二", nullptr, 1}, {"进度三", nullptr, 1}
         };
@@ -1995,11 +2165,11 @@ int Menu_System()
             ShowScreen();
             LoadRecord(lr);
             g_JY.Status = GAME_FIRSTMMAP;
-            return 1;
+            return 1;  // 退出所有上级菜单
         }
-    }
-    else if (r == 2) // 保存进度
-    {
+        return 0;
+    };
+    auto cb_SaveRecord = [](std::vector<MenuItem>&, int) -> int {
         std::vector<MenuItem> saveMenu = {
             {"进度一", nullptr, 1}, {"进度二", nullptr, 1}, {"进度三", nullptr, 1}
         };
@@ -2010,22 +2180,55 @@ int Menu_System()
             ShowScreen();
             SaveRecord(sr);
         }
-    }
-    else if (r == 5) // 离开游戏
-    {
+        return 0;
+    };
+    auto cb_SetMusic = [](std::vector<MenuItem>& m, int idx) -> int {
+        if (g_JY.EnableMusic == 0)
+        {
+            g_JY.EnableMusic = 1;
+            PlayMIDI(g_JY.CurrentMIDI);
+        }
+        else
+        {
+            g_JY.EnableMusic = 0;
+            StopMIDI();
+        }
+        return 1;
+    };
+    auto cb_SetSound = [](std::vector<MenuItem>& m, int idx) -> int {
+        g_JY.EnableSound = g_JY.EnableSound ? 0 : 1;
+        return 1;
+    };
+    auto cb_Exit = [](std::vector<MenuItem>&, int) -> int {
         Cls();
         if (DrawStrBoxYesNo("是否真的要离开游戏？", C_WHITE, g_CC.DefaultFont))
             g_JY.Status = GAME_END;
         return 1;
-    }
-    return 0;
+    };
+
+    std::vector<MenuItem> menu = {
+        {"读取进度", cb_ReadRecord, 1},
+        {"保存进度", cb_SaveRecord, 1},
+        {g_JY.EnableMusic ? "关闭音乐" : "打开音乐", cb_SetMusic, 1},
+        {g_JY.EnableSound ? "关闭音效" : "打开音效", cb_SetSound, 1},
+        {"离开游戏", cb_Exit, 1}
+    };
+    int r = ShowMenu(menu, 5, 0, g_CC.MainSubMenuX, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+    if (r == 0)
+        return 0;
+    else
+        return 1;  // r<0 表示子回调要求退出全部
 }
 
 void MMenu()
 {
     std::vector<MenuItem> menu = {
-        {"医疗", nullptr, 1}, {"解毒", nullptr, 1}, {"物品", nullptr, 1},
-        {"状态", nullptr, 1}, {"离队", nullptr, 1}, {"系统", nullptr, 1}
+        {"医疗", [](std::vector<MenuItem>&, int) -> int { Menu_Doctor(); return 0; }, 1},
+        {"解毒", [](std::vector<MenuItem>&, int) -> int { Menu_DecPoison(); return 0; }, 1},
+        {"物品", [](std::vector<MenuItem>&, int) -> int { Menu_Thing(); return 0; }, 1},
+        {"状态", [](std::vector<MenuItem>&, int) -> int { Menu_Status(); return 0; }, 1},
+        {"离队", [](std::vector<MenuItem>&, int) -> int { Menu_PersonExit(); return 0; }, 1},
+        {"系统", [](std::vector<MenuItem>&, int) -> int { return Menu_System(); }, 1},
     };
     // 场景中禁用离队和系统
     if (g_JY.Status == GAME_SMAP)
@@ -2033,16 +2236,7 @@ void MMenu()
         menu[4].enabled = 0;
         menu[5].enabled = 0;
     }
-    int r = ShowMenu(menu, 6, 0, g_CC.MainMenuX, g_CC.MainMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
-    switch (r)
-    {
-        case 1: Menu_Doctor(); break;
-        case 2: Menu_DecPoison(); break;
-        case 3: Menu_Thing(); break;
-        case 4: Menu_Status(); break;
-        case 5: Menu_PersonExit(); break;
-        case 6: Menu_System(); break;
-    }
+    ShowMenu(menu, 6, 0, g_CC.MainMenuX, g_CC.MainMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
     Cls();
 }
 

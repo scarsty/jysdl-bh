@@ -865,10 +865,10 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 {
     int r = JY_LoadPNG(fileid, picid, g_ScreenW + 1, g_ScreenH + 1, 1, 0, 100);    //加载贴图到看不见的位置
 
-    *w = 0;
-    *h = 0;
-    *xoff = 0;
-    *yoff = 0;
+    if (w) *w = 0;
+    if (h) *h = 0;
+    if (xoff) *xoff = 0;
+    if (yoff) *yoff = 0;
 
     if (r != 0)
     {
@@ -879,10 +879,10 @@ int JY_GetPNGXY(int fileid, int picid, int* w, int* h, int* xoff, int* yoff)
 
     if (newcache->t)    // 已有，则直接显示
     {
-        *w = newcache->w;
-        *h = newcache->h;
-        *xoff = newcache->xoff;
-        *yoff = newcache->yoff;
+        if (w)*w = newcache->w;
+        if (h)*h = newcache->h;
+        if (xoff)*xoff = newcache->xoff;
+        if (yoff)*yoff = newcache->yoff;
     }
 
     return 0;

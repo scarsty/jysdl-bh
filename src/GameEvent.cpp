@@ -812,7 +812,7 @@ static void instruct_58_jy()
             // 简化：使用 WAR.Data["敌人1"] 的头像 - 需要从战斗数据获取
             TalkEx(tstr, 0, 0);
             Cls();
-            if (WarMain(warnum + startwar, 0))
+            if (WarMain(warnum + startwar, 0) == 1)
             {
                 Cls();
                 Cls(); JY_ShowSlow(50, 0); int k, t, mx, my; JY_GetKey(&k, &t, &mx, &my);
@@ -1036,7 +1036,7 @@ void ReadKDEF(int id)
         }
         else if (cmd == 6)
         {
-            if (WarMain(E[idx+1], E[idx+4])) idx += E[idx+2]; else idx += E[idx+3];
+            if (WarMain(E[idx+1], E[idx+4]) == 1) idx += E[idx+2]; else idx += E[idx+3];
             idx += 5;
         }
         else if (cmd == 7) { idx += 1; break; }

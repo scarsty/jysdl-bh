@@ -44,6 +44,8 @@ std::string charsetConvert(const std::string& str, int flag)
 // ============== DataBuffer 实现 ==============
 bool DataBuffer::loadfile(const char* filename, int start, int len)
 {
+    if (len <= 0) return false;
+    if (!data || size < len) alloc(len);
     FILE* fp = fopen(filename, "rb");
     if (!fp) return false;
     fseek(fp, start, SEEK_SET);

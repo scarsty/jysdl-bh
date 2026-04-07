@@ -572,10 +572,10 @@ int JY_GetKey(int* key, int* type, int* mx, int* my)
 {
     SDL_Event event;
     int win_w, win_h, r;
-    *key = -1;
-    *type = -1;
-    *mx = -1;
-    *my = -1;
+    if (key)*key = -1;
+    if (type)*type = -1;
+    if (mx)*mx = -1;
+    if (my)*my = -1;
     while (SDL_PollEvent(&event))
     //if (SDL_PollEvent(&event))
     {
@@ -1206,6 +1206,7 @@ int JY_SaveSur(int x, int y, int w, int h)
     tmp_Surface[id] = SDL_CreateTexture(g_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
     SDL_SetRenderTarget(g_Renderer, tmp_Surface[id]);
     SDL_RenderTexture(g_Renderer, g_Texture, &r1, NULL);
+    SDL_SetRenderTarget(g_Renderer, g_Texture);
     //tmp_Surface[id] = SDL_CreateRGBSurface(SDL_SWSURFACE, r1.w, r1.h, g_Surface->format->BitsPerPixel
     //    , g_Surface->format->Rmask, g_Surface->format->Gmask, g_Surface->format->Bmask, g_Surface->format->Amask);
     //SDL_BlitSurface(g_Surface, &r1, tmp_Surface[id], NULL);

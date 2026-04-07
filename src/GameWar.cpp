@@ -74,79 +74,104 @@ int WarMain(int warid, int isexp)
     WarLoad(warid);
     WarSelectTeam();
     WarSelectEnemy();
+
+    CleanMemory();
     WarLoadMap(WAR.Data.mapId());
 
+    g_JY.Status = GAME_WMAP;
+
     // 加载战斗图片
-    JY_PicInit(g_CC.WMAPPicFile[0].c_str());
-    JY_PicInit(g_CC.EffectFile[0].c_str());
+    JY_ShowSlow(50, 1);
+    JY_PicLoadFile(g_CC.WMAPPicFile[0].c_str(), g_CC.WMAPPicFile[1].c_str(), 0, 0, 0);
+    int zoom = limitX(g_CC.ScreenW / 800 * g_Config.Zoom, 0, g_Config.Zoom);
+    JY_LoadPNGPath(g_CC.HeadPath.c_str(), 1, g_CC.HeadNum, zoom, "png");
+    JY_LoadPNGPath(g_CC.ThingPath.c_str(), 2, g_CC.ThingNum, zoom, "png");
+    JY_PicLoadFile(g_CC.EffectFile[0].c_str(), g_CC.EffectFile[1].c_str(), 3, 0, 0);
+
+    PlayMIDI(WAR.Data.music());
+
+    WarPersonSort();
+
+    // 战斗排序后加载fight图片
+    CleanWarMap(2, -1);
+    CleanWarMap(6, -2);
     for (int i = 0; i < WAR.PersonNum; i++)
     {
         int pid = WAR.Person[i].personId;
         auto p = g_JY.getPerson(pid);
-        char buf[256];
-        snprintf(buf, sizeof(buf), g_CC.FightPicFile[0].c_str(), p.headId());
-        JY_PicInit(buf);
+        char idxbuf[256], grpbuf[256];
+        snprintf(idxbuf, sizeof(idxbuf), g_CC.FightPicFile[0].c_str(), p.headId());
+        snprintf(grpbuf, sizeof(grpbuf), g_CC.FightPicFile[1].c_str(), p.headId());
+        JY_PicLoadFile(idxbuf, grpbuf, 4 + i, 0, 0);
     }
 
-    PlayMIDI(WAR.Data.music());
-    WarPersonSort();
-    WarSetPerson();
-
-    for (int i = 0; i < WAR.PersonNum; i++)
-        WAR.Person[i].pic = WarCalPersonPic(i);
-
-    WarDrawMap(0);
-    ShowScreen();
-
+    int first = 0;
     int warStatus = 0;
+
     // 主战斗循环
     while (true)
     {
-        for (int p = 0; p < WAR.PersonNum; p++)
+        // 每回合开始：重新计算所有人的贴图
+        for (int i = 0; i < WAR.PersonNum; i++)
+            WAR.Person[i].pic = WarCalPersonPic(i);
+
+        // 每回合开始：重新计算移动步数（匹配Lua逻辑）
+        for (int i = 0; i < WAR.PersonNum; i++)
+        {
+            int pid = WAR.Person[i].personId;
+            auto person = g_JY.getPerson(pid);
+            int move = (int)std::floor(WAR.Person[i].speed / 15.0)
+                     - (int)std::floor(person.injury() / 40.0);
+            if (move < 0) move = 0;
+            WAR.Person[i].moveSteps = move;
+        }
+
+        WarSetPerson();
+
+        int p = 0;
+        while (p < WAR.PersonNum)
         {
             WAR.Effect = 0;
             if (WAR.AutoFight == 1)
             {
                 int key = 0, type = 0, mx = 0, my = 0;
                 JY_GetKey(&key, &type, &mx, &my);
-                if (key == GK_ESCAPE)
+                if (key == GK_SPACE || key == GK_RETURN)
                     WAR.AutoFight = 0;
             }
 
-            WAR.CurID = p;
-            if (WAR.Person[p].dead) continue;
-
-            auto person = g_JY.getPerson(WAR.Person[p].personId);
-            if (person.hp() <= 0)
+            if (!WAR.Person[p].dead)
             {
-                WAR.Person[p].dead = true;
-                SetWarMap(WAR.Person[p].x, WAR.Person[p].y, 2, -1);
-                SetWarMap(WAR.Person[p].x, WAR.Person[p].y, 5, -1);
-                continue;
-            }
+                WAR.CurID = p;
 
-            WAR.Person[p].pic = WarCalPersonPic(p);
-            WAR.Person[p].moveSteps = (int)std::floor(person.agility() / 15.0) + 1;
-            if (person.weapon() >= 0)
-            {
-                auto thing = g_JY.getThing(person.weapon());
-                WAR.Person[p].moveSteps += (int)std::floor(thing.addAgility() / 30.0);
-            }
+                if (first == 0)
+                {
+                    WarDrawMap(0);
+                    ShowScreen();
+                    first = 1;
+                }
 
-            if (WAR.AutoFight == 0)
-            {
+                int r;
                 if (WAR.Person[p].isAlly)
-                    War_Manual();
+                {
+                    if (WAR.AutoFight == 0)
+                        r = War_Manual();
+                    else
+                        r = War_Auto();
+                }
                 else
-                    War_Auto();
-            }
-            else
-            {
-                War_Auto();
-            }
+                {
+                    r = War_Auto();
+                }
 
-            warStatus = War_isEnd();
-            if (warStatus != 0) break;
+                warStatus = War_isEnd();
+
+                if (std::abs(r) == 7)  // 等待 -> 重试本人
+                    p--;
+
+                if (warStatus != 0) break;
+            }
+            p++;
         }
 
         if (warStatus != 0) break;
@@ -157,35 +182,24 @@ int WarMain(int warid, int isexp)
 
     // 显示胜负
     if (warStatus == 1)
-    {
-        DrawStrBoxWaitKey("战斗胜利", C_ORANGE, g_CC.DefaultFont);
-    }
+        DrawStrBoxWaitKey("战斗胜利", C_WHITE, g_CC.DefaultFont);
     else
-    {
-        DrawStrBoxWaitKey("战斗失败", C_ORANGE, g_CC.DefaultFont);
-    }
+        DrawStrBoxWaitKey("战斗失败", C_WHITE, g_CC.DefaultFont);
 
     War_EndPersonData(isexp, warStatus);
 
     // 恢复场景
-    auto scene = g_JY.getScene(g_JY.SubScene);
-    PlayMIDI(scene.enterMusic());
+    if (g_JY.getScene(g_JY.SubScene).enterMusic() >= 0)
+        PlayMIDI(g_JY.getScene(g_JY.SubScene).enterMusic());
+    else
+        PlayMIDI(0);
+
     CleanMemory();
 
     // 重新加载场景图片
     JY_PicInit(g_CC.SMAPPicFile[0].c_str());
     JY_PicInit(g_CC.EffectFile[0].c_str());
-    for (int i = 0; i < WAR.PersonNum; i++)
-    {
-        if (WAR.Person[i].isAlly)
-        {
-            int pid = WAR.Person[i].personId;
-            auto p = g_JY.getPerson(pid);
-            char buf[256];
-            snprintf(buf, sizeof(buf), g_CC.FightPicFile[0].c_str(), p.headId());
-            JY_PicInit(buf);
-        }
-    }
+    g_JY.Status = GAME_SMAP;
 
     return warStatus;
 }
@@ -199,149 +213,184 @@ void War_PersonLostLife()
         int pid = WAR.Person[i].personId;
         auto p = g_JY.getPerson(pid);
 
-        // 受伤扣血
-        if (p.injury() > 33)
+        // 受伤扣血（匹配Lua: >0即扣）
+        if (p.injury() > 0)
         {
-            int v = (int)std::floor(p.injury() / 10.0);
+            int v = (int)std::floor(p.injury() / 20.0);
             AddPersonAttrib(pid, "生命", -v);
         }
         // 中毒扣血
         if (p.poison() > 0)
         {
             int v = (int)std::floor(p.poison() / 10.0);
-            if (v < 1) v = 1;
             AddPersonAttrib(pid, "生命", -v);
         }
+        // 保底生命1
+        if (p.hp() <= 0) p.setHp(1);
     }
 }
 
 // ============= War_isEnd =============
 int War_isEnd()
 {
-    int allyAlive = 0, enemyAlive = 0;
+    // 先标记死亡（匹配Lua）
     for (int i = 0; i < WAR.PersonNum; i++)
     {
-        if (WAR.Person[i].dead) continue;
         auto p = g_JY.getPerson(WAR.Person[i].personId);
-        if (p.hp() <= 0) continue;
-        if (WAR.Person[i].isAlly)
-            allyAlive++;
-        else
-            enemyAlive++;
+        if (p.hp() <= 0)
+            WAR.Person[i].dead = true;
     }
-    if (enemyAlive == 0) return 1;  // 胜利
-    if (allyAlive == 0) return 2;   // 失败
+    WarSetPerson();
+
+    Cls();
+    ShowScreen();
+
+    int myNum = 0, enemyNum = 0;
+    for (int i = 0; i < WAR.PersonNum; i++)
+    {
+        if (!WAR.Person[i].dead)
+        {
+            if (WAR.Person[i].isAlly)
+                myNum = 1;
+            else
+                enemyNum = 1;
+        }
+    }
+    if (enemyNum == 0) return 1;  // 胜利
+    if (myNum == 0) return 2;   // 失败
     return 0;
 }
 
 // ============= War_EndPersonData =============
 void War_EndPersonData(int isexp, int warStatus)
 {
-    // 恢复敌方数据
+    // 恢复敌方人员参数
     for (int i = 0; i < WAR.PersonNum; i++)
     {
         if (!WAR.Person[i].isAlly)
         {
             int pid = WAR.Person[i].personId;
             auto p = g_JY.getPerson(pid);
-            // 如果敌人没死，恢复数据
-            if (!WAR.Person[i].dead && p.hp() > 0)
-            {
-                // 不做特别处理
-            }
+            p.setHp(p.maxHp());
+            p.setMp(p.maxMp());
+            p.setByName("体力", g_CC.PersonAttribMax["体力"]);
+            p.setByName("受伤程度", 0);
+            p.setByName("中毒程度", 0);
         }
     }
 
-    // 我方最低保底
+    // 我方人员参数恢复（输赢都有）
     for (int i = 0; i < WAR.PersonNum; i++)
     {
         if (WAR.Person[i].isAlly)
         {
             int pid = WAR.Person[i].personId;
             auto p = g_JY.getPerson(pid);
-            if (p.hp() <= 0) p.setHp(1);
-            if (p.stamina() <= 0) p.setStamina(1);
+            if (p.hp() < p.maxHp() / 5)
+                p.setHp((int16_t)(p.maxHp() / 5));
+            if (p.stamina() < 10) p.setByName("体力", 10);
         }
     }
 
-    if (isexp == 0 || warStatus != 1) return;
+    if (warStatus == 2 && isexp == 0) return;
 
-    // 胜利时分配经验
-    int aliveCount = 0;
+    // 计算我方活着人数
+    int liveNum = 0;
     for (int i = 0; i < WAR.PersonNum; i++)
     {
-        if (WAR.Person[i].isAlly && !WAR.Person[i].dead)
-            aliveCount++;
+        if (WAR.Person[i].isAlly && g_JY.getPerson(WAR.Person[i].personId).hp() > 0)
+            liveNum++;
     }
-    if (aliveCount == 0) aliveCount = 1;
+    if (liveNum <= 0) liveNum = 1;
 
-    int baseExp = WAR.Data.expReward();
-    int eachExp = (int)std::floor((float)baseExp / aliveCount);
+    // 胜利时分配基本经验
+    if (warStatus == 1)
+    {
+        int baseExp = WAR.Data.expReward();
+        for (int i = 0; i < WAR.PersonNum; i++)
+        {
+            if (WAR.Person[i].isAlly && g_JY.getPerson(WAR.Person[i].personId).hp() > 0)
+                WAR.Person[i].exp += (int)std::floor((double)baseExp / liveNum);
+        }
+    }
 
+    // 每个人经验增加、升级
     for (int i = 0; i < WAR.PersonNum; i++)
     {
-        if (!WAR.Person[i].isAlly) continue;
-        if (WAR.Person[i].dead) continue;
-
         int pid = WAR.Person[i].personId;
-        int totalExp = eachExp + WAR.Person[i].exp;
+        int exp = WAR.Person[i].exp;
+        AddPersonAttrib(pid, "物品修炼点数", (int)std::floor(exp * 8 / 10.0));
+        AddPersonAttrib(pid, "修炼点数", (int)std::floor(exp * 8 / 10.0));
+        AddPersonAttrib(pid, "经验", exp);
 
-        auto p = g_JY.getPerson(pid);
-        int oldTrainPoints = p.trainPoints();
-        int addTP = (int)std::floor(totalExp / 20.0);
-        p.setTrainExp((int16_t)(p.trainExp() + addTP));
+        if (WAR.Person[i].isAlly)
+        {
+            auto p = g_JY.getPerson(pid);
+            char buf[256];
+            snprintf(buf, sizeof(buf), "%s 获得经验点数 %d", p.name().c_str(), exp);
+            DrawStrBoxWaitKey(buf, C_WHITE, g_CC.DefaultFont);
 
-        War_AddPersonLevel(pid, totalExp);
+            bool leveled = War_AddPersonLevel(pid);
+            if (leveled)
+            {
+                snprintf(buf, sizeof(buf), "%s 升级了", p.name().c_str());
+                DrawStrBoxWaitKey(buf, C_WHITE, g_CC.DefaultFont);
+            }
+        }
+
         War_PersonTrainBook(pid);
         War_PersonTrainDrug(pid);
     }
 }
 
 // ============= War_AddPersonLevel =============
-void War_AddPersonLevel(int personid, int addexp)
+// 匹配Lua War_AddPersonLevel：返回true表示升级了
+bool War_AddPersonLevel(int personid)
 {
     auto p = g_JY.getPerson(personid);
-    if (p.level() >= 30) return;
+    int tmplevel = p.level();
+    if (tmplevel >= g_CC.PersonAttribMax["人物等级"]) return false;
+    if (p.exp() < g_CC.Exp[tmplevel]) return false;
 
-    int curExp = p.exp() + addexp;
-    int curLevel = p.level();
+    // 判断可以升几级
+    while (tmplevel < g_CC.PersonAttribMax["人物等级"] && p.exp() >= g_CC.Exp[tmplevel])
+        tmplevel++;
 
-    while (curLevel < 30 && curExp >= g_CC.Exp[curLevel])
-    {
-        curExp -= g_CC.Exp[curLevel];
-        curLevel++;
+    int leveladd = tmplevel - p.level();
+    p.setLevel((int16_t)tmplevel);
 
-        // 升级加属性
-        int apt = p.aptitude();
+    AddPersonAttrib(personid, "生命最大值", (p.hpGrowth() + Rnd(3)) * leveladd * 3);
+    p.setHp(p.maxHp());
+    p.setByName("体力", g_CC.PersonAttribMax["体力"]);
+    p.setByName("受伤程度", 0);
+    p.setByName("中毒程度", 0);
 
-        p.setMaxHp((int16_t)(p.maxHp() + (int)std::floor(p.hpGrowth() * (0.1 + Rnd(5) * 0.01))));
-        p.setHp(p.maxHp());
+    // 按资质计算增长点（越高技能增加越多，内力增加越少）
+    int apt = p.aptitude();
+    int cleveradd;
+    if (apt < 30) cleveradd = 2;
+    else if (apt < 50) cleveradd = 3;
+    else if (apt < 70) cleveradd = 4;
+    else if (apt < 90) cleveradd = 5;
+    else cleveradd = 6;
+    cleveradd = Rnd(cleveradd) + 1;
 
-        int addv;
-        addv = 3 + Rnd((int)std::floor(apt / 15.0));
-        AddPersonAttrib(personid, "内力最大值", addv);
-        p.setMp(p.maxMp());
+    AddPersonAttrib(personid, "内力最大值", (9 - cleveradd) * leveladd * 4);
+    p.setMp(p.maxMp());
 
-        addv = Rnd((int)std::floor(apt / 30.0) + 2);
-        if (addv > 0) AddPersonAttrib(personid, "攻击力", addv);
+    AddPersonAttrib(personid, "攻击力", cleveradd * leveladd);
+    AddPersonAttrib(personid, "防御力", cleveradd * leveladd);
+    AddPersonAttrib(personid, "轻功", cleveradd * leveladd);
 
-        addv = Rnd((int)std::floor(apt / 30.0) + 2);
-        if (addv > 0) AddPersonAttrib(personid, "防御力", addv);
+    if (p.getByName("医疗能力") >= 20) AddPersonAttrib(personid, "医疗能力", Rnd(3));
+    if (p.getByName("用毒能力") >= 20) AddPersonAttrib(personid, "用毒能力", Rnd(3));
+    if (p.getByName("解毒能力") >= 20) AddPersonAttrib(personid, "解毒能力", Rnd(3));
+    if (p.getByName("拳掌功夫") >= 20) AddPersonAttrib(personid, "拳掌功夫", Rnd(3));
+    if (p.getByName("御剑能力") >= 20) AddPersonAttrib(personid, "御剑能力", Rnd(3));
+    if (p.getByName("耍刀技巧") >= 20) AddPersonAttrib(personid, "耍刀技巧", Rnd(3));
+    if (p.getByName("暗器技巧") >= 20) AddPersonAttrib(personid, "暗器技巧", Rnd(3));
 
-        addv = Rnd((int)std::floor(apt / 30.0) + 2);
-        if (addv > 0) AddPersonAttrib(personid, "轻功", addv);
-    }
-
-    p.setExp((uint16_t)curExp);
-    p.setLevel((int16_t)curLevel);
-
-    DrawStrBox(-1, -1,
-        std::string(p.name()) + " 等级 " + std::to_string(curLevel),
-        C_ORANGE, g_CC.DefaultFont);
-    ShowScreen();
-    JY_Delay(500);
-    Cls();
-    ShowScreen();
+    return true;
 }
 
 // ============= War_PersonTrainBook =============
@@ -494,119 +543,108 @@ void WarSelectTeam()
 {
     WAR.PersonNum = 0;
 
-    // 检查是否手动选择
-    bool manualSelect = false;
+    // 先检查自动选择，如果有自动选择的人则直接返回（匹配Lua逻辑）
     for (int i = 1; i <= 6; i++)
     {
-        if (WAR.Data.manualSelect(i) >= 0)
+        int autoId = WAR.Data.autoSelect(i);
+        if (autoId >= 0)
         {
-            manualSelect = true;
+            int n = WAR.PersonNum;
+            WAR.Person[n].personId = autoId;
+            WAR.Person[n].isAlly = true;
+            WAR.Person[n].x = WAR.Data.allyX(i);
+            WAR.Person[n].y = WAR.Data.allyY(i);
+            WAR.Person[n].dead = false;
+            WAR.Person[n].direction = 2;
+            WAR.PersonNum++;
+        }
+    }
+    if (WAR.PersonNum > 0)
+        return;
+
+    // 手动选择模式：先标记事先确定的参战人
+    for (int i = 1; i <= g_CC.TeamNum; i++)
+    {
+        WAR.SelectPerson[i] = 0;
+        int id = g_JY.Base.team(i);
+        if (id >= 0)
+        {
+            for (int j = 1; j <= 6; j++)
+            {
+                if (WAR.Data.manualSelect(j) == id)
+                    WAR.SelectPerson[i] = 1;
+            }
+        }
+    }
+
+    // 循环显示选人菜单，直到选中至少一个人
+    while (true)
+    {
+        // 构建菜单（带回调的切换菜单）
+        std::vector<MenuItem> menu;
+        for (int i = 1; i <= g_CC.TeamNum; i++)
+        {
+            int id = g_JY.Base.team(i);
+            if (id >= 0)
+            {
+                auto tp = g_JY.getPerson(id);
+                std::string label = (WAR.SelectPerson[i] > 0) ?
+                    std::string("*") + tp.name() :
+                    std::string(" ") + tp.name();
+                // 回调：切换选中状态
+                int slotIdx = i;  // 捕获槽位索引
+                auto toggleCb = [slotIdx](std::vector<MenuItem>& m, int midx) -> int {
+                    if (WAR.SelectPerson[slotIdx] == 0)
+                        WAR.SelectPerson[slotIdx] = 2;
+                    else if (WAR.SelectPerson[slotIdx] == 2)
+                        WAR.SelectPerson[slotIdx] = 0;
+                    // 更新菜单文字中的*标记
+                    std::string& lbl = m[midx].label;
+                    if (WAR.SelectPerson[slotIdx] > 0)
+                        lbl[0] = '*';
+                    else
+                        lbl[0] = ' ';
+                    return 0;  // 不退出菜单
+                };
+                // 预选人不能取消（enabled=1但不用回调切换）
+                if (WAR.SelectPerson[i] == 1)
+                    menu.push_back({label, nullptr, 1, i});
+                else
+                    menu.push_back({label, toggleCb, 1, i});
+            }
+            else
+            {
+                menu.push_back({"", nullptr, 0, i});
+            }
+        }
+        // 最后加"结束"项
+        menu.push_back({" 结束", nullptr, 1, 0});
+
+        Cls();
+        int x = (g_CC.ScreenW - 7 * g_CC.DefaultFont - 2 * g_CC.MenuBorderPixel) / 2;
+        DrawStrBox(x, 10, "请选择参战人物", C_WHITE, g_CC.DefaultFont);
+        int r = ShowMenu(menu, (int)menu.size(), 0, x, 10 + g_CC.SingleLineHeight,
+            0, 0, 1, 0, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+        Cls();
+
+        // 根据SelectPerson组装参战人
+        WAR.PersonNum = 0;
+        for (int i = 1; i <= 6; i++)
+        {
+            if (WAR.SelectPerson[i] > 0)
+            {
+                int n = WAR.PersonNum;
+                WAR.Person[n].personId = g_JY.Base.team(i);
+                WAR.Person[n].isAlly = true;
+                WAR.Person[n].x = WAR.Data.allyX(i);
+                WAR.Person[n].y = WAR.Data.allyY(i);
+                WAR.Person[n].dead = false;
+                WAR.Person[n].direction = 2;
+                WAR.PersonNum++;
+            }
+        }
+        if (WAR.PersonNum > 0)
             break;
-        }
-    }
-
-    if (!manualSelect)
-    {
-        // 自动选择
-        for (int i = 1; i <= 6; i++)
-        {
-            int autoId = WAR.Data.autoSelect(i);
-            if (autoId >= 0)
-            {
-                int n = WAR.PersonNum;
-                WAR.Person[n].personId = autoId;
-                WAR.Person[n].isAlly = true;
-                WAR.Person[n].x = WAR.Data.allyX(i);
-                WAR.Person[n].y = WAR.Data.allyY(i);
-                WAR.Person[n].dead = false;
-                WAR.PersonNum++;
-            }
-        }
-    }
-    else
-    {
-        // 手动选择
-        // 首先自动加入必须参加的人
-        int manualSlots[6] = { -1, -1, -1, -1, -1, -1 };
-        int numManual = 0;
-
-        for (int i = 1; i <= 6; i++)
-        {
-            int manId = WAR.Data.manualSelect(i);
-            if (manId >= 0)
-            {
-                manualSlots[numManual] = i;
-                numManual++;
-            }
-        }
-
-        // 已自动选择的人
-        for (int i = 1; i <= 6; i++)
-        {
-            int autoId = WAR.Data.autoSelect(i);
-            if (autoId >= 0)
-            {
-                int n = WAR.PersonNum;
-                WAR.Person[n].personId = autoId;
-                WAR.Person[n].isAlly = true;
-                WAR.Person[n].x = WAR.Data.allyX(i);
-                WAR.Person[n].y = WAR.Data.allyY(i);
-                WAR.Person[n].dead = false;
-                WAR.SelectPerson[n] = 2;
-                WAR.PersonNum++;
-            }
-        }
-
-        // 手动选择其他人
-        for (int m = 0; m < numManual; m++)
-        {
-            int slot = manualSlots[m];
-            int need = WAR.Data.manualSelect(slot);
-
-            // 显示队伍选择菜单
-            std::vector<MenuItem> menu;
-            for (int t = 1; t <= g_CC.TeamNum; t++)
-            {
-                int tid = g_JY.Base.team(t);
-                if (tid >= 0)
-                {
-                    auto tp = g_JY.getPerson(tid);
-                    bool alreadyIn = false;
-                    for (int k = 0; k < WAR.PersonNum; k++)
-                    {
-                        if (WAR.Person[k].personId == tid)
-                        {
-                            alreadyIn = true;
-                            break;
-                        }
-                    }
-                    MenuItem mi;
-                    mi.label = tp.name();
-                    mi.enabled = alreadyIn ? 0 : 1;
-                    mi.extra = tid;
-                    menu.push_back(mi);
-                }
-            }
-
-            if (menu.empty()) break;
-
-            int r = ShowMenu(menu, (int)menu.size(), 0,
-                g_CC.MainMenuX, g_CC.MainMenuY, 0, 0, 1, 0,
-                g_CC.DefaultFont, C_ORANGE, C_WHITE);
-
-            if (r > 0 && r <= (int)menu.size())
-            {
-                int selectedPid = menu[r - 1].extra;
-                int n = WAR.PersonNum;
-                WAR.Person[n].personId = selectedPid;
-                WAR.Person[n].isAlly = true;
-                WAR.Person[n].x = WAR.Data.allyX(slot);
-                WAR.Person[n].y = WAR.Data.allyY(slot);
-                WAR.Person[n].dead = false;
-                WAR.SelectPerson[n] = 1;
-                WAR.PersonNum++;
-            }
-        }
     }
 }
 
@@ -624,6 +662,7 @@ void WarSelectEnemy()
             WAR.Person[n].x = WAR.Data.enemyX(i);
             WAR.Person[n].y = WAR.Data.enemyY(i);
             WAR.Person[n].dead = false;
+            WAR.Person[n].direction = 1;
             WAR.PersonNum++;
         }
     }
@@ -681,6 +720,11 @@ void WarPersonSort()
         if (p.weapon() >= 0)
         {
             auto thing = g_JY.getThing(p.weapon());
+            spd += thing.addAgility();
+        }
+        if (p.armor() >= 0)
+        {
+            auto thing = g_JY.getThing(p.armor());
             spd += thing.addAgility();
         }
         WAR.Person[i].speed = spd;
