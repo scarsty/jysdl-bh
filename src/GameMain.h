@@ -45,7 +45,7 @@ void SaveRecord(int id);
 // ====== 菜单系统 ======
 int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
     int face, int d, int flag1, int flag2, int fontsize, int color1, int color2);
-int ShowMenu2(std::vector<MenuItem>& menu, int n, int y, int fontsize, int color1, int color2);
+int ShowMenu2(std::vector<MenuItem>& menu, int n, int x, int y, int fontsize, int color1, int color2);
 void MMenu();
 int Menu_System();
 void Menu_Status();
@@ -53,8 +53,8 @@ void Menu_PersonExit();
 void Menu_Doctor();
 void Menu_DecPoison();
 void Menu_Thing();
-int SelectTeamMenu(int flag = 0);
-void ShowPersonStatus(int pid);
+int SelectTeamMenu(int x, int y);
+void ShowPersonStatus(int teamid);
 
 // ====== 物品系统 ======
 int SelectThing(int* thing, int* thingnum);
@@ -114,6 +114,7 @@ void PlayWavE(int id);
 
 // ====== 等待键 ======
 int WaitKey();
+int GetKey();
 
 // ====== 修炼经验计算 ======
 int TrainNeedExp(int pid);

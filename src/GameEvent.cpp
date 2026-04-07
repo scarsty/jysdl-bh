@@ -178,7 +178,8 @@ std::string ReadTalk(int id)
         byte = 255 - (byte % 256);
         str += (char)byte;
     }
-    return PotConv::conv(str, "cp936", "utf-8");
+    const char* enc = (g_CC.SrcCharSet == 1) ? "cp950" : "cp936";
+    return PotConv::conv(str, enc, "utf-8");
 }
 
 // Forward declaration
@@ -208,7 +209,10 @@ static std::string GenTalkString_local(const std::string& str, int n)
         while (pos < (int)tmpstr.length())
         {
             unsigned char v = (unsigned char)tmpstr[pos];
-            if (v >= 128) { pos += 2; w += 2; } else { pos++; w++; }
+            if (v >= 0xF0) { pos += 4; w += 2; }
+            else if (v >= 0xE0) { pos += 3; w += 2; }
+            else if (v >= 0xC0) { pos += 2; w += 2; }
+            else { pos++; w++; }
             if (w >= 2 * n - 1) break;
         }
         if (pos < (int)tmpstr.length())

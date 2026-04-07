@@ -33,11 +33,12 @@ int Rnd(int i)
 
 std::string charsetConvert(const std::string& str, int flag)
 {
-    // flag=0: GBK->UTF-8 (for display), flag=1: UTF-8->GBK (for file)
+    // flag=0: data->UTF-8 (for display), flag=1: UTF-8->data (for file)
+    const char* enc = (g_CC.SrcCharSet == 1) ? "cp950" : "cp936";
     if (flag == 0)
-        return PotConv::conv(str, "cp936", "utf-8");
+        return PotConv::conv(str, enc, "utf-8");
     else
-        return PotConv::conv(str, "utf-8", "cp936");
+        return PotConv::conv(str, "utf-8", enc);
 }
 
 // ============== DataBuffer 实现 ==============
@@ -67,69 +68,61 @@ bool DataBuffer::savefile(const char* filename, int start, int len)
 std::string PersonAccessor::name() const
 {
     std::string raw = buf->getstr(baseOffset + 8, 10);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 std::string PersonAccessor::nickname() const
 {
     std::string raw = buf->getstr(baseOffset + 18, 10);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 void PersonAccessor::setName(const std::string& s)
 {
-    std::string raw = (g_CC.SrcCharSet == 0) ? charsetConvert(s, 1) : s;
+    std::string raw = charsetConvert(s, 1);
     buf->setstr(baseOffset + 8, 10, raw);
 }
 
 void PersonAccessor::setNickname(const std::string& s)
 {
-    std::string raw = (g_CC.SrcCharSet == 0) ? charsetConvert(s, 1) : s;
+    std::string raw = charsetConvert(s, 1);
     buf->setstr(baseOffset + 18, 10, raw);
 }
 
 std::string ThingAccessor::name() const
 {
     std::string raw = buf->getstr(baseOffset + 2, 20);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 std::string ThingAccessor::name2() const
 {
     std::string raw = buf->getstr(baseOffset + 22, 20);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 std::string ThingAccessor::desc() const
 {
     std::string raw = buf->getstr(baseOffset + 42, 30);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 std::string SceneAccessor::name() const
 {
     std::string raw = buf->getstr(baseOffset + 2, 10);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 std::string WugongAccessor::name() const
 {
     std::string raw = buf->getstr(baseOffset + 2, 10);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 std::string WarDataDef::name() const
 {
     std::string raw = buf.getstr(2, 10);
-    if (g_CC.SrcCharSet == 0) return charsetConvert(raw, 0);
-    return raw;
+    return charsetConvert(raw, 0);
 }
 
 // ============== GameState 访问器工厂 ==============
@@ -538,7 +531,7 @@ void GameConst::init(int version, int zoom)
     C_GOLD = RGB_JY(236, 200, 40);
     C_BLACK = RGB_JY(0, 0, 0);
 
-    SrcCharSet = 0;
+    SrcCharSet = 1;
     OSCharSet = g_Config.OSCharSet;
     FontName = g_Config.FontName;
 

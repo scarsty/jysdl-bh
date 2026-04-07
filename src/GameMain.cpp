@@ -146,9 +146,18 @@ int WaitKey()
     {
         int key, type, mx, my;
         JY_GetKey(&key, &type, &mx, &my);
-        if (key != 0) return key;
+        if (key > 0) return key;
         JY_Delay(10);
     }
+}
+
+// 非阻塞获取按键，无按键返回 -1
+int GetKey()
+{
+    int key, type, mx, my;
+    JY_GetKey(&key, &type, &mx, &my);
+    if (key > 0) return key;
+    return -1;
 }
 
 void PlayMIDI(int id)
@@ -255,15 +264,19 @@ bool SceneCanPass(int sceneid, int x, int y)
 
 void Cal_D_Valid(int sceneid)
 {
-    g_JY.D_Valid.clear();
+    g_JY.D_Valid.assign(200, 0);
     g_JY.D_PicChange.clear();
+    g_JY.D_Valid_Num = 0;
     // 标记所有有效的D*事件
     for (int i = 0; i < 200; i++)
     {
-        int v = GetD(sceneid, i, 0);
-        if (v > 0)
+        int x = GetD(sceneid, i, 9);
+        int y = GetD(sceneid, i, 10);
+        int v = GetS(sceneid, x, y, 3);
+        if (v >= 0)
         {
-            g_JY.D_Valid[i] = 1;
+            g_JY.D_Valid[g_JY.D_Valid_Num] = i;
+            g_JY.D_Valid_Num++;
         }
     }
 }
@@ -271,21 +284,48 @@ void Cal_D_Valid(int sceneid)
 void DtoSMap(int sceneid)
 {
     if (sceneid < 0) sceneid = g_JY.SubScene;
-    // 将D*数据写入S*的第3层和第4层
-    for (int i = 0; i < 200; i++)
+    g_JY.NumD_PicChange = 0;
+    g_JY.D_PicChange.clear();
+
+    if (g_JY.D_Valid_Dirty)
     {
-        int x = GetD(sceneid, i, 9);
-        int y = GetD(sceneid, i, 10);
-        if (x >= 0 && y >= 0 && x < g_CC.SWidth && y < g_CC.SHeight)
+        Cal_D_Valid(sceneid);
+        g_JY.D_Valid_Dirty = false;
+    }
+
+    for (int k = 0; k < g_JY.D_Valid_Num; k++)
+    {
+        int i = g_JY.D_Valid[k];
+        int p1 = GetD(sceneid, i, 5);
+        if (p1 > 0)
         {
-            int v = GetD(sceneid, i, 0);
-            if (v > 0)
+            int p2 = GetD(sceneid, i, 6);
+            int p3 = GetD(sceneid, i, 7);
+            if (p1 != p2)
             {
-                SetS(sceneid, x, y, 3, i);
-                int pic = GetD(sceneid, i, 5);
-                if (pic >= 0)
+                int old_p3 = p3;
+                int delay = GetD(sceneid, i, 8);
+                bool isFlag = (p3 >= g_CC.SceneFlagPic[0] * 2 && p3 <= g_CC.SceneFlagPic[1] * 2 && g_CC.ShowFlag == 0);
+                if (!isFlag)
                 {
-                    SetS(sceneid, x, y, 4, pic);
+                    if (p3 <= p1)
+                    {
+                        if (g_JY.MyTick2 % 100 > delay) p3 += 2;
+                    }
+                    else
+                    {
+                        if (g_JY.MyTick2 % 4 == 0) p3 += 2;
+                    }
+                    if (p3 > p2) p3 = p1;
+                }
+                if (old_p3 != p3)
+                {
+                    int x = GetD(sceneid, i, 9);
+                    int y = GetD(sceneid, i, 10);
+                    int dy = GetS(sceneid, x, y, 4);
+                    g_JY.D_PicChange.push_back({x, y, dy, old_p3 / 2, p3 / 2});
+                    g_JY.NumD_PicChange++;
+                    SetD(sceneid, i, 7, p3);
                 }
             }
         }
@@ -298,7 +338,11 @@ void DrawSMap(int sceneid, int x, int y, int mypic)
     if (x < 0) x = g_JY.getBase().personX1();
     if (y < 0) y = g_JY.getBase().personY1();
     if (mypic < 0) mypic = g_JY.MyPic;
-    JY_DrawSMap(sceneid, x, y, g_JY.SubSceneX, g_JY.SubSceneY, mypic);
+    int x0 = g_JY.SubSceneX + x - 1;
+    int y0 = g_JY.SubSceneY + y - 1;
+    int xoff = limitX(x0, g_CC.SceneXMin, g_CC.SceneXMax) - x;
+    int yoff = limitX(y0, g_CC.SceneYMin, g_CC.SceneYMax) - y;
+    JY_DrawSMap(sceneid, x, y, xoff, yoff, mypic);
 }
 
 CalcClipRectResult Cal_PicClip(int dx1, int dy1, int pic1, int type1, int dx2, int dy2, int pic2, int type2)
@@ -385,7 +429,7 @@ int TrainNeedExp(int pid)
 // ============ 对话系统 ============
 static std::string GenTalkString(const std::string& str, int n)
 {
-    // 去掉所有
+    // 去掉所有*
     std::string tmpstr;
     for (char c : str) { if (c != '*') tmpstr += c; }
     
@@ -398,7 +442,10 @@ static std::string GenTalkString(const std::string& str, int n)
         while (pos < (int)tmpstr.length())
         {
             unsigned char v = (unsigned char)tmpstr[pos];
-            if (v >= 128) { pos += 2; w += 2; } else { pos++; w++; }
+            if (v >= 0xF0) { pos += 4; w += 2; }
+            else if (v >= 0xE0) { pos += 3; w += 2; }
+            else if (v >= 0xC0) { pos += 2; w += 2; }
+            else { pos++; w++; }
             if (w >= 2 * n - 1) break;
         }
         if (pos < (int)tmpstr.length())
@@ -429,8 +476,9 @@ static std::string ReadTalk(int id)
         byte = 255 - (byte % 256);
         str += (char)byte;
     }
-    // GBK->UTF8
-    std::string result = PotConv::conv(str, "cp936", "utf-8");
+    // data charset -> UTF8
+    const char* enc = (g_CC.SrcCharSet == 1) ? "cp950" : "cp936";
+    std::string result = PotConv::conv(str, enc, "utf-8");
     result = GenTalkString(result, 12);
     return result;
 }
@@ -596,12 +644,16 @@ int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
     }
 }
 
-int ShowMenu2(std::vector<MenuItem>& menu, int n, int y, int fontsize, int color1, int color2)
+int ShowMenu2(std::vector<MenuItem>& menu, int n, int x, int y, int fontsize, int color1, int color2)
 {
-    int totalw = 0;
+    int maxlen = 0;
     for (int i = 0; i < n; i++)
-        totalw += (int)menu[i].label.length() * fontsize / 2 + fontsize;
-    int x = (g_CC.ScreenW - totalw) / 2;
+    {
+        int len = (int)menu[i].label.length();
+        if (len > maxlen) maxlen = len;
+    }
+    int totalw = (fontsize * maxlen / 2 + g_CC.RowPixel) * n + g_CC.MenuBorderPixel;
+    if (x < 0) x = (g_CC.ScreenW - totalw) / 2;
     int h = fontsize + 2 * g_CC.MenuBorderPixel;
 
     int surid = JY_SaveSur(0, y, g_CC.ScreenW, h);
@@ -609,14 +661,13 @@ int ShowMenu2(std::vector<MenuItem>& menu, int n, int y, int fontsize, int color
 
     while (true)
     {
-        DrawBox(x, y, x + totalw, y + h, C_WHITE);
         int cx = x + g_CC.MenuBorderPixel;
         for (int i = 0; i < n; i++)
         {
             int col = (i == cur) ? color1 : color2;
             if (menu[i].enabled == 0) col = RGB_JY(128, 128, 128);
             DrawString(cx, y + g_CC.MenuBorderPixel, menu[i].label, col, fontsize);
-            cx += (int)menu[i].label.length() * fontsize / 2 + fontsize;
+            cx += fontsize * maxlen / 2 + g_CC.RowPixel;
         }
         ShowScreen();
 
@@ -1284,7 +1335,7 @@ int UseThing(int thingid, int personid)
         if (personid < 0)
         {
             // 选择使用对象
-            int r = SelectTeamMenu(0);
+            int r = SelectTeamMenu(g_CC.MainSubMenuX, g_CC.MainSubMenuY);
             if (r <= 0) return 0;
             personid = g_JY.getBase().team(r);
         }
@@ -1308,184 +1359,627 @@ int UseThing(int thingid, int personid)
 
 int SelectThing(int* thing, int* thingnum)
 {
-    // 简单选择物品菜单
-    std::vector<MenuItem> menu;
-    int count = 0;
-    for (int i = 0; i < g_CC.MyThingNum && thing[i] >= 0; i++)
+    // 图形化物品选择菜单 (匹配Lua版SelectThing)
+    int xnum = g_CC.MenuThingXnum;
+    int ynum = g_CC.MenuThingYnum;
+
+    int w = g_CC.ThingPicWidth * xnum + (xnum - 1) * g_CC.ThingGapIn + 2 * g_CC.ThingGapOut;
+    int h = g_CC.ThingPicHeight * ynum + (ynum - 1) * g_CC.ThingGapIn + 2 * g_CC.ThingGapOut;
+
+    int dx = (g_CC.ScreenW - w) / 2;
+    int dy = (g_CC.ScreenH - h - 2 * (g_CC.ThingFontSize + 2 * g_CC.MenuBorderPixel + 5)) / 2;
+
+    int cur_line = 0;
+    int cur_x = 0;
+    int cur_y = 0;
+    int cur_thing = -1;
+
+    while (true)
     {
-        auto t = g_JY.getThing(thing[i]);
-        char buf[256];
-        snprintf(buf, sizeof(buf), "%-12s x%d", t.name().c_str(), thingnum[i]);
-        menu.push_back({buf, nullptr, 1});
-        count++;
+        Cls();
+        // 名称栏
+        int y1_1 = dy;
+        int y1_2 = y1_1 + g_CC.ThingFontSize + 2 * g_CC.MenuBorderPixel;
+        DrawBox(dx, y1_1, dx + w, y1_2, C_WHITE);
+        // 说明栏
+        int y2_1 = y1_2 + 5;
+        int y2_2 = y2_1 + g_CC.ThingFontSize + 2 * g_CC.MenuBorderPixel;
+        DrawBox(dx, y2_1, dx + w, y2_2, C_WHITE);
+        // 物品图片区
+        int y3_1 = y2_2 + 5;
+        int y3_2 = y3_1 + h;
+        DrawBox(dx, y3_1, dx + w, y3_2, C_WHITE);
+
+        for (int yy = 0; yy < ynum; yy++)
+        {
+            for (int xx = 0; xx < xnum; xx++)
+            {
+                int idx = yy * xnum + xx + xnum * cur_line;
+                int boxcolor;
+                if (xx == cur_x && yy == cur_y)
+                {
+                    boxcolor = C_WHITE;
+                    if (thing[idx] >= 0)
+                    {
+                        cur_thing = thing[idx];
+                        auto t = g_JY.getThing(thing[idx]);
+                        std::string str = t.name();
+                        if (t.type() == 1 || t.type() == 2)
+                        {
+                            if (t.user() >= 0)
+                            {
+                                str += "(" + g_JY.getPerson(t.user()).name() + ")";
+                            }
+                        }
+                        char buf[256];
+                        snprintf(buf, sizeof(buf), "%s X %d", str.c_str(), thingnum[idx]);
+                        std::string str2 = t.desc();
+                        DrawString(dx + g_CC.ThingGapOut, y1_1 + g_CC.MenuBorderPixel, buf, C_GOLD, g_CC.ThingFontSize);
+                        DrawString(dx + g_CC.ThingGapOut, y2_1 + g_CC.MenuBorderPixel, str2, C_ORANGE, g_CC.ThingFontSize);
+                    }
+                    else
+                    {
+                        cur_thing = -1;
+                    }
+                }
+                else
+                {
+                    boxcolor = C_BLACK;
+                }
+                int boxx = dx + g_CC.ThingGapOut + xx * (g_CC.ThingPicWidth + g_CC.ThingGapIn);
+                int boxy = y3_1 + g_CC.ThingGapOut + yy * (g_CC.ThingPicHeight + g_CC.ThingGapIn);
+                JY_DrawRect(boxx, boxy, boxx + g_CC.ThingPicWidth + 1, boxy + g_CC.ThingPicHeight + 1, boxcolor);
+                if (thing[idx] >= 0)
+                {
+                    JY_LoadPNG(2, thing[idx] * 2, boxx + 1, boxy + 1, 1, 0, 100);
+                }
+            }
+        }
+
+        ShowScreen();
+        int keypress = WaitKey();
+        JY_Delay(100);
+        if (keypress == GK_ESCAPE)
+        {
+            cur_thing = -1;
+            break;
+        }
+        else if (keypress == GK_RETURN || keypress == GK_SPACE)
+        {
+            break;
+        }
+        else if (keypress == GK_UP)
+        {
+            if (cur_y == 0)
+            {
+                if (cur_line > 0) cur_line--;
+            }
+            else
+                cur_y--;
+        }
+        else if (keypress == GK_DOWN)
+        {
+            if (cur_y == ynum - 1)
+            {
+                if (cur_line < (200 / xnum - ynum)) cur_line++;
+            }
+            else
+                cur_y++;
+        }
+        else if (keypress == GK_LEFT)
+        {
+            if (cur_x > 0) cur_x--;
+            else cur_x = xnum - 1;
+        }
+        else if (keypress == GK_RIGHT)
+        {
+            if (cur_x == xnum - 1) cur_x = 0;
+            else cur_x++;
+        }
     }
-    if (count == 0) return -1;
-    int r = ShowMenu(menu, count, 0, -1, -1, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
-    if (r > 0) return thing[r - 1];
-    return -1;
+    Cls();
+    return cur_thing;
 }
 
 // ============ 医疗/解毒 ============
 int ExecDoctor(int doctorid, int patientid)
 {
+    // 严格按照Lua版ExecDoctor移植
     auto doctor = g_JY.getPerson(doctorid);
     auto patient = g_JY.getPerson(patientid);
-    int ability = doctor.getByName("医疗能力");
-    int injury = patient.getByName("受伤程度");
-    int heal = ability - injury + Rnd(10);
-    if (heal <= 0) heal = 5 + Rnd(5);
-    AddPersonAttrib(patientid, "受伤程度", -ability / 4);
-    return AddPersonAttrib(patientid, "生命", heal);
+
+    if (doctor.getByName("体力") < 50) return 0;
+
+    int add = doctor.getByName("医疗能力");
+    int value = patient.getByName("受伤程度");
+
+    if (value > add + 20) return 0;
+
+    // 根据受伤程度计算实际医疗能力
+    if (value < 25)
+        add = add * 4 / 5;
+    else if (value < 50)
+        add = add * 3 / 4;
+    else if (value < 75)
+        add = add * 2 / 3;
+    else
+        add = add / 2;
+
+    add = add + Rnd(5);
+
+    AddPersonAttrib(patientid, "受伤程度", -add);
+    return AddPersonAttrib(patientid, "生命", add);
 }
 
 int ExecDecPoison(int doctorid, int patientid)
 {
+    // 严格按照Lua版ExecDecPoison移植
     auto doctor = g_JY.getPerson(doctorid);
-    int ability = doctor.getByName("解毒能力");
-    int v = -(ability / 2 + Rnd(5));
-    return AddPersonAttrib(patientid, "中毒程度", v);
+    auto patient = g_JY.getPerson(patientid);
+
+    int add = doctor.getByName("解毒能力");
+    int value = patient.getByName("中毒程度");
+
+    if (value > add + 20) return 0;
+
+    add = limitX(add / 3 + Rnd(10) - Rnd(10), 0, value);
+    return -AddPersonAttrib(patientid, "中毒程度", -add);
 }
 
 // ============ 菜单处理 ============
-int SelectTeamMenu(int flag)
+int SelectTeamMenu(int x, int y)
 {
     auto base = g_JY.getBase();
     std::vector<MenuItem> menu;
     for (int i = 1; i <= g_CC.TeamNum; i++)
     {
         int id = base.team(i);
-        if (id >= 0)
+        if (id >= 0 && g_JY.getPerson(id).hp() > 0)
             menu.push_back({g_JY.getPerson(id).name(), nullptr, 1});
         else
             menu.push_back({"", nullptr, 0});
     }
     int count = (int)menu.size();
-    return ShowMenu(menu, count, 0, g_CC.MainSubMenuX, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+    return ShowMenu(menu, count, 0, x, y, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
 }
 
 void Menu_Status()
 {
-    int r = SelectTeamMenu(0);
+    DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY, "要查阅谁的状态", C_WHITE, g_CC.DefaultFont);
+    int nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+    int r = SelectTeamMenu(g_CC.MainSubMenuX, nexty);
     if (r > 0)
     {
-        int pid = g_JY.getBase().team(r);
-        if (pid >= 0) ShowPersonStatus(pid);
+        ShowPersonStatus(r);
+    }
+    else
+    {
+        Cls();
     }
 }
 
-void ShowPersonStatus(int pid)
+static int GetTeamNum()
 {
-    auto p = g_JY.getPerson(pid);
-    Cls();
-    int x = 20, y = 20;
-    int fs = g_CC.DefaultFont;
-    int rp = g_CC.RowPixel;
-    char buf[256];
-
-    // 头像
-    int w, h, xoff, yoff;
-    JY_GetPNGXY(1, p.headId() * 2, &w, &h, &xoff, &yoff);
-    JY_LoadPNG(1, p.headId() * 2, x, y, 1, 0, 100);
-
-    int tx = x + w + 20;
-    snprintf(buf, sizeof(buf), "%s  等级:%d  经验:%d", p.name().c_str(), p.level(), (int)p.exp());
-    DrawString(tx, y, buf, C_WHITE, fs); y += fs + rp;
-
-    snprintf(buf, sizeof(buf), "生命 %d/%d  内力 %d/%d  体力 %d", p.hp(), p.maxHp(), p.mp(), p.maxMp(), p.stamina());
-    DrawString(tx, y + fs + rp, buf, C_ORANGE, fs);
-
-    snprintf(buf, sizeof(buf), "攻击 %d  防御 %d  轻功 %d", p.attack(), p.defense(), p.agility());
-    DrawString(tx, y + 2 * (fs + rp), buf, C_ORANGE, fs);
-
-    ShowScreen();
-    WaitKey();
-    Cls();
-}
-
-void Menu_Doctor()
-{
-    int r = SelectTeamMenu(0);
-    if (r <= 0) return;
-    int doctorid = g_JY.getBase().team(r);
-    if (doctorid < 0 || g_JY.getPerson(doctorid).getByName("医疗能力") < 20) return;
-    int r2 = SelectTeamMenu(0);
-    if (r2 <= 0) return;
-    int patientid = g_JY.getBase().team(r2);
-    if (patientid < 0) return;
-    int heal = ExecDoctor(doctorid, patientid);
-    AddPersonAttrib(doctorid, "体力", -5);
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s 医疗 %s, 恢复 %d 点生命", g_JY.getPerson(doctorid).name().c_str(), g_JY.getPerson(patientid).name().c_str(), heal);
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
-}
-
-void Menu_DecPoison()
-{
-    int r = SelectTeamMenu(0);
-    if (r <= 0) return;
-    int doctorid = g_JY.getBase().team(r);
-    if (doctorid < 0 || g_JY.getPerson(doctorid).getByName("解毒能力") < 20) return;
-    int r2 = SelectTeamMenu(0);
-    if (r2 <= 0) return;
-    int patientid = g_JY.getBase().team(r2);
-    if (patientid < 0) return;
-    int v = ExecDecPoison(doctorid, patientid);
-    AddPersonAttrib(doctorid, "体力", -5);
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s 解毒 %s, 减少 %d 点中毒", g_JY.getPerson(doctorid).name().c_str(), g_JY.getPerson(patientid).name().c_str(), -v);
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
-}
-
-void Menu_Thing()
-{
-    auto base = g_JY.getBase();
-    int thing[200], thingnum[200];
-    int count = 0;
-    for (int i = 1; i <= g_CC.MyThingNum; i++)
+    int r = g_CC.TeamNum;
+    for (int i = 1; i <= g_CC.TeamNum; i++)
     {
-        int id = base.item(i);
-        if (id >= 0) { thing[count] = id; thingnum[count] = base.itemNum(i); count++; }
+        if (g_JY.getBase().team(i) < 0) { r = i - 1; break; }
     }
-    if (count == 0) return;
-    int r = SelectThing(thing, thingnum);
-    if (r >= 0) UseThing(r);
+    return r;
 }
 
-void Menu_PersonExit()
+static void ShowPersonStatus_sub(int id, int page)
 {
-    int r = SelectTeamMenu(0);
-    if (r <= 0 || r == 1) return; // 不能开除主角
-    int pid = g_JY.getBase().team(r);
-    if (pid < 0) return;
+    int size = g_CC.DefaultFont;
+    auto p = g_JY.getPerson(id);
+    int width = 18 * size + 15;
+    int h = size + g_CC.PersonStateRowPixel;
+    int height = 13 * h + 10;
+    int dx = (g_CC.ScreenW - width) / 2;
+    int dy = (g_CC.ScreenH - height) / 2;
+    int i = 1;
+    int x1, y1;
     char buf[256];
-    snprintf(buf, sizeof(buf), "确定要让 %s 离队吗？", g_JY.getPerson(pid).name().c_str());
-    if (DrawStrBoxYesNo(buf, C_ORANGE, g_CC.DefaultFont))
+
+    DrawBox(dx, dy, dx + width, dy + height, C_WHITE);
+
+    x1 = dx + 5;
+    y1 = dy + 5;
+    int x2 = 4 * size;
+
+    int headw, headh, hxoff, hyoff;
+    JY_GetPNGXY(1, p.headId() * 2, &headw, &headh, &hxoff, &hyoff);
+    int headx = (width / 2 - headw) / 2;
+    int heady = (h * 6 - headh) / 2;
+    JY_LoadPNG(1, p.headId() * 2, x1 + headx, y1 + heady, 1, 0, 100);
+
+    i = 6;
+    DrawString(x1, y1 + h * i, p.name(), C_WHITE, size);
+    snprintf(buf, sizeof(buf), "%3d", p.level());
+    DrawString(x1 + 10 * size / 2, y1 + h * i, buf, C_GOLD, size);
+    DrawString(x1 + 13 * size / 2, y1 + h * i, "级", C_ORANGE, size);
+
+    auto drawAttrib = [&](const char* str, int color1, int color2, int val) {
+        DrawString(x1, y1 + h * i, str, color1, size);
+        snprintf(buf, sizeof(buf), "%5d", val);
+        DrawString(x1 + x2, y1 + h * i, buf, color2, size);
+        i++;
+    };
+
+    if (page == 1)
     {
-        instruct_21(pid);
-        // 设置离队事件
-        auto& pexit = g_CC.PersonExit[g_Config.Version];
-        for (auto& pe : pexit)
+        int color;
+        if (p.injury() < 33) color = RGB_JY(236, 200, 40);
+        else if (p.injury() < 66) color = RGB_JY(244, 128, 32);
+        else color = RGB_JY(232, 32, 44);
+        i = 7;
+        DrawString(x1, y1 + h * i, "生命", C_ORANGE, size);
+        snprintf(buf, sizeof(buf), "%5d", p.hp());
+        DrawString(x1 + 2 * size, y1 + h * i, buf, color, size);
+        DrawString(x1 + 9 * size / 2, y1 + h * i, "/", C_GOLD, size);
+        if (p.poison() == 0) color = RGB_JY(252, 148, 16);
+        else if (p.poison() < 50) color = RGB_JY(120, 208, 88);
+        else color = RGB_JY(56, 136, 36);
+        snprintf(buf, sizeof(buf), "%5d", p.maxHp());
+        DrawString(x1 + 5 * size, y1 + h * i, buf, color, size);
+        i++;
+        if (p.mpType() == 0) color = RGB_JY(208, 152, 208);
+        else if (p.mpType() == 1) color = RGB_JY(236, 200, 40);
+        else color = RGB_JY(236, 236, 236);
+        DrawString(x1, y1 + h * i, "内力", C_ORANGE, size);
+        snprintf(buf, sizeof(buf), "%5d/%5d", p.mp(), p.maxMp());
+        DrawString(x1 + 2 * size, y1 + h * i, buf, color, size);
+        i++;
+        drawAttrib("体力", C_ORANGE, C_GOLD, p.stamina());
+        drawAttrib("经验", C_ORANGE, C_GOLD, (int)p.exp());
+        DrawString(x1, y1 + h * i, "升级", C_ORANGE, size);
+        if (p.level() >= g_CC.PersonAttribMax["人物等级"])
+            DrawString(x1 + x2, y1 + h * i, "    =", C_GOLD, size);
+        else {
+            snprintf(buf, sizeof(buf), "%5d", g_CC.Exp[p.level()]);
+            DrawString(x1 + x2, y1 + h * i, buf, C_GOLD, size);
+        }
+        i++;
+
+        int tmp1 = 0, tmp2 = 0, tmp3 = 0;
+        if (p.weapon() > -1) {
+            auto t = g_JY.getThing(p.weapon());
+            tmp1 += t.addAttack(); tmp2 += t.addDefense(); tmp3 += t.addAgility();
+        }
+        if (p.armor() > -1) {
+            auto t = g_JY.getThing(p.armor());
+            tmp1 += t.addAttack(); tmp2 += t.addDefense(); tmp3 += t.addAgility();
+        }
+
+        DrawString(x1, y1 + h * i, "左右键翻页，上下键查看其它队友", C_RED, size);
+
+        i = 0;
+        x1 = dx + width / 2;
+        drawAttrib("攻击力", C_WHITE, C_GOLD, p.attack() + tmp1);
+        drawAttrib("防御力", C_WHITE, C_GOLD, p.defense() + tmp2);
+        drawAttrib("轻功", C_WHITE, C_GOLD, p.agility() + tmp3);
+        drawAttrib("医疗能力", C_WHITE, C_GOLD, p.medic());
+        drawAttrib("用毒能力", C_WHITE, C_GOLD, p.usePoison());
+        drawAttrib("解毒能力", C_WHITE, C_GOLD, p.detox());
+        drawAttrib("拳掌功夫", C_WHITE, C_GOLD, p.fist());
+        drawAttrib("御剑能力", C_WHITE, C_GOLD, p.sword());
+        drawAttrib("耍刀技巧", C_WHITE, C_GOLD, p.blade());
+        drawAttrib("特殊兵器", C_WHITE, C_GOLD, p.special());
+        drawAttrib("暗器技巧", C_WHITE, C_GOLD, p.hidden());
+        drawAttrib("资质", C_WHITE, C_GOLD, p.aptitude());
+    }
+    else if (page == 2)
+    {
+        i = 7;
+        DrawString(x1, y1 + h * i, "武器:", C_ORANGE, size);
+        if (p.weapon() > -1)
+            DrawString(x1 + size * 3, y1 + h * i, g_JY.getThing(p.weapon()).name(), C_GOLD, size);
+        i++;
+        DrawString(x1, y1 + h * i, "防具:", C_ORANGE, size);
+        if (p.armor() > -1)
+            DrawString(x1 + size * 3, y1 + h * i, g_JY.getThing(p.armor()).name(), C_GOLD, size);
+        i++;
+        DrawString(x1, y1 + h * i, "修炼物品", C_ORANGE, size);
+        int thingid = p.trainItem();
+        if (thingid > 0)
         {
-            if (pe.personId == pid)
+            i++;
+            DrawString(x1 + size, y1 + h * i, g_JY.getThing(thingid).name(), C_GOLD, size);
+            i++;
+            int n = TrainNeedExp(id);
+            if (n < 32767) {
+                snprintf(buf, sizeof(buf), "%5d/%5d", p.trainPoints(), n);
+            } else {
+                snprintf(buf, sizeof(buf), "%5d/===", p.trainPoints());
+            }
+            DrawString(x1 + size, y1 + h * i, buf, C_GOLD, size);
+        }
+        else
+        {
+            i += 2;
+        }
+        i++;
+        DrawString(x1, y1 + h * i, "左右键翻页，上下键查看其它队友", C_RED, size);
+
+        i = 0;
+        x1 = dx + width / 2;
+        DrawString(x1, y1 + h * i, "所会功夫", C_ORANGE, size);
+        for (int j = 1; j <= 10; j++)
+        {
+            i++;
+            int wg = p.wugong(j);
+            if (wg > 0)
             {
-                instruct_3(g_JY.SubScene, pe.eventId, 1, -2, -1, -1, -1, -1, -1, -1, -2, -2, -2);
-                break;
+                int lv = p.wugongLevel(j) / 100 + 1;
+                DrawString(x1 + size, y1 + h * i, g_JY.getWugong(wg).name(), C_GOLD, size);
+                snprintf(buf, sizeof(buf), "%2d", lv);
+                DrawString(x1 + size * 7, y1 + h * i, buf, C_WHITE, size);
             }
         }
     }
 }
 
+void ShowPersonStatus(int teamid)
+{
+    int page = 1;
+    int pagenum = 2;
+    int teamnum = GetTeamNum();
+
+    while (true)
+    {
+        Cls();
+        int id = g_JY.getBase().team(teamid);
+        if (id >= 0) ShowPersonStatus_sub(id, page);
+        ShowScreen();
+        int key = WaitKey();
+        JY_Delay(100);
+        if (key == GK_ESCAPE) break;
+        else if (key == GK_UP) teamid--;
+        else if (key == GK_DOWN) teamid++;
+        else if (key == GK_LEFT) page--;
+        else if (key == GK_RIGHT) page++;
+        teamid = limitX(teamid, 1, teamnum);
+        page = limitX(page, 1, pagenum);
+    }
+}
+
+void Menu_Doctor()
+{
+    DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY, "谁要使用医术", C_WHITE, g_CC.DefaultFont);
+    int nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+    DrawStrBox(g_CC.MainSubMenuX, nexty, "医疗能力", C_ORANGE, g_CC.DefaultFont);
+
+    auto base = g_JY.getBase();
+    std::vector<MenuItem> menu1;
+    for (int i = 1; i <= g_CC.TeamNum; i++)
+    {
+        int id = base.team(i);
+        if (id >= 0 && g_JY.getPerson(id).medic() >= 20)
+        {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "%-10s%4d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).medic());
+            menu1.push_back({buf, nullptr, 1});
+        }
+        else
+            menu1.push_back({"", nullptr, 0});
+    }
+    nexty += g_CC.SingleLineHeight;
+    int r = ShowMenu(menu1, g_CC.TeamNum, 0, g_CC.MainSubMenuX, nexty, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+
+    if (r > 0)
+    {
+        int doctorid = base.team(r);
+        Cls(g_CC.MainSubMenuX, g_CC.MainSubMenuY, g_CC.ScreenW, g_CC.ScreenH);
+        DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY, "要医治谁", C_WHITE, g_CC.DefaultFont);
+        nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+
+        std::vector<MenuItem> menu2;
+        for (int i = 1; i <= g_CC.TeamNum; i++)
+        {
+            int id = base.team(i);
+            if (id >= 0)
+            {
+                char buf[64];
+                snprintf(buf, sizeof(buf), "%-10s%4d/%4d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).hp(), g_JY.getPerson(id).maxHp());
+                menu2.push_back({buf, nullptr, 1});
+            }
+            else
+                menu2.push_back({"", nullptr, 0});
+        }
+        int r2 = ShowMenu(menu2, g_CC.TeamNum, 0, g_CC.MainSubMenuX, nexty, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+        if (r2 > 0)
+        {
+            int patientid = base.team(r2);
+            int num = ExecDoctor(doctorid, patientid);
+            if (num > 0) AddPersonAttrib(doctorid, "体力", -2);
+            char buf[256];
+            snprintf(buf, sizeof(buf), "%s 生命增加 %d", g_JY.getPerson(patientid).name().c_str(), num);
+            DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+        }
+    }
+    Cls();
+}
+
+void Menu_DecPoison()
+{
+    DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY, "谁要帮人解毒", C_WHITE, g_CC.DefaultFont);
+    int nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+    DrawStrBox(g_CC.MainSubMenuX, nexty, "解毒能力", C_ORANGE, g_CC.DefaultFont);
+
+    auto base = g_JY.getBase();
+    std::vector<MenuItem> menu1;
+    for (int i = 1; i <= g_CC.TeamNum; i++)
+    {
+        int id = base.team(i);
+        if (id >= 0 && g_JY.getPerson(id).detox() >= 20)
+        {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "%-10s%4d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).detox());
+            menu1.push_back({buf, nullptr, 1});
+        }
+        else
+            menu1.push_back({"", nullptr, 0});
+    }
+    nexty += g_CC.SingleLineHeight;
+    int r = ShowMenu(menu1, g_CC.TeamNum, 0, g_CC.MainSubMenuX, nexty, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+
+    if (r > 0)
+    {
+        int doctorid = base.team(r);
+        Cls(g_CC.MainSubMenuX, g_CC.MainSubMenuY, g_CC.ScreenW, g_CC.ScreenH);
+        DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY, "替谁解毒", C_WHITE, g_CC.DefaultFont);
+        nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+        DrawStrBox(g_CC.MainSubMenuX, nexty, "中毒程度", C_WHITE, g_CC.DefaultFont);
+        nexty += g_CC.SingleLineHeight;
+
+        std::vector<MenuItem> menu2;
+        for (int i = 1; i <= g_CC.TeamNum; i++)
+        {
+            int id = base.team(i);
+            if (id >= 0)
+            {
+                char buf[64];
+                snprintf(buf, sizeof(buf), "%-10s%5d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).poison());
+                menu2.push_back({buf, nullptr, 1});
+            }
+            else
+                menu2.push_back({"", nullptr, 0});
+        }
+        int r2 = ShowMenu(menu2, g_CC.TeamNum, 0, g_CC.MainSubMenuX, nexty, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+        if (r2 > 0)
+        {
+            int patientid = base.team(r2);
+            int num = ExecDecPoison(doctorid, patientid);
+            char buf[256];
+            snprintf(buf, sizeof(buf), "%s 中毒程度减少 %d", g_JY.getPerson(patientid).name().c_str(), num);
+            DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+        }
+    }
+    Cls();
+}
+
+void Menu_Thing()
+{
+    // 物品类型子菜单: 全部物品, 剧情物品, 神兵宝甲, 武功秘笈, 灵丹妙药, 伤人暗器
+    std::vector<MenuItem> menu = {
+        {"全部物品", nullptr, 1},
+        {"剧情物品", nullptr, 1},
+        {"神兵宝甲", nullptr, 1},
+        {"武功秘笈", nullptr, 1},
+        {"灵丹妙药", nullptr, 1},
+        {"伤人暗器", nullptr, 1},
+    };
+    int r = ShowMenu(menu, 6, 0, g_CC.MainSubMenuX, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+    if (r > 0)
+    {
+        int thing[200], thingnum[200];
+        for (int i = 0; i < g_CC.MyThingNum; i++) { thing[i] = -1; thingnum[i] = 0; }
+
+        auto base = g_JY.getBase();
+        int num = 0;
+        for (int i = 0; i < g_CC.MyThingNum; i++)
+        {
+            int id = base.item(i + 1);
+            if (id >= 0)
+            {
+                if (r == 1) // 全部物品
+                {
+                    thing[i] = id;
+                    thingnum[i] = base.itemNum(i + 1);
+                }
+                else
+                {
+                    if (g_JY.getThing(id).type() == r - 2) // 按类型过滤: 0=剧情,1=神兵,2=秘笈,3=灵丹,4=暗器
+                    {
+                        thing[num] = id;
+                        thingnum[num] = base.itemNum(i + 1);
+                        num++;
+                    }
+                }
+            }
+        }
+
+        int sel = SelectThing(thing, thingnum);
+        if (sel >= 0)
+        {
+            UseThing(sel);
+        }
+    }
+}
+
+void Menu_PersonExit()
+{
+    DrawStrBox(g_CC.MainSubMenuX, g_CC.MainSubMenuY, "要求谁离队", C_WHITE, g_CC.DefaultFont);
+    int nexty = g_CC.MainSubMenuY + g_CC.SingleLineHeight;
+    int r = SelectTeamMenu(g_CC.MainSubMenuX, nexty);
+    if (r == 1)
+    {
+        DrawStrBoxWaitKey("抱歉！没有你游戏进行不下去", C_WHITE, g_CC.DefaultFont);
+    }
+    else if (r > 1)
+    {
+        int pid = g_JY.getBase().team(r);
+        if (pid >= 0)
+        {
+            auto& pexit = g_CC.PersonExit[g_Config.Version];
+            for (auto& pe : pexit)
+            {
+                if (pe.personId == pid)
+                {
+                    ReadKDEF(pe.eventId);
+                    break;
+                }
+            }
+        }
+    }
+    Cls();
+}
+
 int Menu_System()
 {
     std::vector<MenuItem> menu = {
-        {"存档一", nullptr, 1}, {"存档位", nullptr, 1}, {"存档位", nullptr, 1},
-        {"读档一", nullptr, 1}, {"读档二", nullptr, 1}, {"读档三", nullptr, 1},
-        {"退出游戏", nullptr, 1}
+        {"读取进度", nullptr, 1},
+        {"保存进度", nullptr, 1},
+        {"关闭音乐", nullptr, 1},
+        {"关闭音效", nullptr, 1},
+        {"离开游戏", nullptr, 1}
     };
-    int r = ShowMenu(menu, 7, 0, g_CC.MainSubMenuX, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
-    if (r >= 1 && r <= 3) { SaveRecord(r); DrawStrBoxWaitKey("存档完成", C_ORANGE, g_CC.DefaultFont); }
-    else if (r >= 4 && r <= 6) { LoadRecord(r - 3); return 1; }
-    else if (r == 7) { g_JY.Status = GAME_END; return 1; }
+    int r = ShowMenu(menu, 5, 0, g_CC.MainSubMenuX, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+    if (r == 1) // 读取进度
+    {
+        std::vector<MenuItem> loadMenu = {
+            {"进度一", nullptr, 1}, {"进度二", nullptr, 1}, {"进度三", nullptr, 1}
+        };
+        int lr = ShowMenu(loadMenu, 3, 0, g_CC.MainSubMenuX2, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+        if (lr > 0)
+        {
+            DrawStrBox(g_CC.MainSubMenuX2, g_CC.MainSubMenuY, "请稍候......", C_WHITE, g_CC.DefaultFont);
+            ShowScreen();
+            LoadRecord(lr);
+            g_JY.Status = GAME_FIRSTMMAP;
+            return 1;
+        }
+    }
+    else if (r == 2) // 保存进度
+    {
+        std::vector<MenuItem> saveMenu = {
+            {"进度一", nullptr, 1}, {"进度二", nullptr, 1}, {"进度三", nullptr, 1}
+        };
+        int sr = ShowMenu(saveMenu, 3, 0, g_CC.MainSubMenuX2, g_CC.MainSubMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
+        if (sr > 0)
+        {
+            DrawStrBox(g_CC.MainSubMenuX2, g_CC.MainSubMenuY, "请稍候......", C_WHITE, g_CC.DefaultFont);
+            ShowScreen();
+            SaveRecord(sr);
+        }
+    }
+    else if (r == 5) // 离开游戏
+    {
+        Cls();
+        if (DrawStrBoxYesNo("是否真的要离开游戏？", C_WHITE, g_CC.DefaultFont))
+            g_JY.Status = GAME_END;
+        return 1;
+    }
     return 0;
 }
 
@@ -1495,6 +1989,12 @@ void MMenu()
         {"医疗", nullptr, 1}, {"解毒", nullptr, 1}, {"物品", nullptr, 1},
         {"状态", nullptr, 1}, {"离队", nullptr, 1}, {"系统", nullptr, 1}
     };
+    // 场景中禁用离队和系统
+    if (g_JY.Status == GAME_SMAP)
+    {
+        menu[4].enabled = 0;
+        menu[5].enabled = 0;
+    }
     int r = ShowMenu(menu, 6, 0, g_CC.MainMenuX, g_CC.MainMenuY, 0, 0, 1, 1, g_CC.DefaultFont, C_ORANGE, C_WHITE);
     switch (r)
     {
@@ -1626,7 +2126,7 @@ int CanEnterScene(int x, int y)
 void Game_MMap()
 {
     int direct = -1;
-    int key = WaitKey();
+    int key = GetKey();
     if (key != -1)
     {
         g_JY.MyTick = 0;
@@ -1782,7 +2282,7 @@ void Game_SMap()
     }
 
     // 处理键盘输入
-    int key = WaitKey();
+    int key = GetKey();
     int direct = -1;
     if (key != -1)
     {
@@ -1847,14 +2347,30 @@ void Game_Cycle()
 {
     while (g_JY.Status != GAME_END)
     {
+        double tstart = JY_GetTime();
+
+        g_JY.MyTick++;
+        g_JY.MyTick2++;
+
+        if (g_JY.MyTick == 20)
+        {
+            g_JY.MyCurrentPic = 0;
+            g_JY.MyTick = 0;
+        }
+        if (g_JY.MyTick2 == 1000)
+        {
+            g_JY.MyTick2 = 0;
+        }
+
         if (g_JY.Status == GAME_FIRSTMMAP)
         {
-            Init_MMap();
+            CleanMemory();
+            JY_ShowSlow(50, 1);
+            g_JY.MmapMusic = 16;
             g_JY.Status = GAME_MMAP;
-            Cls();
+            Init_MMap();
+            JY_DrawMMap(g_JY.getBase().personX(), g_JY.getBase().personY(), GetMyPic());
             JY_ShowSlow(50, 0);
-            int k, t, mx, my;
-            JY_GetKey(&k, &t, &mx, &my);
         }
         else if (g_JY.Status == GAME_MMAP)
         {
@@ -1863,6 +2379,13 @@ void Game_Cycle()
         else if (g_JY.Status == GAME_SMAP)
         {
             Game_SMap();
+        }
+
+        double tend = JY_GetTime();
+        int elapsed = (int)(tend - tstart);
+        if (elapsed < g_CC.Frame)
+        {
+            JY_Delay(g_CC.Frame - elapsed);
         }
     }
 }
@@ -1875,6 +2398,98 @@ void NewGame()
     if (vi < 0) vi = 0;
     if (vi > 11) vi = 11;
 
+    // 设置主角姓名
+    auto person0 = g_JY.getPerson(0);
+    person0.setName(g_CC.NewPersonName);
+
+    // 属性随机分配循环
+    while (true)
+    {
+        person0.setMpType(Rnd(2));
+        person0.setMaxMp(Rnd(20) + 21);
+        person0.setAttack(Rnd(10) + 21);
+        person0.setDefense(Rnd(10) + 21);
+        person0.setAgility(Rnd(10) + 21);
+        person0.setMedic(Rnd(10) + 21);
+        person0.setUsePoison(Rnd(10) + 21);
+        person0.setDetox(Rnd(10) + 21);
+        person0.setAntiPoison(Rnd(10) + 21);
+        person0.setFist(Rnd(10) + 21);
+        person0.setSword(Rnd(10) + 21);
+        person0.setBlade(Rnd(10) + 21);
+        person0.setSpecial(Rnd(10) + 21);
+        person0.setHidden(Rnd(10) + 21);
+        int hpGrow = Rnd(5) + 3;
+        person0.setHpGrowth(hpGrow);
+        person0.setMaxHp(hpGrow * 3 + 29);
+
+        int rate = Rnd(10);
+        if (rate < 2)
+            person0.setAptitude(Rnd(35) + 30);
+        else if (rate <= 7)
+            person0.setAptitude(Rnd(20) + 60);
+        else
+            person0.setAptitude(Rnd(20) + 75);
+
+        person0.setHp(person0.maxHp());
+        person0.setMp(person0.maxMp());
+
+        Cls();
+
+        int fontsize = g_CC.NewGameFontSize;
+        int h = fontsize + g_CC.RowPixel;
+        int w = fontsize * 4;
+        int x1 = (g_CC.ScreenW - w * 4) / 2;
+        int y1 = g_CC.NewGameY;
+
+        // 显示提示
+        DrawString(x1, y1, "这样的属性满意吗(Y/N)?", C_GOLD, fontsize);
+        y1 += h;
+
+        // 绘制属性（4列×3行）
+        auto drawAttrib = [&](int col, const char* label, int value) {
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%3d", value);
+            DrawString(x1 + col * w, y1, label, C_RED, fontsize);
+            DrawString(x1 + col * w + fontsize * 2, y1, buf, C_WHITE, fontsize);
+        };
+
+        drawAttrib(0, "内力", person0.mp());
+        drawAttrib(1, "攻击", person0.attack());
+        drawAttrib(2, "轻功", person0.agility());
+        drawAttrib(3, "防御", person0.defense());
+        y1 += h;
+
+        drawAttrib(0, "生命", person0.hp());
+        drawAttrib(1, "医疗", person0.medic());
+        drawAttrib(2, "用毒", person0.usePoison());
+        drawAttrib(3, "解毒", person0.detox());
+        y1 += h;
+
+        drawAttrib(0, "拳掌", person0.fist());
+        drawAttrib(1, "御剑", person0.sword());
+        drawAttrib(2, "耍刀", person0.blade());
+        drawAttrib(3, "暗器", person0.hidden());
+
+        ShowScreen();
+
+        // 显示"是/否"菜单
+        std::vector<MenuItem> ynMenu = {
+            {"是 ", nullptr, 1},
+            {"否 ", nullptr, 1}
+        };
+        int ok = ShowMenu2(ynMenu, 2, x1 + 11 * fontsize,
+            g_CC.NewGameY - g_CC.MenuBorderPixel, fontsize, C_RED, C_WHITE);
+        if (ok == 1) break;
+    }
+
+    // 版本11特殊处理
+    if (g_Config.Version == 11)
+    {
+        g_JY.getScene(52).setJumpX2(51);
+        g_JY.getScene(52).setJumpY2(7);
+    }
+
     // 设置新游戏场景
     g_JY.SubScene = g_CC.NewGameSceneID[vi];
     g_JY.getBase().setPersonX1(g_CC.NewGameSceneX[vi]);
@@ -1882,12 +2497,6 @@ void NewGame()
 
     // 设置主角贴图
     g_JY.MyPic = g_CC.NewPersonPic[vi];
-
-    g_JY.MmapMusic = 3;
-
-    // 执行新游戏事件
-    if (g_CC.NewGameEvent[vi] > 0)
-        ReadKDEF(g_CC.NewGameEvent[vi]);
 }
 
 // ============ 版本选择 ============
@@ -1908,6 +2517,10 @@ void Edition()
         g_CC.StartMenuFontSize, C_STARTMENU, C_RED);
     if (r < 1) r = 1;
     g_Config.Version = r;
+    // 更新 DataPath, 让 g_CC.init 使用正确的数据目录
+    char pathbuf[256];
+    snprintf(pathbuf, sizeof(pathbuf), "%sdata/%d/", g_Config.CurrentPath.c_str(), g_Config.Version);
+    g_Config.DataPath = pathbuf;
     g_CC.init(g_Config.Version, g_Config.Zoom);
 }
 
@@ -1959,7 +2572,13 @@ int JY_GameMain()
         g_JY.MMAPMusic = -1;
         CleanMemory();
         Init_SMap(g_JY.SubScene, 0);
-        Game_Cycle();
+
+        // 执行新游戏事件（必须在 Init_SMap 之后）
+        int vi = g_Config.Version - 1;
+        if (vi < 0) vi = 0;
+        if (vi > 11) vi = 11;
+        if (g_CC.NewGameEvent[vi] > 0)
+            ReadKDEF(g_CC.NewGameEvent[vi]);
     }
     else if (r == 2)
     {
@@ -1978,11 +2597,20 @@ int JY_GameMain()
             Cls();
             ShowScreen();
             g_JY.Status = GAME_FIRSTMMAP;
-            Game_Cycle();
         }
+    }
+    else if (r == 3)
+    {
+        JY_LoadPicture("", 0, 0);
+        JY_Debug("JY_GameMain end");
+        return 0;
     }
 
     JY_LoadPicture("", 0, 0);
+    int k, t, mx, my;
+    JY_GetKey(&k, &t, &mx, &my);
+    Game_Cycle();
+
     JY_Debug("JY_GameMain end");
     return 0;
 }
