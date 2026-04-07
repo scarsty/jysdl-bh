@@ -18,6 +18,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <format>
 
 // 前向声明（战斗和事件模块�?
 int WarMain(int warid, int isexp);
@@ -93,10 +94,37 @@ void MyDrawString(int x1, int x2, int y, const std::string& str, int color, int 
     DrawString(x, y, str, color, fontsize);
 }
 
+// 绘制四角凹进的方框（12条线段组成，角部内凹4像素）
+static void DrawBox_1(int x1, int y1, int x2, int y2, int color)
+{
+    const int s = 4;
+    JY_DrawRect(x1 + s, y1, x2 - s, y1, color);       // 上边
+    JY_DrawRect(x2 - s, y1, x2 - s, y1 + s, color);   // 右上内
+    JY_DrawRect(x2 - s, y1 + s, x2, y1 + s, color);   // 右上外
+    JY_DrawRect(x2, y1 + s, x2, y2 - s, color);       // 右边
+    JY_DrawRect(x2, y2 - s, x2 - s, y2 - s, color);   // 右下外
+    JY_DrawRect(x2 - s, y2 - s, x2 - s, y2, color);   // 右下内
+    JY_DrawRect(x2 - s, y2, x1 + s, y2, color);       // 下边
+    JY_DrawRect(x1 + s, y2, x1 + s, y2 - s, color);   // 左下内
+    JY_DrawRect(x1 + s, y2 - s, x1, y2 - s, color);   // 左下外
+    JY_DrawRect(x1, y2 - s, x1, y1 + s, color);       // 左边
+    JY_DrawRect(x1, y1 + s, x1 + s, y1 + s, color);   // 左上外
+    JY_DrawRect(x1 + s, y1 + s, x1 + s, y1, color);   // 左上内
+}
+
 void DrawBox(int x1, int y1, int x2, int y2, int color)
 {
-    JY_Background(x1, y1, x2, y2, 192, 0);
-    JY_DrawRect(x1, y1, x2, y2, color);
+    const int s = 4;
+    // 背景半透明暗化（四角空出，分3个矩形区域，与Lua一致）
+    JY_Background(x1, y1 + s, x1 + s, y2 - s, 128, 0);  // 左侧竖条
+    JY_Background(x1 + s, y1, x2 - s, y2, 128, 0);      // 中间大块
+    JY_Background(x2 - s, y1 + s, x2, y2 - s, 128, 0);  // 右侧竖条
+    // 暗色阴影边框（偏移+1, 颜色减半）
+    int r, g, b;
+    GetRGB_JY(color, r, g, b);
+    DrawBox_1(x1 + 1, y1 + 1, x2, y2, RGB_JY(r / 2, g / 2, b / 2));
+    // 亮色主边框
+    DrawBox_1(x1, y1, x2 - 1, y2 - 1, color);
 }
 
 void DrawStrBox(int x, int y, const std::string& str, int color, int fontsize)
@@ -563,80 +591,109 @@ int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
     int face, int d, int flag1, int flag2, int fontsize, int color1, int color2)
 {
     if (n <= 0) return 0;
-    if (shownum <= 0) shownum = n;
+    GetKey(); // 清空按键缓冲
 
-    int maxlen = 0;
+    // 过滤出可见菜单项（enabled>0），保留原始索引映射
+    struct VisibleItem { std::string label; std::function<int(std::vector<MenuItem>&, int)> callback; int enabled; int origIdx; };
+    std::vector<VisibleItem> vis;
     for (int i = 0; i < n; i++)
     {
-        int len = utf8DisplayLen(menu[i].label);
+        if (menu[i].enabled > 0)
+            vis.push_back({menu[i].label, menu[i].callback, menu[i].enabled, i});
+    }
+    int newNumItem = (int)vis.size();
+    if (newNumItem <= 0) return 0;
+
+    // 实际显示项数（自动压缩高度）
+    int num = newNumItem;
+    if (shownum > 0 && shownum < num) num = shownum;
+
+    // 计算边框宽高
+    int maxlen = 0;
+    for (auto& v : vis)
+    {
+        int len = utf8DisplayLen(v.label);
         if (len > maxlen) maxlen = len;
     }
-    int itemw = maxlen * fontsize / 2 + 2 * g_CC.MenuBorderPixel;
     int itemh = fontsize + g_CC.RowPixel;
-    int boxw = itemw + 5;
-    int boxh = shownum * itemh + 2 * g_CC.MenuBorderPixel;
+    int boxw = maxlen * fontsize / 2 + 2 * g_CC.MenuBorderPixel;
+    int boxh = num * itemh + g_CC.MenuBorderPixel;
 
     if (x < 0) x = (g_CC.ScreenW - boxw) / 2;
     if (y < 0) y = (g_CC.ScreenH - boxh) / 2;
 
-    int surid = JY_SaveSur(x, y, boxw, boxh);
+    // 保存全屏背景（父菜单等内容都保留）
+    int surid = JY_SaveSur(0, 0, g_CC.ScreenW, g_CC.ScreenH);
+
     int cur = 0;
-    // 找第一个enabled的项
-    while (cur < n && menu[cur].enabled == 0) cur++;
-    if (cur >= n) cur = 0;
+    // 找默认选中项（enabled==2 表示默认选中）
+    for (int i = 0; i < newNumItem; i++)
+    {
+        if (vis[i].enabled == 2) { cur = i; break; }
+    }
+    if (shownum > 0) cur = 0;
     int top = 0;
 
     while (true)
     {
-        // 绘制菜单
+        // 先恢复原背景，防止Background叠加变暗
+        Cls();
+        JY_LoadSur(surid, 0, 0);
+
+        // 绘制菜单框
         DrawBox(x, y, x + boxw, y + boxh, C_WHITE);
-        for (int i = 0; i < shownum && top + i < n; i++)
+        for (int i = 0; i < num && top + i < newNumItem; i++)
         {
             int idx = top + i;
             int cy = y + g_CC.MenuBorderPixel + i * itemh;
             int col = (idx == cur) ? color1 : color2;
-            if (menu[idx].enabled == 0) col = RGB_JY(128, 128, 128);
-            DrawString(x + g_CC.MenuBorderPixel, cy, menu[idx].label, col, fontsize);
+            DrawString(x + g_CC.MenuBorderPixel, cy, vis[idx].label, col, fontsize);
         }
         ShowScreen();
 
         int key = WaitKey();
         if (key == GK_UP)
         {
-            int prev = cur - 1;
-            while (prev >= 0 && menu[prev].enabled == 0) prev--;
-            if (prev >= 0) { cur = prev; if (cur < top) top = cur; }
+            cur--;
+            if (cur < 0) { cur = newNumItem - 1; top = (cur >= num) ? cur - num + 1 : 0; }
+            else if (cur < top) top = cur;
         }
         else if (key == GK_DOWN)
         {
-            int next = cur + 1;
-            while (next < n && menu[next].enabled == 0) next++;
-            if (next < n) { cur = next; if (cur >= top + shownum) top = cur - shownum + 1; }
+            cur++;
+            if (cur >= newNumItem) { cur = 0; top = 0; }
+            else if (cur >= top + num) top = cur - num + 1;
         }
         else if (key == GK_SPACE || key == GK_RETURN)
         {
-            if (menu[cur].callback)
+            if (vis[cur].callback)
             {
-                int r = menu[cur].callback(menu, cur);
+                int r = vis[cur].callback(menu, vis[cur].origIdx);
                 if (r != 0)
                 {
-                    JY_LoadSur(surid, x, y);
+                    JY_LoadSur(surid, 0, 0);
                     JY_FreeSur(surid);
-                    return cur + 1; // 1-indexed return
+                    return vis[cur].origIdx + 1;
+                }
+                else
+                {
+                    // 子功能返回后，恢复背景并重绘本菜单
+                    JY_FillColor(0, 0, 0, 0, 0);
+                    JY_LoadSur(surid, 0, 0);
                 }
             }
             else
             {
-                JY_LoadSur(surid, x, y);
+                JY_LoadSur(surid, 0, 0);
                 JY_FreeSur(surid);
-                return cur + 1;
+                return vis[cur].origIdx + 1;
             }
         }
         else if (key == GK_ESCAPE)
         {
             if (flag1 == 1)
             {
-                JY_LoadSur(surid, x, y);
+                JY_LoadSur(surid, 0, 0);
                 JY_FreeSur(surid);
                 return 0;
             }
@@ -646,49 +703,76 @@ int ShowMenu(std::vector<MenuItem>& menu, int n, int shownum, int x, int y,
 
 int ShowMenu2(std::vector<MenuItem>& menu, int n, int x, int y, int fontsize, int color1, int color2)
 {
-    int maxlen = 0;
+    GetKey(); // 清空按键缓冲
+
+    // 过滤可见项
+    struct VisibleItem { std::string label; int origIdx; };
+    std::vector<VisibleItem> vis;
     for (int i = 0; i < n; i++)
     {
-        int len = (int)menu[i].label.length();
+        if (menu[i].enabled > 0)
+            vis.push_back({menu[i].label, i});
+    }
+    int num = (int)vis.size();
+    if (num <= 0) return 0;
+
+    int maxlen = 0;
+    for (auto& v : vis)
+    {
+        int len = utf8DisplayLen(v.label);
         if (len > maxlen) maxlen = len;
     }
-    int totalw = (fontsize * maxlen / 2 + g_CC.RowPixel) * n + g_CC.MenuBorderPixel;
+    int cellw = fontsize * maxlen / 2 + g_CC.RowPixel;
+    int totalw = cellw * num + g_CC.MenuBorderPixel;
     if (x < 0) x = (g_CC.ScreenW - totalw) / 2;
     int h = fontsize + 2 * g_CC.MenuBorderPixel;
 
-    int surid = JY_SaveSur(0, y, g_CC.ScreenW, h);
+    // 先绘制框（ShowMenu2 在循环外画框，与Lua一致）
+    DrawBox(x, y, x + totalw, y + h, C_WHITE);
+
+    // 保存含框的画面（用于每帧恢复）
+    int surid = JY_SaveSur(x, y, totalw + 1, h + 1);
     int cur = 0;
+    // 找默认选中项
+    for (int i = 0; i < num; i++)
+    {
+        if (menu[vis[i].origIdx].enabled == 2) { cur = i; break; }
+    }
 
     while (true)
     {
+        // 恢复框区域（清除上次文字），重绘文字
+        JY_LoadSur(surid, x, y);
         int cx = x + g_CC.MenuBorderPixel;
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < num; i++)
         {
             int col = (i == cur) ? color1 : color2;
-            if (menu[i].enabled == 0) col = RGB_JY(128, 128, 128);
-            DrawString(cx, y + g_CC.MenuBorderPixel, menu[i].label, col, fontsize);
-            cx += fontsize * maxlen / 2 + g_CC.RowPixel;
+            DrawString(cx, y + g_CC.MenuBorderPixel, vis[i].label, col, fontsize);
+            cx += cellw;
         }
         ShowScreen();
 
         int key = WaitKey();
         if (key == GK_LEFT)
         {
-            if (cur > 0) cur--;
+            cur--;
+            if (cur < 0) cur = num - 1;
         }
         else if (key == GK_RIGHT)
         {
-            if (cur < n - 1) cur++;
+            cur++;
+            if (cur >= num) cur = 0;
         }
         else if (key == GK_SPACE || key == GK_RETURN)
         {
-            JY_LoadSur(surid, 0, y);
+            // 恢复菜单区域
+            Cls(x, y, x + totalw + 1, y + h + 1);
             JY_FreeSur(surid);
-            return cur + 1;
+            return vis[cur].origIdx + 1;
         }
         else if (key == GK_ESCAPE)
         {
-            JY_LoadSur(surid, 0, y);
+            Cls(x, y, x + totalw + 1, y + h + 1);
             JY_FreeSur(surid);
             return 0;
         }
@@ -698,65 +782,56 @@ int ShowMenu2(std::vector<MenuItem>& menu, int n, int x, int y, int fontsize, in
 // ============ 记录管理 ============
 void LoadRecord(int id)
 {
-    // 读取 ranger.idx 得到6段偏移
+    // 始终从原始 ranger.idx 读取6个边界偏移（与Lua一致）
+    // idx文件格式: 6个int32边界值，Base隐式从0开始
+    // offset[0]=Base结束/Person开始, offset[1]=Person结束/Thing开始, ...
     DataBuffer idx;
     idx.alloc(24);
-    idx.loadfile(g_CC.R_IDXFilename[id].c_str(), 0, 24);
+    idx.loadfile(g_CC.R_IDXFilename[0].c_str(), 0, 24);
     int offset[6];
     for (int i = 0; i < 6; i++) offset[i] = idx.get32(i * 4);
 
-    std::string grpfile = g_CC.R_GRPFilename[id];
+    const std::string& grpfile = g_CC.R_GRPFilename[id];
 
-    // 加载Base
-    g_JY.Data_Base.alloc(g_CC.BaseSize);
-    g_JY.Data_Base.loadfile(grpfile.c_str(), offset[0], g_CC.BaseSize);
+    // 加载Base: 位置0, 大小=offset[0]
+    g_JY.Data_Base.alloc(offset[0]);
+    g_JY.Data_Base.loadfile(grpfile.c_str(), 0, offset[0]);
     g_JY.Base.buf = &g_JY.Data_Base;
 
-    // 加载Person
-    int personLen = offset[2] - offset[1];
+    // 加载Person: 位置offset[0], 大小=offset[1]-offset[0]
+    int personLen = offset[1] - offset[0];
     g_JY.PersonNum = personLen / g_CC.PersonSize;
     g_JY.Data_Person.alloc(personLen);
-    g_JY.Data_Person.loadfile(grpfile.c_str(), offset[1], personLen);
+    g_JY.Data_Person.loadfile(grpfile.c_str(), offset[0], personLen);
 
-    // 加载Thing
-    int thingLen = offset[3] - offset[2];
+    // 加载Thing: 位置offset[1], 大小=offset[2]-offset[1]
+    int thingLen = offset[2] - offset[1];
     g_JY.ThingNum = thingLen / g_CC.ThingSize;
     g_JY.Data_Thing.alloc(thingLen);
-    g_JY.Data_Thing.loadfile(grpfile.c_str(), offset[2], thingLen);
+    g_JY.Data_Thing.loadfile(grpfile.c_str(), offset[1], thingLen);
 
-    // 加载Scene
-    int sceneLen = offset[4] - offset[3];
+    // 加载Scene: 位置offset[2], 大小=offset[3]-offset[2]
+    int sceneLen = offset[3] - offset[2];
     g_JY.SceneNum = sceneLen / g_CC.SceneSize;
     g_JY.Data_Scene.alloc(sceneLen);
-    g_JY.Data_Scene.loadfile(grpfile.c_str(), offset[3], sceneLen);
+    g_JY.Data_Scene.loadfile(grpfile.c_str(), offset[2], sceneLen);
 
-    // 加载Wugong
-    int wugongLen = offset[5] - offset[4];
+    // 加载Wugong: 位置offset[3], 大小=offset[4]-offset[3]
+    int wugongLen = offset[4] - offset[3];
     g_JY.WugongNum = wugongLen / g_CC.WugongSize;
     g_JY.Data_Wugong.alloc(wugongLen);
-    g_JY.Data_Wugong.loadfile(grpfile.c_str(), offset[4], wugongLen);
+    g_JY.Data_Wugong.loadfile(grpfile.c_str(), offset[3], wugongLen);
 
-    // 加载Shop（到文件末尾）
-    int shopStart = offset[5];
-    // 需要知道文件大小
-    FILE* fp = fopen(grpfile.c_str(), "rb");
-    if (fp)
-    {
-        fseek(fp, 0, SEEK_END);
-        int fileSize = (int)ftell(fp);
-        fclose(fp);
-        int shopLen = fileSize - shopStart;
-        g_JY.ShopNum = shopLen / g_CC.ShopSize;
-        g_JY.Data_Shop.alloc(shopLen);
-        g_JY.Data_Shop.loadfile(grpfile.c_str(), shopStart, shopLen);
-    }
+    // 加载Shop: 位置offset[4], 大小=offset[5]-offset[4]
+    int shopLen = offset[5] - offset[4];
+    g_JY.ShopNum = shopLen / g_CC.ShopSize;
+    g_JY.Data_Shop.alloc(shopLen);
+    g_JY.Data_Shop.loadfile(grpfile.c_str(), offset[4], shopLen);
 
     // 加载地图
-    std::string sfile = g_CC.S_Filename[id];
-    std::string dfile = g_CC.D_Filename[id];
-    std::string tempS = g_CC.TempS_Filename;
-    JY_LoadSMap(sfile.c_str(), tempS.c_str(), g_JY.SceneNum, g_CC.SWidth, g_CC.SHeight,
-        dfile.c_str(), g_CC.DNum, g_CC.DNum2);
+    JY_LoadSMap(g_CC.S_Filename[id].c_str(), g_CC.TempS_Filename.c_str(),
+        g_JY.SceneNum, g_CC.SWidth, g_CC.SHeight,
+        g_CC.D_Filename[id].c_str(), g_CC.DNum, g_CC.DNum2);
 
     JY_Debug("LoadRecord %d ok", id);
 }
@@ -765,40 +840,28 @@ void SaveRecord(int id)
 {
     if (id == 0) return; // 不保存初始存档
 
-    // 先保存地图
-    JY_SaveSMap(g_CC.S_Filename[id].c_str(), g_CC.D_Filename[id].c_str());
-
-    // 生成idx
+    // 始终从原始 ranger.idx 读取边界偏移（与Lua一致，不生成新idx）
     DataBuffer idx;
     idx.alloc(24);
-    int pos = 0;
-    int sizes[6];
-    sizes[0] = g_CC.BaseSize;
-    sizes[1] = g_JY.PersonNum * g_CC.PersonSize;
-    sizes[2] = g_JY.ThingNum * g_CC.ThingSize;
-    sizes[3] = g_JY.SceneNum * g_CC.SceneSize;
-    sizes[4] = g_JY.WugongNum * g_CC.WugongSize;
-    sizes[5] = g_JY.ShopNum * g_CC.ShopSize;
-    for (int i = 0; i < 6; i++)
-    {
-        idx.set32(i * 4, pos);
-        pos += sizes[i];
-    }
-    idx.savefile(g_CC.R_IDXFilename[id].c_str(), 0, 24);
+    idx.loadfile(g_CC.R_IDXFilename[0].c_str(), 0, 24);
+    int offset[6];
+    for (int i = 0; i < 6; i++) offset[i] = idx.get32(i * 4);
 
-    // 写入grp
-    std::string grpfile = g_CC.R_GRPFilename[id];
-    FILE* fp = fopen(grpfile.c_str(), "wb");
-    if (fp)
-    {
-        fwrite(g_JY.Data_Base.data, 1, sizes[0], fp);
-        fwrite(g_JY.Data_Person.data, 1, sizes[1], fp);
-        fwrite(g_JY.Data_Thing.data, 1, sizes[2], fp);
-        fwrite(g_JY.Data_Scene.data, 1, sizes[3], fp);
-        fwrite(g_JY.Data_Wugong.data, 1, sizes[4], fp);
-        fwrite(g_JY.Data_Shop.data, 1, sizes[5], fp);
-        fclose(fp);
-    }
+    // 删除旧存档GRP
+    const std::string& grpfile = g_CC.R_GRPFilename[id];
+    remove(grpfile.c_str());
+
+    // 按原始偏移位置写入各段数据
+    g_JY.Data_Base.savefile(grpfile.c_str(), 0, offset[0]);
+    g_JY.Data_Person.savefile(grpfile.c_str(), offset[0], g_CC.PersonSize * g_JY.PersonNum);
+    g_JY.Data_Thing.savefile(grpfile.c_str(), offset[1], g_CC.ThingSize * g_JY.ThingNum);
+    g_JY.Data_Scene.savefile(grpfile.c_str(), offset[2], g_CC.SceneSize * g_JY.SceneNum);
+    g_JY.Data_Wugong.savefile(grpfile.c_str(), offset[3], g_CC.WugongSize * g_JY.WugongNum);
+    g_JY.Data_Shop.savefile(grpfile.c_str(), offset[4], g_CC.ShopSize * g_JY.ShopNum);
+
+    // 保存地图
+    JY_SaveSMap(g_CC.S_Filename[id].c_str(), g_CC.D_Filename[id].c_str());
+
     JY_Debug("SaveRecord %d ok", id);
 }
 
@@ -818,9 +881,8 @@ void instruct_2(int thingid, int num)
     if (thingid < 0 || thingid >= g_JY.ThingNum) return;
     instruct_32(thingid, num);
     auto thing = g_JY.getThing(thingid);
-    char buf[256];
-    snprintf(buf, sizeof(buf), "得到物品:%s %d", thing.name().c_str(), num);
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+    auto msg = std::format("得到物品:{} {}", thing.name(), num);
+    DrawStrBoxWaitKey(msg, C_ORANGE, g_CC.DefaultFont);
 }
 
 void instruct_32(int thingid, int addnum)
@@ -1165,9 +1227,8 @@ void instruct_33(int personid, int wugongid, int flag)
     if (add == 0) { p.setWugong(10, wugongid); p.setWugongLevel(10, 0); }
     if (flag == 0)
     {
-        char buf[256];
-        snprintf(buf, sizeof(buf), "%s 学会武功 %s", p.name().c_str(), g_JY.getWugong(wugongid).name().c_str());
-        DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+        auto msg = std::format("{} 学会武功 {}", p.name(), g_JY.getWugong(wugongid).name());
+        DrawStrBoxWaitKey(msg, C_ORANGE, g_CC.DefaultFont);
     }
 }
 
@@ -1260,9 +1321,7 @@ int UseThingEffect(int thingid, int pid)
     auto thing = g_JY.getThing(thingid);
     int changed = 0;
     std::vector<std::string> msgs;
-    char buf[256];
-    snprintf(buf, sizeof(buf), "使用 %s", thing.name().c_str());
-    msgs.push_back(buf);
+    msgs.push_back(std::format("使用 {}", thing.name()));
 
     auto tryAdd = [&](const std::string& attr) {
         int addv = thing.getByName("加" + attr);
@@ -1271,8 +1330,7 @@ int UseThingEffect(int thingid, int pid)
             int actual = AddPersonAttrib(pid, attr, addv);
             if (actual != 0)
             {
-                snprintf(buf, sizeof(buf), " %s %+d", attr.c_str(), actual);
-                msgs.push_back(buf);
+                msgs.push_back(std::format(" {} {:+d}", attr, actual));
                 changed = 1;
             }
         }
@@ -1287,7 +1345,7 @@ int UseThingEffect(int thingid, int pid)
         if (add <= 0) add = 5 + Rnd(5);
         AddPersonAttrib(pid, "受伤程度", -addLife / 4);
         int actual = AddPersonAttrib(pid, "生命", add);
-        if (actual != 0) { snprintf(buf, sizeof(buf), " 生命 %+d", actual); msgs.push_back(buf); changed = 1; }
+        if (actual != 0) { msgs.push_back(std::format(" 生命 {:+d}", actual)); changed = 1; }
     }
 
     tryAdd("生命最大值");
@@ -1296,7 +1354,7 @@ int UseThingEffect(int thingid, int pid)
     if (decPoison < 0)
     {
         int actual = AddPersonAttrib(pid, "中毒程度", decPoison / 2);
-        if (actual != 0) { snprintf(buf, sizeof(buf), " 中毒程度 %+d", actual); msgs.push_back(buf); changed = 1; }
+        if (actual != 0) { msgs.push_back(std::format(" 中毒程度 {:+d}", actual)); changed = 1; }
     }
 
     tryAdd("体力");
@@ -1411,10 +1469,9 @@ int SelectThing(int* thing, int* thingnum)
                                 str += "(" + g_JY.getPerson(t.user()).name() + ")";
                             }
                         }
-                        char buf[256];
-                        snprintf(buf, sizeof(buf), "%s X %d", str.c_str(), thingnum[idx]);
+                        auto label = std::format("{} X {}", str, thingnum[idx]);
                         std::string str2 = t.desc();
-                        DrawString(dx + g_CC.ThingGapOut, y1_1 + g_CC.MenuBorderPixel, buf, C_GOLD, g_CC.ThingFontSize);
+                        DrawString(dx + g_CC.ThingGapOut, y1_1 + g_CC.MenuBorderPixel, label, C_GOLD, g_CC.ThingFontSize);
                         DrawString(dx + g_CC.ThingGapOut, y2_1 + g_CC.MenuBorderPixel, str2, C_ORANGE, g_CC.ThingFontSize);
                     }
                     else
@@ -1579,7 +1636,6 @@ static void ShowPersonStatus_sub(int id, int page)
     int dy = (g_CC.ScreenH - height) / 2;
     int i = 1;
     int x1, y1;
-    char buf[256];
 
     DrawBox(dx, dy, dx + width, dy + height, C_WHITE);
 
@@ -1595,14 +1651,12 @@ static void ShowPersonStatus_sub(int id, int page)
 
     i = 6;
     DrawString(x1, y1 + h * i, p.name(), C_WHITE, size);
-    snprintf(buf, sizeof(buf), "%3d", p.level());
-    DrawString(x1 + 10 * size / 2, y1 + h * i, buf, C_GOLD, size);
+    DrawString(x1 + 10 * size / 2, y1 + h * i, std::format("{:3d}", p.level()), C_GOLD, size);
     DrawString(x1 + 13 * size / 2, y1 + h * i, "级", C_ORANGE, size);
 
     auto drawAttrib = [&](const char* str, int color1, int color2, int val) {
         DrawString(x1, y1 + h * i, str, color1, size);
-        snprintf(buf, sizeof(buf), "%5d", val);
-        DrawString(x1 + x2, y1 + h * i, buf, color2, size);
+        DrawString(x1 + x2, y1 + h * i, std::format("{:5d}", val), color2, size);
         i++;
     };
 
@@ -1614,21 +1668,18 @@ static void ShowPersonStatus_sub(int id, int page)
         else color = RGB_JY(232, 32, 44);
         i = 7;
         DrawString(x1, y1 + h * i, "生命", C_ORANGE, size);
-        snprintf(buf, sizeof(buf), "%5d", p.hp());
-        DrawString(x1 + 2 * size, y1 + h * i, buf, color, size);
+        DrawString(x1 + 2 * size, y1 + h * i, std::format("{:5d}", p.hp()), color, size);
         DrawString(x1 + 9 * size / 2, y1 + h * i, "/", C_GOLD, size);
         if (p.poison() == 0) color = RGB_JY(252, 148, 16);
         else if (p.poison() < 50) color = RGB_JY(120, 208, 88);
         else color = RGB_JY(56, 136, 36);
-        snprintf(buf, sizeof(buf), "%5d", p.maxHp());
-        DrawString(x1 + 5 * size, y1 + h * i, buf, color, size);
+        DrawString(x1 + 5 * size, y1 + h * i, std::format("{:5d}", p.maxHp()), color, size);
         i++;
         if (p.mpType() == 0) color = RGB_JY(208, 152, 208);
         else if (p.mpType() == 1) color = RGB_JY(236, 200, 40);
         else color = RGB_JY(236, 236, 236);
         DrawString(x1, y1 + h * i, "内力", C_ORANGE, size);
-        snprintf(buf, sizeof(buf), "%5d/%5d", p.mp(), p.maxMp());
-        DrawString(x1 + 2 * size, y1 + h * i, buf, color, size);
+        DrawString(x1 + 2 * size, y1 + h * i, std::format("{:5d}/{:5d}", p.mp(), p.maxMp()), color, size);
         i++;
         drawAttrib("体力", C_ORANGE, C_GOLD, p.stamina());
         drawAttrib("经验", C_ORANGE, C_GOLD, (int)p.exp());
@@ -1636,8 +1687,7 @@ static void ShowPersonStatus_sub(int id, int page)
         if (p.level() >= g_CC.PersonAttribMax["人物等级"])
             DrawString(x1 + x2, y1 + h * i, "    =", C_GOLD, size);
         else {
-            snprintf(buf, sizeof(buf), "%5d", g_CC.Exp[p.level()]);
-            DrawString(x1 + x2, y1 + h * i, buf, C_GOLD, size);
+            DrawString(x1 + x2, y1 + h * i, std::format("{:5d}", g_CC.Exp[p.level()]), C_GOLD, size);
         }
         i++;
 
@@ -1687,12 +1737,13 @@ static void ShowPersonStatus_sub(int id, int page)
             DrawString(x1 + size, y1 + h * i, g_JY.getThing(thingid).name(), C_GOLD, size);
             i++;
             int n = TrainNeedExp(id);
+            std::string trainStr;
             if (n < 32767) {
-                snprintf(buf, sizeof(buf), "%5d/%5d", p.trainPoints(), n);
+                trainStr = std::format("{:5d}/{:5d}", p.trainPoints(), n);
             } else {
-                snprintf(buf, sizeof(buf), "%5d/===", p.trainPoints());
+                trainStr = std::format("{:5d}/===", p.trainPoints());
             }
-            DrawString(x1 + size, y1 + h * i, buf, C_GOLD, size);
+            DrawString(x1 + size, y1 + h * i, trainStr, C_GOLD, size);
         }
         else
         {
@@ -1712,8 +1763,7 @@ static void ShowPersonStatus_sub(int id, int page)
             {
                 int lv = p.wugongLevel(j) / 100 + 1;
                 DrawString(x1 + size, y1 + h * i, g_JY.getWugong(wg).name(), C_GOLD, size);
-                snprintf(buf, sizeof(buf), "%2d", lv);
-                DrawString(x1 + size * 7, y1 + h * i, buf, C_WHITE, size);
+                DrawString(x1 + size * 7, y1 + h * i, std::format("{:2d}", lv), C_WHITE, size);
             }
         }
     }
@@ -1756,9 +1806,7 @@ void Menu_Doctor()
         int id = base.team(i);
         if (id >= 0 && g_JY.getPerson(id).medic() >= 20)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "%-10s%4d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).medic());
-            menu1.push_back({buf, nullptr, 1});
+            menu1.push_back({std::format("{:<10s}{:4d}", g_JY.getPerson(id).name(), g_JY.getPerson(id).medic()), nullptr, 1});
         }
         else
             menu1.push_back({"", nullptr, 0});
@@ -1779,9 +1827,7 @@ void Menu_Doctor()
             int id = base.team(i);
             if (id >= 0)
             {
-                char buf[64];
-                snprintf(buf, sizeof(buf), "%-10s%4d/%4d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).hp(), g_JY.getPerson(id).maxHp());
-                menu2.push_back({buf, nullptr, 1});
+                menu2.push_back({std::format("{:<10s}{:4d}/{:4d}", g_JY.getPerson(id).name(), g_JY.getPerson(id).hp(), g_JY.getPerson(id).maxHp()), nullptr, 1});
             }
             else
                 menu2.push_back({"", nullptr, 0});
@@ -1792,9 +1838,7 @@ void Menu_Doctor()
             int patientid = base.team(r2);
             int num = ExecDoctor(doctorid, patientid);
             if (num > 0) AddPersonAttrib(doctorid, "体力", -2);
-            char buf[256];
-            snprintf(buf, sizeof(buf), "%s 生命增加 %d", g_JY.getPerson(patientid).name().c_str(), num);
-            DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+            DrawStrBoxWaitKey(std::format("{} 生命增加 {}", g_JY.getPerson(patientid).name(), num), C_ORANGE, g_CC.DefaultFont);
         }
     }
     Cls();
@@ -1813,9 +1857,7 @@ void Menu_DecPoison()
         int id = base.team(i);
         if (id >= 0 && g_JY.getPerson(id).detox() >= 20)
         {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "%-10s%4d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).detox());
-            menu1.push_back({buf, nullptr, 1});
+            menu1.push_back({std::format("{:<10s}{:4d}", g_JY.getPerson(id).name(), g_JY.getPerson(id).detox()), nullptr, 1});
         }
         else
             menu1.push_back({"", nullptr, 0});
@@ -1838,9 +1880,7 @@ void Menu_DecPoison()
             int id = base.team(i);
             if (id >= 0)
             {
-                char buf[64];
-                snprintf(buf, sizeof(buf), "%-10s%5d", g_JY.getPerson(id).name().c_str(), g_JY.getPerson(id).poison());
-                menu2.push_back({buf, nullptr, 1});
+                menu2.push_back({std::format("{:<10s}{:5d}", g_JY.getPerson(id).name(), g_JY.getPerson(id).poison()), nullptr, 1});
             }
             else
                 menu2.push_back({"", nullptr, 0});
@@ -1850,9 +1890,7 @@ void Menu_DecPoison()
         {
             int patientid = base.team(r2);
             int num = ExecDecPoison(doctorid, patientid);
-            char buf[256];
-            snprintf(buf, sizeof(buf), "%s 中毒程度减少 %d", g_JY.getPerson(patientid).name().c_str(), num);
-            DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+            DrawStrBoxWaitKey(std::format("{} 中毒程度减少 {}", g_JY.getPerson(patientid).name(), num), C_ORANGE, g_CC.DefaultFont);
         }
     }
     Cls();
@@ -2448,10 +2486,8 @@ void NewGame()
 
         // 绘制属性（4列×3行）
         auto drawAttrib = [&](int col, const char* label, int value) {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "%3d", value);
             DrawString(x1 + col * w, y1, label, C_RED, fontsize);
-            DrawString(x1 + col * w + fontsize * 2, y1, buf, C_WHITE, fontsize);
+            DrawString(x1 + col * w + fontsize * 2, y1, std::format("{:3d}", value), C_WHITE, fontsize);
         };
 
         drawAttrib(0, "内力", person0.mp());
@@ -2518,9 +2554,7 @@ void Edition()
     if (r < 1) r = 1;
     g_Config.Version = r;
     // 更新 DataPath, 让 g_CC.init 使用正确的数据目录
-    char pathbuf[256];
-    snprintf(pathbuf, sizeof(pathbuf), "%sdata/%d/", g_Config.CurrentPath.c_str(), g_Config.Version);
-    g_Config.DataPath = pathbuf;
+    g_Config.DataPath = std::format("{}data/{}/", g_Config.CurrentPath, g_Config.Version);
     g_CC.init(g_Config.Version, g_Config.Zoom);
 }
 

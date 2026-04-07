@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <format>
 
 // 前向声明
 int WarMain(int warid, int isexp);
@@ -700,9 +701,7 @@ static void instruct_34_jy(int id, int value)
         {
             p.setWugong(i, wugongid);
             p.setWugongLevel(i, 0);
-            char buf[256];
-            snprintf(buf, sizeof(buf), "%s 学会武功 %s", p.name().c_str(), g_JY.getWugong(wugongid).name().c_str());
-            DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+            DrawStrBoxWaitKey(std::format("{} 学会武功 {}", p.name(), g_JY.getWugong(wugongid).name()), C_ORANGE, g_CC.DefaultFont);
             return;
         }
     }
@@ -711,26 +710,20 @@ static void instruct_34_jy(int id, int value)
 static void instruct_45_jy(int id, int value)
 {
     int add = AddPersonAttrib(id, "轻功", value);
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s 轻功 %+d", g_JY.getPerson(id).name().c_str(), add);
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+    DrawStrBoxWaitKey(std::format("{} 轻功 {:+d}", g_JY.getPerson(id).name(), add), C_ORANGE, g_CC.DefaultFont);
 }
 
 static void instruct_46_jy(int id, int value)
 {
     int add = AddPersonAttrib(id, "内力最大值", value);
     AddPersonAttrib(id, "内力", 0);
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s 内力最大值%+d", g_JY.getPerson(id).name().c_str(), add);
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+    DrawStrBoxWaitKey(std::format("{} 内力最大值{:+d}", g_JY.getPerson(id).name(), add), C_ORANGE, g_CC.DefaultFont);
 }
 
 static void instruct_47_jy(int id, int value)
 {
     int add = AddPersonAttrib(id, "攻击力", value);
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s 攻击力%+d", g_JY.getPerson(id).name().c_str(), add);
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+    DrawStrBoxWaitKey(std::format("{} 攻击力{:+d}", g_JY.getPerson(id).name(), add), C_ORANGE, g_CC.DefaultFont);
 }
 
 static void instruct_48_jy(int id, int value)
@@ -739,9 +732,7 @@ static void instruct_48_jy(int id, int value)
     AddPersonAttrib(id, "生命", 0);
     if (instruct_16(id))
     {
-        char buf[256];
-        snprintf(buf, sizeof(buf), "%s 生命最大值%+d", g_JY.getPerson(id).name().c_str(), add);
-        DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+        DrawStrBoxWaitKey(std::format("{} 生命最大值{:+d}", g_JY.getPerson(id).name(), add), C_ORANGE, g_CC.DefaultFont);
     }
 }
 
@@ -759,16 +750,12 @@ static void instruct_51_jy()
 
 static void instruct_52_jy()
 {
-    char buf[256];
-    snprintf(buf, sizeof(buf), "你现在的品德指数为 %d", g_JY.getPerson(0).getByName("品德"));
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+    DrawStrBoxWaitKey(std::format("你现在的品德指数为 {}", g_JY.getPerson(0).getByName("品德")), C_ORANGE, g_CC.DefaultFont);
 }
 
 static void instruct_53_jy()
 {
-    char buf[256];
-    snprintf(buf, sizeof(buf), "你现在的声望指数为 %d", g_JY.getPerson(0).getByName("声望"));
-    DrawStrBoxWaitKey(buf, C_ORANGE, g_CC.DefaultFont);
+    DrawStrBoxWaitKey(std::format("你现在的声望指数为 {}", g_JY.getPerson(0).getByName("声望")), C_ORANGE, g_CC.DefaultFont);
 }
 
 static void instruct_54_jy()
@@ -942,9 +929,7 @@ static void instruct_64_jy()
         if (thingid < 0) thingid = 0;
         int price = shop.getByName("物品价格" + std::to_string(i));
         int num = shop.getByName("物品数量" + std::to_string(i));
-        char buf[256];
-        snprintf(buf, sizeof(buf), "%-12s %5d", g_JY.getThing(thingid).name().c_str(), price);
-        menu.push_back({buf, nullptr, num > 0 ? 1 : 0});
+        menu.push_back({std::format("{:<12s} {:5d}", g_JY.getThing(thingid).name(), price), nullptr, num > 0 ? 1 : 0});
     }
 
     int x1 = (g_CC.ScreenW - 9 * g_CC.DefaultFont - 2 * g_CC.MenuBorderPixel) / 2;
