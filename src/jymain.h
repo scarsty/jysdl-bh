@@ -63,9 +63,12 @@ int Lua_Config(lua_State* pL, const char* filename);
 int getfield(lua_State* pL, const char* key);
 int getfieldstr(lua_State* pL, const char* key, char* str);
 
-// 日志输出
-int JY_Debug(const char* fmt, ...);
-int JY_Error(const char* fmt, ...);
+// 日志输出 (底层实现，由宏包装自动注入 __FILE__/__LINE__/__FUNCTION__)
+int JY_Debug_Impl(const char* file, int line, const char* func, const char* fmt, ...);
+int JY_Error_Impl(const char* file, int line, const char* func, const char* fmt, ...);
+
+#define JY_Debug(...) JY_Debug_Impl(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#define JY_Error(...) JY_Error_Impl(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 // 通用工具
 int limitX(int x, int xmin, int xmax);

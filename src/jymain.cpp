@@ -9,21 +9,11 @@
 #include "sdlfun.h"
 #include <stdio.h>
 #include <time.h>
+#include <sys/stat.h>
 
-// 避免 jymain.h 中的 BOOL/TRUE/FALSE 宏污染 Windows 头文件
-#ifdef BOOL
-#undef BOOL
+#ifdef _WIN32
+extern "C" __declspec(dllimport) int __stdcall SetConsoleOutputCP(unsigned int);
 #endif
-#ifdef TRUE
-#undef TRUE
-#endif
-#ifdef FALSE
-#undef FALSE
-#endif
-
-#include "spdlog/spdlog.h"
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 // 全局变量
 SDL_Window* g_Window = NULL;
@@ -78,23 +68,82 @@ lua_State* pL_main = NULL;
 void* g_Tinypot;
 ParticleExample g_Particle;
 
-std::shared_ptr<spdlog::logger> g_LogDebug, g_LogError;
+static FILE* g_LogDebugFile = NULL;
+static FILE* g_LogErrorFile = NULL;
 
-static int JY_LogV(const std::shared_ptr<spdlog::logger>& logger, spdlog::level::level_enum level, const char* fmt, va_list args)
+static const char* JY_LogPriorityName(SDL_LogPriority priority)
 {
-    if (!logger || !fmt)
+    switch (priority)
     {
-        return -1;
+    case SDL_LOG_PRIORITY_VERBOSE: return "VERBOSE";
+    case SDL_LOG_PRIORITY_DEBUG:   return "DEBUG";
+    case SDL_LOG_PRIORITY_INFO:    return "INFO";
+    case SDL_LOG_PRIORITY_WARN:    return "WARN";
+    case SDL_LOG_PRIORITY_ERROR:   return "ERROR";
+    case SDL_LOG_PRIORITY_CRITICAL:return "CRITICAL";
+    default:                       return "UNKNOWN";
     }
+}
 
-    char buffer[2048];
-    int n = vsnprintf(buffer, sizeof(buffer), fmt, args);
-    if (n < 0)
-    {
-        return -1;
-    }
+static void JY_FormatNow(char* out, size_t size)
+{
+    if (!out || size == 0) return;
+    time_t now = time(NULL);
+    struct tm tm_now;
+#ifdef _WIN32
+    localtime_s(&tm_now, &now);
+#else
+    localtime_r(&now, &tm_now);
+#endif
+    Uint64 ticks = SDL_GetTicks();
+    snprintf(out, size, "%04d-%02d-%02d %02d:%02d:%02d.%03llu",
+        tm_now.tm_year + 1900, tm_now.tm_mon + 1, tm_now.tm_mday,
+        tm_now.tm_hour, tm_now.tm_min, tm_now.tm_sec,
+        (unsigned long long)(ticks % 1000));
+}
 
-    logger->log(level, "{}", buffer);
+static int JY_WriteLogLine(FILE* fp, const char* msg)
+{
+    if (!fp || !msg) return -1;
+    if (fprintf(fp, "%s\n", msg) < 0) return -1;
+    fflush(fp);
+    return 0;
+}
+
+static int JY_LogMessage(SDL_LogPriority priority, const char* file, int line,
+    const char* func, const char* fmt, va_list args)
+{
+    if (!fmt || !file || !func) return -1;
+
+    char user_msg[2048];
+    int n = vsnprintf(user_msg, sizeof(user_msg), fmt, args);
+    if (n < 0) return -1;
+
+    char time_text[64] = {0};
+    JY_FormatNow(time_text, sizeof(time_text));
+
+    char full_msg[3072];
+    snprintf(full_msg, sizeof(full_msg), "[%s][%s][%s:%d][FUNC:%s] %s",
+        time_text, JY_LogPriorityName(priority), file, line, func, user_msg);
+
+    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, priority, "%s", full_msg);
+
+    if (priority >= SDL_LOG_PRIORITY_ERROR)
+        return JY_WriteLogLine(g_LogErrorFile, full_msg);
+    return JY_WriteLogLine(g_LogDebugFile, full_msg);
+}
+
+static void JY_CloseLogFiles()
+{
+    if (g_LogDebugFile) { fclose(g_LogDebugFile); g_LogDebugFile = NULL; }
+    if (g_LogErrorFile) { fclose(g_LogErrorFile); g_LogErrorFile = NULL; }
+}
+
+static int JY_OpenLogFiles()
+{
+    g_LogDebugFile = fopen(DEBUG_FILE, "w");
+    g_LogErrorFile = fopen(ERROR_FILE, "w");
+    if (!g_LogDebugFile || !g_LogErrorFile) { JY_CloseLogFiles(); return -1; }
     return 0;
 }
 
@@ -226,22 +275,10 @@ int main(int argc, char* argv[])
     //lua_State* pL_main;
     srand(time(0));
 
-    // 初始化日志
-    spdlog::set_level(spdlog::level::debug);
-
-    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    auto debug_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(DEBUG_FILE, true);
-    auto error_file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(ERROR_FILE, true);
-
-    g_LogDebug = std::make_shared<spdlog::logger>("jysdl.debug", spdlog::sinks_init_list{ console_sink, debug_file_sink });
-    g_LogError = std::make_shared<spdlog::logger>("jysdl.error", spdlog::sinks_init_list{ console_sink, error_file_sink });
-
-    g_LogDebug->set_level(spdlog::level::debug);
-    g_LogError->set_level(spdlog::level::err);
-    g_LogDebug->set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
-    g_LogError->set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
-    g_LogDebug->flush_on(spdlog::level::err);
-    g_LogError->flush_on(spdlog::level::err);
+    // 初始化 SDL 日志优先级和文件输出
+    SDL_SetLogPriorities(SDL_LOG_PRIORITY_DEBUG);
+    if (JY_OpenLogFiles() != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "cannot open %s or %s", DEBUG_FILE, ERROR_FILE);
 
     pL_main = luaL_newstate();
     luaL_openlibs(pL_main);
@@ -279,8 +316,7 @@ int main(int argc, char* argv[])
 
     //关闭lua
     lua_close(pL_main);
-
-    spdlog::shutdown();
+    JY_CloseLogFiles();
 
     return 0;
 }
@@ -404,21 +440,21 @@ int getfieldstr(lua_State* pL, const char* key, char* str)
 // ============ 通用工具函数 ============
 
 // 输出调试信息到 debug.log
-int JY_Debug(const char* fmt, ...)
+int JY_Debug_Impl(const char* file, int line, const char* func, const char* fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
-    int ret = JY_LogV(g_LogDebug, spdlog::level::debug, fmt, argptr);
+    int ret = JY_LogMessage(SDL_LOG_PRIORITY_DEBUG, file, line, func, fmt, argptr);
     va_end(argptr);
     return ret;
 }
 
 // 输出错误信息到 error.log
-int JY_Error(const char* fmt, ...)
+int JY_Error_Impl(const char* file, int line, const char* func, const char* fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
-    int ret = JY_LogV(g_LogError, spdlog::level::err, fmt, argptr);
+    int ret = JY_LogMessage(SDL_LOG_PRIORITY_ERROR, file, line, func, fmt, argptr);
     va_end(argptr);
     return ret;
 }

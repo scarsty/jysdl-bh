@@ -3,6 +3,7 @@
 //移植自Cocos2dx，版权声明请查看licenses文件夹
 
 #include "SDL3/SDL.h"
+#include <cmath>
 #include <vector>
 #include <string>
 

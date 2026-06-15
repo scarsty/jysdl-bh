@@ -3,7 +3,9 @@
 // SDL 相关函数
 
 #include "sdlfun.h"
+#ifdef WIN32
 #include "PotDll.h"
+#endif
 #include "charset.h"
 #include "jymain.h"
 #include "Audio.h"
