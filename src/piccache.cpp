@@ -7,6 +7,161 @@
 #include "jymain.h"
 #include "sdlfun.h"
 
+#include <cctype>
+#include <cstdlib>
+#include <filesystem>
+
+bool IsSupportedImageExtension(const std::string& extension)
+{
+    return extension == "png" || extension == "webp";
+}
+
+std::string GetLowerExtension(const std::string& filename)
+{
+    std::filesystem::path path(filename);
+    std::string extension = path.extension().string();
+    if (!extension.empty() && extension.front() == '.')
+    {
+        extension.erase(0, 1);
+    }
+    for (char& character : extension)
+    {
+        character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+    }
+    return extension;
+}
+
+std::string NormalizeImageExtension(const char* suffix)
+{
+    std::string extension = suffix ? suffix : "";
+    if (!extension.empty() && extension.front() == '.')
+    {
+        extension.erase(0, 1);
+    }
+    for (char& character : extension)
+    {
+        character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+    }
+    return extension;
+}
+
+bool GetImageNumber(const std::string& filename, int& image_number)
+{
+    const std::string stem = std::filesystem::path(filename).stem().string();
+    size_t end = 0;
+    while (end < stem.size() && std::isdigit(static_cast<unsigned char>(stem[end])))
+    {
+        ++end;
+    }
+    if (end == 0 || (end < stem.size() && stem[end] != '_'))
+    {
+        return false;
+    }
+
+    try
+    {
+        image_number = std::stoi(stem.substr(0, end));
+        return image_number >= 0;
+    }
+    catch (const std::exception&)
+    {
+        return false;
+    }
+}
+
+void CollectImageInfo(const std::vector<std::string>& files, const char* requested_suffix,
+    int& max_image_number, std::string& image_suffix, bool& mixed_image_formats)
+{
+    const std::string requested_extension = NormalizeImageExtension(requested_suffix);
+    bool requested_extension_found = false;
+    max_image_number = -1;
+    mixed_image_formats = false;
+
+    for (const std::string& filename : files)
+    {
+        const std::string extension = GetLowerExtension(filename);
+        if (!IsSupportedImageExtension(extension))
+        {
+            continue;
+        }
+
+        int image_number = -1;
+        if (!GetImageNumber(filename, image_number))
+        {
+            continue;
+        }
+
+        if (!requested_extension.empty() && extension == requested_extension)
+        {
+            requested_extension_found = true;
+        }
+        if (image_suffix.empty())
+        {
+            image_suffix = extension;
+        }
+        else if (image_suffix != extension)
+        {
+            mixed_image_formats = true;
+        }
+        max_image_number = (std::max)(max_image_number, image_number);
+    }
+
+    if (requested_extension_found && !mixed_image_formats)
+    {
+        image_suffix = requested_extension;
+    }
+}
+
+SDL_IOStream* OpenImageIO(const PicFileCache& cache, int image_number, int frame,
+    std::string& content)
+{
+    char filename[64];
+    if (frame < 0)
+    {
+        snprintf(filename, sizeof(filename), "%d.%s", image_number, cache.suffix);
+    }
+    else
+    {
+        snprintf(filename, sizeof(filename), "%d_%d.%s", image_number, frame, cache.suffix);
+    }
+
+    if (cache.zip_file.opened())
+    {
+        content = cache.zip_file.readFile(filename);
+        if (content.empty())
+        {
+            return NULL;
+        }
+        return SDL_IOFromMem(content.data(), content.size());
+    }
+
+    char path[1024];
+    snprintf(path, sizeof(path), "%s/%s", cache.path, filename);
+    return SDL_IOFromFile(path, "rb");
+}
+
+bool ParseIndexTextLine(const std::string& line, int& image_number, int& x_offset, int& y_offset)
+{
+    int* values[] = { &image_number, &x_offset, &y_offset };
+    int count = 0;
+    const char* cursor = line.c_str();
+    while (*cursor && count < 3)
+    {
+        char* end = nullptr;
+        const long value = std::strtol(cursor, &end, 10);
+        if (end != cursor)
+        {
+            *values[count++] = static_cast<int>(value);
+            cursor = end;
+        }
+        else
+        {
+            ++cursor;
+        }
+    }
+    return count == 3;
+}
+
 PicFileCache pic_file[PIC_FILE_NUM];
 //std::forward_list<CacheNode*> pic_cache;     //pic_cache链表
 Uint32 m_color32[256];    // 256调色板
@@ -586,33 +741,81 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
     pic_file[fileid].zip_file.open(zip_name);
 
     char index_name[1024];
+    std::string index_txt;
     std::vector<short> offset;
+    std::vector<std::string> files;
 
     if (pic_file[fileid].zip_file.opened())
     {
-        std::string content = pic_file[fileid].zip_file.readFile("index.ka");
-        ll = content.size();
-        offset.resize(ll / 2);
-        memcpy(offset.data(), content.data(), offset.size() * 2);
+        files = pic_file[fileid].zip_file.getFileNames();
+        index_txt = pic_file[fileid].zip_file.readFile("index.txt");
+        if (index_txt.empty())
+        {
+            std::string content = pic_file[fileid].zip_file.readFile("index.ka");
+            ll = content.size();
+            offset.resize(ll / 2);
+            memcpy(offset.data(), content.data(), offset.size() * 2);
+        }
     }
     else
     {
-        sprintf(index_name, "%s/index.ka", path);
+        std::error_code error;
+        for (const auto& entry : std::filesystem::directory_iterator(path, error))
+        {
+            if (!error && entry.is_regular_file())
+            {
+                files.push_back(entry.path().filename().string());
+            }
+        }
+
+        sprintf(index_name, "%s/index.txt", path);
         if (FILE* f = fopen(index_name, "rb"))
         {
-            JY_Debug("JY_LoadPNGPath: found index file!\n");
             fseek(f, 0, SEEK_END);
-            ll = ftell(f);
-            fseek(f, 0, 0);
-            offset.resize(ll / 2);
-            fread(offset.data(), 2, ll / 2, f);
+            const long length = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            index_txt.resize(length);
+            fread(index_txt.data(), 1, index_txt.size(), f);
             fclose(f);
+        }
+
+        sprintf(index_name, "%s/index.ka", path);
+        if (index_txt.empty())
+        {
+            if (FILE* f = fopen(index_name, "rb"))
+            {
+                JY_Debug("JY_LoadPNGPath: found index.ka file!\n");
+                fseek(f, 0, SEEK_END);
+                ll = ftell(f);
+                fseek(f, 0, 0);
+                offset.resize(ll / 2);
+                fread(offset.data(), 2, ll / 2, f);
+                fclose(f);
+            }
+        }
+    }
+
+    int max_image_number = -1;
+    bool mixed_image_formats = false;
+    std::string image_suffix;
+    CollectImageInfo(files, suffix, max_image_number, image_suffix, mixed_image_formats);
+    if (mixed_image_formats)
+    {
+        JY_Error("JY_LoadPNGPath: %s mixes PNG and WebP files!\n", path);
+        return 1;
+    }
+    if (image_suffix.empty())
+    {
+        image_suffix = NormalizeImageExtension(suffix ? suffix : "png");
+        if (!IsSupportedImageExtension(image_suffix))
+        {
+            image_suffix = "png";
         }
     }
 
     if (num < 0)
     {
-        num = ll / 4;    //图片个数
+        num = max_image_number + 1;
     }
 
     //sb500修改
@@ -633,31 +836,42 @@ int JY_LoadPNGPath(const char* path, int fileid, int num, int percent, const cha
         }
     }
 
-    if (ll == 0)
+    pic_file[fileid].offset.assign(pic_file[fileid].num * 2, 0);
+    if (!index_txt.empty())
     {
-        //没有index文件
-        pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
-        for (i = 0; i < pic_file[fileid].num; i++)
+        size_t line_start = 0;
+        while (line_start < index_txt.size())
         {
-            //没找到index文件则设置为一个不可能的数字
-            pic_file[fileid].offset[i * 2] = 9999;
-            pic_file[fileid].offset[i * 2 + 1] = 9999;
+            const size_t line_end = index_txt.find_first_of("\r\n", line_start);
+            const std::string line = index_txt.substr(line_start, line_end - line_start);
+            int image_number = -1;
+            int x_offset = 0;
+            int y_offset = 0;
+            if (ParseIndexTextLine(line, image_number, x_offset, y_offset)
+                && image_number >= 0 && image_number < pic_file[fileid].num)
+            {
+                pic_file[fileid].offset[image_number * 2] = static_cast<short>(x_offset);
+                pic_file[fileid].offset[image_number * 2 + 1] = static_cast<short>(y_offset);
+            }
+            if (line_end == std::string::npos)
+            {
+                break;
+            }
+            line_start = line_end + 1;
+            if (line_start < index_txt.size() && index_txt[line_end] == '\r' && index_txt[line_start] == '\n')
+            {
+                ++line_start;
+            }
         }
     }
-    else
+    else if (ll > 0)
     {
-        //有index文件，则读取到的部分按照index设置偏移
         pic_file[fileid].offset = offset;
         pic_file[fileid].offset.resize(pic_file[fileid].num * 2);
-        for (i = ll / 4; i < pic_file[fileid].num; i++)
-        {
-            pic_file[fileid].offset[i * 2] = 9999;
-            pic_file[fileid].offset[i * 2 + 1] = 9999;
-        }
     }
 
     pic_file[fileid].percent = percent;
-    sprintf(pic_file[fileid].suffix, "%s", suffix);
+    sprintf(pic_file[fileid].suffix, "%s", image_suffix.c_str());
 
     return 0;
 }
@@ -684,7 +898,6 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
     }
     if (pic_file[fileid].pcache[picid] == NULL)    //当前贴图没有加载
     {
-        char str[512];
         SDL_IOStream* fp_SDL;
         double zoom = (double)pic_file[fileid].percent / 100.0;
         std::string content;
@@ -700,76 +913,51 @@ int JY_LoadPNG(int fileid, int picid, int x, int y, int flag, int value, int per
         newcache->fileid = fileid;
         newcache->t_count = 1;
 
-        if (pic_file[fileid].zip_file.opened())
+        fp_SDL = OpenImageIO(pic_file[fileid], picid, -1, content);
+        if (fp_SDL == NULL)
         {
-            sprintf(str, "%d.png", picid);
-            content = pic_file[fileid].zip_file.readFile(str);
-            fp_SDL = SDL_IOFromMem((void*)content.data(), content.size());
-            if (fp_SDL == NULL)
+            for (int i = 0; i < TEXTURE_NUM; i++)
             {
-                sprintf(str, "%d_0.png", picid);
-                content = pic_file[fileid].zip_file.readFile(str);
-                fp_SDL = SDL_IOFromMem((void*)content.data(), content.size());
-                for (int i = 1; i < TEXTURE_NUM; i++)
+                std::string frame_content;
+                SDL_IOStream* frame_stream = OpenImageIO(pic_file[fileid], picid, i, frame_content);
+                if (frame_stream == NULL)
                 {
-                    sprintf(str, "%d_%d.png", picid, i);
-                    std::string content1 = pic_file[fileid].zip_file.readFile(str);
-                    SDL_IOStream* fp_SDL1 = SDL_IOFromMem((void*)content1.data(), content1.size());
-                    if (IMG_isPNG(fp_SDL1))
-                    {
-                        tmpsur = IMG_LoadTyped_IO(fp_SDL1, true, "png");
-                        newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
-                        newcache->t_count = i + 1;
-                        SDL_DestroySurface(tmpsur);
-                    }
+                    break;
                 }
+                tmpsur = IMG_Load_IO(frame_stream, true);
+                if (tmpsur == NULL)
+                {
+                    break;
+                }
+                if (i == 0)
+                {
+                    newcache->xoff = pic_file[fileid].offset[picid * 2];
+                    newcache->yoff = pic_file[fileid].offset[picid * 2 + 1];
+                    newcache->w = tmpsur->w;
+                    newcache->h = tmpsur->h;
+                    newcache->s = tmpsur;
+                    newcache->toTexture();
+                }
+                else
+                {
+                    newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
+                    SDL_DestroySurface(tmpsur);
+                }
+                newcache->t_count = i + 1;
             }
         }
-        else
+        if (fp_SDL != NULL)
         {
-            sprintf(str, "%s/%d.png", pic_file[fileid].path, picid);
-            fp_SDL = SDL_IOFromFile(str, "rb");
-            if (fp_SDL == NULL)
-            {
-                sprintf(str, "%s/%d_0.png", pic_file[fileid].path, picid);
-                fp_SDL = SDL_IOFromFile(str, "rb");
-                for (int i = 1; i < TEXTURE_NUM; i++)
-                {
-                    sprintf(str, "%s/%d_%d.png", pic_file[fileid].path, picid, i);
-                    /*newcache->tt[i] = IMG_LoadTexture(g_Renderer, str);
-                    if (newcache->tt[i]) { newcache->t_count = i; }*/
-                    SDL_IOStream* fp_SDL1 = SDL_IOFromFile(str, "rb");
-                    if (IMG_isPNG(fp_SDL1))
-                    {
-                        tmpsur = IMG_LoadTyped_IO(fp_SDL1, true, "png");
-                        newcache->tt[i] = SDL_CreateTextureFromSurface(g_Renderer, tmpsur);
-                        newcache->t_count = i + 1;
-                        SDL_DestroySurface(tmpsur);
-                    }
-                }
-            }
-        }
-        if (IMG_isPNG(fp_SDL))
-        {
-            tmpsur = IMG_LoadTyped_IO(fp_SDL, true, "png");
+            tmpsur = IMG_Load_IO(fp_SDL, true);
             if (tmpsur == NULL)
             {
-                JY_Error("JY_LoadPNG: cannot create SDL_Surface tmpsurf!\n");
+                JY_Error("JY_LoadPNG: cannot create SDL_Surface from image!\n");
                 return 1;
             }
 
             //sb500
             newcache->xoff = pic_file[fileid].offset[picid * 2];
             newcache->yoff = pic_file[fileid].offset[picid * 2 + 1];
-
-            if (newcache->xoff == 9999)
-            {
-                newcache->xoff = tmpsur->w / 2;
-            }
-            if (newcache->yoff == 9999)
-            {
-                newcache->yoff = tmpsur->h / 2;
-            }
 
             newcache->w = tmpsur->w;
             newcache->h = tmpsur->h;

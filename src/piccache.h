@@ -51,8 +51,8 @@ struct PicFileCache                             //贴图文件链表节点
     int percent;                                //指定比例
     std::vector<CacheNode*> pcache;             //文件中所有的贴图对应的cache节点指针，为空则表示没有。
     char path[512];                             //目录
-    char suffix[12];                            //后缀名
-    int type = 0;                               //0-idx/grp, 1-png path with index.ka
+    char suffix[12];                            //图片后缀名（png 或 webp）
+    int type = 0;                               //0-idx/grp, 1-图片目录或 ZIP
     std::vector<short> offset;                  //偏移值
     ZipFile zip_file;
 };
